@@ -1,47 +1,40 @@
 # Journal du projet Lumyn
 
-## État actuel
+---
 
-- Projet : Lumyn
-- Moteur intelligent prévu : Synapse
-- Version actuelle : 0.0.0
-- Phase : préparation
-- Code commencé : non
+# Séance 1 — 21/07/2026
 
-## Vision
+## Objectif
 
-Lumyn est un assistant personnel modulaire conçu pour réduire la charge mentale.
+Lancer officiellement le projet Lumyn.
 
-L’application évoluera progressivement à partir de problèmes réels rencontrés au quotidien.
+## Réalisé
 
-## Premier problème à résoudre
+- Définition de la vision du projet.
+- Choix du nom **Lumyn**.
+- Choix du moteur intelligent **Synapse**.
+- Choix provisoire de BeeWare, Toga et Briefcase.
+- Diagnostic complet du PC.
+- Création de l'architecture du projet.
+- Initialisation de Git.
+- Création du dépôt GitHub.
+- Premier push vers GitHub.
+- Création de la documentation initiale.
+- Rédaction du README.
 
-Créer rapidement un rendez-vous dans Google Agenda avec des rappels automatiques.
+## Décisions importantes
 
-## Déjà terminé
+- Lumyn sera un assistant personnel modulaire.
+- Chaque fonctionnalité devra répondre à un problème réel.
+- Le projet sera développé par petites versions successives.
+- Les données seront stockées localement autant que possible.
 
-- Diagnostic du PC
-- Choix du nom Lumyn
-- Définition générale du projet
-- Choix provisoire de BeeWare, Toga et Briefcase
-- Création de l’architecture documentaire
+## Difficultés rencontrées
 
-## Environnement actuel
+Aucune difficulté bloquante.
 
-- Windows 10 Pro
-- Intel Core i7-3770K
-- 8 Go de RAM
-- NVIDIA GeForce GT 630
-- Python 3.13.3
-- Git 2.54.0
-- Visual Studio Code 1.120.0
-- Java non installé
-- WSL non confirmé
+## Prochaine étape
 
-## Étape en cours
+Créer un environnement virtuel Python puis installer BeeWare.
 
-Créer et documenter le dossier du projet.
-
-## Prochaine étape unique
-
-Créer le dépôt Git local et préparer le premier commit.
+---

@@ -1,93 +1,126 @@
-﻿# Lumyn
+﻿# 💡 Lumyn
 
-> Un assistant personnel modulaire pensé pour alléger la charge mentale.
+> **Votre second cerveau numérique.**
 
-## Présentation
+Lumyn est un assistant personnel modulaire conçu pour réduire la charge mentale.
 
-Lumyn est un projet d’application pour Windows et Android.
+Le projet est né d'un besoin concret : capturer rapidement une information sans avoir à réfléchir à l'outil.
 
-Son objectif est d’aider l’utilisateur à capturer, organiser et retrouver rapidement les informations importantes de son quotidien.
+L'objectif n'est pas d'ajouter des dizaines de fonctionnalités.
 
-Le projet est né d’un problème concret : lorsqu’un rendez-vous est noté rapidement dans Google Agenda, les rappels peuvent facilement être oubliés.
+L'objectif est de résoudre un problème réel à la fois.
 
-Le premier module de Lumyn permettra donc de créer rapidement un rendez-vous avec des rappels automatiques.
+---
 
-Lumyn évoluera ensuite progressivement pour répondre à d’autres problèmes du quotidien.
+# Pourquoi Lumyn ?
 
-## Philosophie
+Les applications d'organisation demandent souvent de s'adapter à leur fonctionnement.
 
-- Une fonctionnalité doit résoudre un problème réel.
-- L’application doit s’adapter à l’utilisateur.
-- La simplicité est prioritaire.
-- Les fonctionnalités sont ajoutées progressivement.
-- Les données doivent rester locales lorsque cela est possible.
+Lumyn suit la philosophie inverse.
 
-## Premier objectif
+> **C'est l'application qui s'adapte à l'utilisateur.**
 
-Créer une application permettant de :
+Chaque fonctionnalité est développée parce qu'elle répond à un besoin réel rencontré au quotidien.
 
-1. saisir rapidement un rendez-vous ;
-2. détecter son titre, sa date et son heure ;
-3. créer l’événement dans Google Agenda ;
-4. ajouter automatiquement des rappels.
+---
 
-## Évolution envisagée
+# Vision
 
-Lumyn pourra accueillir différents modules :
+Construire progressivement un assistant personnel capable de :
 
-- rendez-vous ;
-- notes rapides ;
-- tâches ;
-- listes de courses ;
-- suivi de projets ;
-- recherche d’informations ;
-- saisie vocale facultative ;
-- moteur intelligent Synapse.
+- 📅 gérer les rendez-vous ;
+- 📝 capturer des notes rapidement ;
+- ✅ organiser les tâches ;
+- 📂 retrouver facilement les informations ;
+- 🧠 réduire la charge mentale.
 
-Ces fonctionnalités ne seront pas développées toutes en même temps.
+---
 
-## Synapse
+# Première version
 
-Synapse est le nom prévu pour le futur moteur intelligent de Lumyn.
+Le premier objectif est volontairement simple.
 
-Son rôle pourra être de relier les informations, faciliter les recherches et proposer une aide adaptée à l’utilisateur.
+Créer un module permettant de :
 
-Synapse n’est pas nécessaire pour la première version de Lumyn.
+- créer un rendez-vous rapidement ;
+- ajouter automatiquement plusieurs rappels ;
+- synchroniser l'événement avec Google Agenda.
 
-## Technologies envisagées
+---
+
+# Philosophie du projet
+
+Lumyn suit quelques règles simples :
+
+- une fonctionnalité = un problème résolu ;
+- simplicité avant complexité ;
+- développement par petites versions ;
+- documentation complète ;
+- code propre et maintenable.
+
+---
+
+# Technologies
+
+Le projet est développé avec :
 
 - Python
 - BeeWare
 - Toga
 - Briefcase
-- Git et GitHub
-- stockage local
-- intégration avec Google Agenda
+- Git
+- GitHub
 
-Le choix définitif du framework sera validé par un prototype technique.
+---
 
-## Plateformes visées
+# Documentation
 
-- Windows
-- Android
+Le projet est entièrement documenté.
 
-## État du projet
+| Document | Rôle |
+|----------|------|
+| PROJECT_STATE.md | État actuel du projet |
+| ROADMAP.md | Versions prévues |
+| JOURNAL.md | Journal des séances |
+| DECISIONS.md | Décisions importantes |
+| DEV_GUIDE.md | Méthode de développement |
+| AI_CONTEXT.md | Mémoire du projet |
+| docs/ARCHITECTURE.md | Architecture |
+| docs/HISTORY.md | Histoire du projet |
+| docs/IDEAS.md | Idées futures |
 
-Le projet est actuellement en phase d’initialisation et de documentation.
+---
 
-Aucune version utilisable n’est encore disponible.
+# État du projet
 
-## Documentation
+Version actuelle :
 
-- `PROJECT_STATE.md` : état actuel et prochaine étape ;
-- `JOURNAL.md` : historique des séances ;
-- `ROADMAP.md` : étapes prévues ;
-- `DECISIONS.md` : décisions importantes ;
-- `AI_CONTEXT.md` : mémoire permettant de reprendre le projet ;
-- `docs/ARCHITECTURE.md` : architecture du projet ;
-- `docs/HISTORY.md` : origine et évolution de Lumyn ;
-- `docs/IDEAS.md` : idées conservées pour plus tard.
+**0.0.2**
 
-## Auteure
+Le projet est prêt à entrer en phase de développement.
 
-Projet conçu et développé par **helfina**.
+---
+
+# Feuille de route
+
+Version 0.1 :
+
+- première application BeeWare ;
+- première fenêtre ;
+- première interface.
+
+Version 0.2 :
+
+- création rapide de rendez-vous.
+
+Version 0.3 :
+
+- synchronisation Google Agenda.
+
+---
+
+# Auteur
+
+Développé par **helfina**.
+
+Avec l'assistance de ChatGPT comme partenaire de développement.

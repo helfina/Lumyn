@@ -2,11 +2,13 @@
 
 ## Version
 
-0.0.1
+0.0.2
 
 ## Phase
 
-Initialisation et documentation.
+Initialisation terminée.
+
+Documentation en place.
 
 ## Terminé
 
@@ -16,16 +18,28 @@ Initialisation et documentation.
 - Choix provisoire de BeeWare, Toga et Briefcase
 - Création de la structure du projet
 - Initialisation de Git
-- Branche principale nommée main
+- Création de la branche principale `main`
+- Création de la documentation du projet
+- Création du README
+- Création du dépôt GitHub
+- Premier push vers GitHub
 
 ## Étape en cours
 
-Créer la documentation initiale du projet.
+Préparation de l'environnement de développement Python.
 
 ## Prochaine étape unique
 
-Compléter le README de Lumyn.
+Créer un environnement virtuel Python (`.venv`).
 
 ## Prochain commit prévu
 
-Ajout de la documentation et de la mémoire du projet.
+Préparation de l'environnement de développement.
+
+## Dépôt GitHub
+
+https://github.com/helfina/Lumyn
+
+## Dernière mise à jour
+
+21/07/2026
