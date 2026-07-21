@@ -80,3 +80,10 @@ Le projet sera développé par petites versions successives.
 Cette méthode permet de rester motivé, de limiter la complexité et d'obtenir rapidement des résultats utilisables.
 
 ---
+## 21/07/2026
+
+### Structure BeeWare
+
+La structure générée par BeeWare est conservée pour le moment.
+
+Une éventuelle réorganisation sera décidée uniquement après avoir compris son fonctionnement.

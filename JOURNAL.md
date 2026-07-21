@@ -38,3 +38,28 @@ Aucune difficulté bloquante.
 Créer un environnement virtuel Python puis installer BeeWare.
 
 ---
+---
+
+# Séance 2 — 21/07/2026
+
+## Objectif
+
+Créer la première application BeeWare.
+
+## Réalisé
+
+- Création de l'environnement virtuel Python.
+- Installation de Briefcase.
+- Création du projet BeeWare.
+- Premier lancement réussi de Lumyn.
+- Analyse de la structure générée.
+- Compréhension du fichier `app.py`.
+
+## Décisions importantes
+
+- Conserver la structure générée par BeeWare jusqu'à sa complète compréhension.
+- Commencer le développement par des interfaces simples avant d'ajouter de la logique.
+
+## Prochaine étape
+
+Ajouter un premier widget (`Label`) dans la fenêtre.

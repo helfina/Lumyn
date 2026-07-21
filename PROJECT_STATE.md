@@ -26,13 +26,13 @@ Préparation de l'environnement de développement.
 
 ## Étape en cours
 
-Préparer l'environnement Python.
+Compréhension de la structure BeeWare.
 
----
+La première application Lumyn démarre correctement.
 
 ## Prochaine étape unique
 
-Créer l'environnement virtuel (`.venv`) puis installer BeeWare.
+Comprendre le fonctionnement des widgets Toga en ajoutant un premier texte dans la fenêtre.
 
 ---
 
