@@ -2,43 +2,59 @@
 
 ## Version
 
-0.0.2
+0.0.3
 
 ## Phase
 
-Initialisation terminée.
+Préparation de l'environnement de développement.
 
-Documentation en place.
+---
 
 ## Terminé
 
-- Diagnostic du PC
-- Choix du nom Lumyn
-- Définition de la vision du projet
-- Choix provisoire de BeeWare, Toga et Briefcase
-- Création de la structure du projet
-- Initialisation de Git
-- Création de la branche principale `main`
-- Création de la documentation du projet
-- Création du README
-- Création du dépôt GitHub
-- Premier push vers GitHub
+- ✅ Définition de la vision du projet
+- ✅ Choix du nom **Lumyn**
+- ✅ Choix du moteur **Synapse**
+- ✅ Architecture du projet
+- ✅ Documentation complète
+- ✅ Initialisation de Git
+- ✅ Dépôt GitHub créé
+- ✅ Premier push GitHub
+- ✅ Templates GitHub (.github)
+
+---
 
 ## Étape en cours
 
-Préparation de l'environnement de développement Python.
+Préparer l'environnement Python.
+
+---
 
 ## Prochaine étape unique
 
-Créer un environnement virtuel Python (`.venv`).
+Créer l'environnement virtuel (`.venv`) puis installer BeeWare.
 
-## Prochain commit prévu
+---
 
-Préparation de l'environnement de développement.
+## Dernier commit
+
+Ajout des modèles de suivi GitHub
+
+---
 
 ## Dépôt GitHub
 
 https://github.com/helfina/Lumyn
+
+---
+
+## État du dépôt
+
+- Branche : `main`
+- Synchronisé avec GitHub : ✅
+- Working tree : propre
+
+---
 
 ## Dernière mise à jour
 
