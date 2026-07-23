@@ -3,7 +3,7 @@ Assistant personnel modulaire pensé pour alléger la charge mentale.
 """
 
 import toga
-from toga.style.pack import COLUMN, ROW
+from toga.style.pack import Pack, COLUMN, ROW
 
 
 class Lumyn(toga.App):
@@ -14,9 +14,15 @@ class Lumyn(toga.App):
         We then create a main window (with a name matching the app), and
         show the main window.
         """
-        main_box = toga.Box()
+        main_box = toga.Box(
+            style=Pack(
+                direction=COLUMN
+        )
+)
         bonjour = toga.Label("Bonjour Gaëlle 👋")
         main_box.add(bonjour)
+        bienvenue = toga.Label("Bienvenue dans Lumyn")
+        main_box.add(bienvenue)
         self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = main_box
         self.main_window.show()
