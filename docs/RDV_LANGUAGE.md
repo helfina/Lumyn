@@ -153,3 +153,31 @@ Réponse attendue :
 4. Une information manquante doit déclencher une question.
 5. L’analyseur doit être amélioré à partir de phrases réellement utilisées.
 6. L’application doit rester utilisable sans intelligence artificielle.
+
+---
+
+## Validation avant création
+
+Lumyn ne doit jamais créer immédiatement un rendez-vous à partir du texte saisi.
+
+Elle doit d’abord afficher ce qu’elle a compris :
+
+- titre ;
+- date ;
+- jour ;
+- heure ;
+- lieu éventuel.
+
+Puis demander une confirmation explicite.
+
+Exemple :
+
+```text
+Lumyn a compris :
+
+Titre : Dentiste
+Date : 21 juillet 2026
+Jour : mardi
+Heure : 14h30
+
+Confirmer la création ?
