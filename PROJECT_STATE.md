@@ -2,11 +2,11 @@
 
 ## Version
 
-0.0.3
+0.0.4
 
 ## Phase
 
-Préparation de l'environnement de développement.
+Développement de l'interface utilisateur.
 
 ---
 
@@ -15,32 +15,34 @@ Préparation de l'environnement de développement.
 - ✅ Définition de la vision du projet
 - ✅ Choix du nom **Lumyn**
 - ✅ Choix du moteur **Synapse**
-- ✅ Architecture du projet
-- ✅ Documentation complète
+- ✅ Architecture documentaire
 - ✅ Initialisation de Git
-- ✅ Dépôt GitHub créé
-- ✅ Premier push GitHub
-- ✅ Templates GitHub (.github)
+- ✅ Dépôt GitHub
+- ✅ Templates GitHub
+- ✅ Environnement virtuel Python
+- ✅ Installation de BeeWare
+- ✅ Création de la première application
+- ✅ Premier lancement réussi
+- ✅ Premier widget (`Label`)
+- ✅ Première mise en page (`COLUMN`)
 
 ---
 
 ## Étape en cours
 
-Compréhension de la structure BeeWare.
+Construction de l'écran d'accueil.
 
-La première application Lumyn démarre correctement.
+---
 
 ## Prochaine étape unique
 
-Comprendre le fonctionnement des widgets Toga en ajoutant un premier texte dans la fenêtre.
+Ajouter un premier bouton et comprendre les événements (`on_press`).
 
 ---
 
 ## Dernier commit
 
-Ajout des modèles de suivi GitHub
-
----
+Ajout du premier écran d'accueil de Lumyn
 
 ## Dépôt GitHub
 

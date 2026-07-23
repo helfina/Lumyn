@@ -63,3 +63,40 @@ Créer la première application BeeWare.
 ## Prochaine étape
 
 Ajouter un premier widget (`Label`) dans la fenêtre.
+
+---
+
+# Séance 3 — 22/07/2026
+
+## Objectif
+
+Découvrir les premiers widgets BeeWare.
+
+## Réalisé
+
+- Compréhension du fonctionnement d'un `Label`.
+- Création du premier texte.
+- Ajout d'un second texte.
+- Découverte de `Box`.
+- Compréhension de `Pack`.
+- Utilisation de `COLUMN` pour organiser les widgets verticalement.
+
+## Concepts appris
+
+- Widget
+- Label
+- Variable
+- Box
+- add()
+- Pack
+- COLUMN
+
+## Ce que j'ai compris
+
+Un widget est créé puis ajouté à un conteneur.
+
+Le conteneur utilise `Pack` pour organiser ses éléments.
+
+## Prochaine étape
+
+Créer le premier bouton de Lumyn.

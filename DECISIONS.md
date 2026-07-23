@@ -87,3 +87,11 @@ Cette méthode permet de rester motivé, de limiter la complexité et d'obtenir 
 La structure générée par BeeWare est conservée pour le moment.
 
 Une éventuelle réorganisation sera décidée uniquement après avoir compris son fonctionnement.
+
+## 22/07/2026
+
+### Construction progressive de l'interface
+
+Chaque nouveau composant graphique sera appris individuellement avant de construire des écrans plus complexes.
+
+L'objectif est de comprendre chaque concept avant d'en introduire un nouveau.
