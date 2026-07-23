@@ -32,3 +32,16 @@ Faire renvoyer à l'analyseur une structure de données complète (titre, jour, 
 ## Prochain commit prévu
 
 Évolution de l'analyseur des rendez-vous.
+
+## État actuel
+
+Le module Rendez-vous possède maintenant une architecture modulaire complète.
+
+L'analyse comprend :
+- titre
+- date
+- heure
+- jour calculé
+- vérification des incohérences
+
+La prochaine étape sera l'intégration avec un agenda (Google Calendar puis agenda local).

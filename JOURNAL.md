@@ -100,3 +100,28 @@ Le conteneur utilise `Pack` pour organiser ses éléments.
 ## Prochaine étape
 
 Créer le premier bouton de Lumyn.
+
+# 23/07/2026
+
+## Module Rendez-vous
+
+- Réorganisation complète du module.
+- Création d'un modèle de rendez-vous.
+- Séparation des responsabilités :
+  - analyseur.py
+  - gestion.py
+  - resultat.py
+  - modele.py
+  - ui.py
+- L'analyseur calcule désormais une vraie date.
+- Prise en charge :
+  - jours de la semaine
+  - aujourd'hui
+  - demain
+  - après-demain
+  - dates numériques
+  - dates écrites
+- Détection des incohérences entre un jour et une date.
+- Création d'un objet résultat (`etat`, `message`, `rendez_vous`).
+- L'interface utilise désormais cet objet résultat.
+- Ajout d'un bouton Confirmer (préparation de la suite).
