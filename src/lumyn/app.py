@@ -3,28 +3,19 @@ Assistant personnel modulaire pensé pour alléger la charge mentale.
 """
 
 import toga
-from toga.style.pack import Pack, COLUMN, ROW
+
+from lumyn.modules.rendez_vous.ui import creer_interface_rendez_vous
 
 
 class Lumyn(toga.App):
     def startup(self):
-        """Construct and show the Toga application.
+        """Démarre Lumyn et affiche le module Rendez-vous."""
 
-        Usually, you would add your application to a main content box.
-        We then create a main window (with a name matching the app), and
-        show the main window.
-        """
-        main_box = toga.Box(
-            style=Pack(
-                direction=COLUMN
+        self.main_window = toga.MainWindow(
+            title=self.formal_name
         )
-)
-        bonjour = toga.Label("Bonjour Gaëlle 👋")
-        main_box.add(bonjour)
-        bienvenue = toga.Label("Bienvenue dans Lumyn")
-        main_box.add(bienvenue)
-        self.main_window = toga.MainWindow(title=self.formal_name)
-        self.main_window.content = main_box
+
+        self.main_window.content = creer_interface_rendez_vous()
         self.main_window.show()
 
 

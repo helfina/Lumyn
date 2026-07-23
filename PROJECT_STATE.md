@@ -2,62 +2,33 @@
 
 ## Version
 
-0.0.4
+0.0.2
 
 ## Phase
 
-Développement de l'interface utilisateur.
-
----
+Architecture modulaire et premier prototype du module Rendez-vous.
 
 ## Terminé
 
-- ✅ Définition de la vision du projet
-- ✅ Choix du nom **Lumyn**
-- ✅ Choix du moteur **Synapse**
-- ✅ Architecture documentaire
-- ✅ Initialisation de Git
-- ✅ Dépôt GitHub
-- ✅ Templates GitHub
-- ✅ Environnement virtuel Python
-- ✅ Installation de BeeWare
-- ✅ Création de la première application
-- ✅ Premier lancement réussi
-- ✅ Premier widget (`Label`)
-- ✅ Première mise en page (`COLUMN`)
-
----
+- Structure Git du projet
+- Documentation initiale
+- Architecture modulaire par fonctionnalités
+- Création du module Rendez-vous
+- Séparation :
+  - interface (`ui.py`)
+  - logique métier (`gestion.py`)
+  - analyse (`analyseur.py`)
+- Premier prototype fonctionnel de saisie de rendez-vous
+- Premier analyseur (titre, jour, heure)
 
 ## Étape en cours
 
-Construction de l'écran d'accueil.
-
----
+Amélioration de l'analyseur de rendez-vous.
 
 ## Prochaine étape unique
 
-Ajouter un premier bouton et comprendre les événements (`on_press`).
+Faire renvoyer à l'analyseur une structure de données complète (titre, jour, date, heure, lieu, erreurs, informations manquantes).
 
----
+## Prochain commit prévu
 
-## Dernier commit
-
-Ajout du premier écran d'accueil de Lumyn
-
-## Dépôt GitHub
-
-https://github.com/helfina/Lumyn
-
----
-
-## État du dépôt
-
-- Branche : `main`
-- Synchronisé avec GitHub : ✅
-- Working tree : propre
-
----
-
-## Dernière mise à jour
-
-21/07/2026
+Évolution de l'analyseur des rendez-vous.
