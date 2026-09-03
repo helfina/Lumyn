@@ -22,6 +22,10 @@ test_sources = [
 ]
 
 requires = [
+    "google-api-python-client~=2.200.0",
+    "google-auth-httplib2~=0.4.2",
+    "google-auth-oauthlib~=1.4.1",
+    "tzdata",
 ]
 test_requires = [
     "pytest",

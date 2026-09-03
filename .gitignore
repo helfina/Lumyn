@@ -77,3 +77,4 @@ logs/
 # Briefcase local configuratoin
 .briefcase/
 credentials.json
+token.json

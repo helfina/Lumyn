@@ -11,6 +11,9 @@ from lumyn.modules.rendez_vous.stockage import (
     supprimer_rendez_vous,
 )
 
+from lumyn.modules.rendez_vous.calendrier_ui import (
+    creer_calendrier_mensuel,
+)
 
 def creer_interface_rendez_vous():
     """Construit et renvoie l'interface du module Rendez-vous."""
@@ -292,5 +295,9 @@ def creer_interface_rendez_vous():
     )
 
     actualiser_liste_rendez_vous()
+
+    calendrier = creer_calendrier_mensuel()
+
+    main_box.add(calendrier)
 
     return main_box
