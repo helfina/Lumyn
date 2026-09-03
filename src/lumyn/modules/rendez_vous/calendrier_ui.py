@@ -1,7 +1,7 @@
 """Calendrier mensuel responsive de Lumyn."""
 
-import re
 import calendar
+import re
 from datetime import date
 from html import escape
 
@@ -9,6 +9,7 @@ import toga
 from toga.style.pack import COLUMN, ROW, Pack
 
 from lumyn.modules.rendez_vous.agenda_google import (
+    lister_calendriers_google,
     lister_evenements_google_simples,
 )
 
@@ -39,8 +40,12 @@ JOURS = [
     "Dim",
 ]
 
+MAX_EVENEMENTS_PAR_JOUR = 3
+COULEUR_PAR_DEFAUT = "#eef2f6"
+
+
 def nettoyer_titre_evenement(titre, heure):
-    """Retire l'heure du titre si elle correspond à l'heure du rendez-vous."""
+    """Retire l'heure du titre si elle correspond à l'heure réelle."""
 
     if not titre or not heure:
         return titre
@@ -60,17 +65,10 @@ def nettoyer_titre_evenement(titre, heure):
     if not heure_google or not heure_titre:
         return titre
 
-    heure_google_h = int(
-        heure_google.group(1)
-    )
+    heure_google_h = int(heure_google.group(1))
+    heure_google_m = int(heure_google.group(2))
 
-    heure_google_m = int(
-        heure_google.group(2)
-    )
-
-    heure_titre_h = int(
-        heure_titre.group(1)
-    )
+    heure_titre_h = int(heure_titre.group(1))
 
     minutes_titre = heure_titre.group(2)
 
@@ -92,26 +90,109 @@ def nettoyer_titre_evenement(titre, heure):
 
     return titre
 
-    
-def creer_html_calendrier(annee, mois, evenements):
+
+def couleur_valide(couleur):
+    """Vérifie qu'une couleur est au format #RRGGBB."""
+
+    return bool(
+        couleur
+        and re.fullmatch(
+            r"#[0-9A-Fa-f]{6}",
+            couleur,
+        )
+    )
+
+
+def couleur_texte_pour_fond(couleur):
+    """Choisit automatiquement du texte noir ou blanc."""
+
+    if not couleur_valide(couleur):
+        return "#212529"
+
+    rouge = int(
+        couleur[1:3],
+        16,
+    )
+
+    vert = int(
+        couleur[3:5],
+        16,
+    )
+
+    bleu = int(
+        couleur[5:7],
+        16,
+    )
+
+    luminosite = (
+        rouge * 0.299
+        + vert * 0.587
+        + bleu * 0.114
+    )
+
+    if luminosite > 160:
+        return "#212529"
+
+    return "#ffffff"
+
+
+def creer_html_calendrier(
+    annee,
+    mois,
+    evenements,
+):
     """Construit le calendrier mensuel HTML."""
 
     aujourd_hui = date.today()
 
     evenements_par_jour = {}
 
+    # ---------------------------------------------------------
+    # Classe les événements dans leur journée
+    # ---------------------------------------------------------
+
     for evenement in evenements:
-        date_evenement = evenement.get("date")
+
+        date_evenement = evenement.get(
+            "date"
+        )
 
         if not date_evenement:
             continue
 
-        jour = int(date_evenement.split("-")[2])
+        try:
+            jour = int(
+                date_evenement.split("-")[2]
+            )
+
+        except (IndexError, ValueError):
+            continue
 
         evenements_par_jour.setdefault(
             jour,
             [],
-        ).append(evenement)
+        ).append(
+            evenement
+        )
+
+    # ---------------------------------------------------------
+    # Trie les événements de chaque journée
+    # ---------------------------------------------------------
+
+    for evenements_du_jour in (
+        evenements_par_jour.values()
+    ):
+
+        evenements_du_jour.sort(
+            key=lambda evenement: (
+                evenement.get("heure") is not None,
+                evenement.get("heure") or "",
+            )
+        )
+
+    # ---------------------------------------------------------
+    # Construction du mois
+    # ---------------------------------------------------------
 
     calendrier = calendar.Calendar(
         firstweekday=0,
@@ -124,42 +205,72 @@ def creer_html_calendrier(annee, mois, evenements):
 
     cellules = []
 
+    # ---------------------------------------------------------
     # En-têtes
+    # ---------------------------------------------------------
+
     for nom_jour in JOURS:
+
         cellules.append(
-            f'<div class="weekday">{nom_jour}</div>'
+            f"""
+            <div class="weekday">
+                {escape(nom_jour)}
+            </div>
+            """
         )
 
-    # Jours
+    # ---------------------------------------------------------
+    # Cases des journées
+    # ---------------------------------------------------------
+
     for semaine in semaines:
+
         for numero_jour in semaine:
 
             if numero_jour == 0:
+
                 cellules.append(
                     '<div class="day empty"></div>'
                 )
+
                 continue
 
-            classes = ["day"]
+            classes = [
+                "day"
+            ]
 
             if (
                 numero_jour == aujourd_hui.day
                 and mois == aujourd_hui.month
                 and annee == aujourd_hui.year
             ):
-                classes.append("today")
+                classes.append(
+                    "today"
+                )
 
             contenus_evenements = []
 
-            evenements_du_jour = evenements_par_jour.get(
-                numero_jour,
-                [],
+            evenements_du_jour = (
+                evenements_par_jour.get(
+                    numero_jour,
+                    [],
+                )
             )
 
-            # Maximum 3 événements visibles dans la case.
-            for evenement in evenements_du_jour[:3]:
+            # -------------------------------------------------
+            # Maximum 3 événements visibles dans une case
+            # -------------------------------------------------
 
-                heure_brute = evenement.get("heure") or ""
+            for evenement in (
+                evenements_du_jour[
+                    :MAX_EVENEMENTS_PAR_JOUR
+                ]
+            ):
+
+                heure_brute = (
+                    evenement.get("heure")
+                    or ""
+                )
 
                 titre_brut = evenement.get(
                     "titre",
@@ -171,41 +282,108 @@ def creer_html_calendrier(annee, mois, evenements):
                     heure_brute,
                 )
 
-                titre = escape(titre_brut)
-                heure = escape(heure_brute)
-                
+                titre = escape(
+                    titre_brut
+                )
+
+                heure = escape(
+                    heure_brute
+                )
+
+                # ---------------------------------------------
+                # Couleur propre à cet événement
+                # ---------------------------------------------
+
+                couleur = evenement.get(
+                    "couleur_calendrier"
+                )
+
+                if not couleur_valide(
+                    couleur
+                ):
+                    couleur = COULEUR_PAR_DEFAUT
+
+                couleur_texte = (
+                    couleur_texte_pour_fond(
+                        couleur
+                    )
+                )
+
+                nom_calendrier = escape(
+                    evenement.get(
+                        "calendrier",
+                        "Google Calendar",
+                    )
+                )
+
+                # ---------------------------------------------
+                # Contenu de l'événement
+                # ---------------------------------------------
+
                 if heure:
+
                     contenu = (
                         f'<span class="event-time">'
-                        f'{heure}</span> '
+                        f'{heure}'
+                        f'</span>'
                         f'<span class="event-title">'
-                        f'{titre}</span>'
+                        f'{titre}'
+                        f'</span>'
                     )
+
                 else:
+
                     contenu = (
                         f'<span class="event-title">'
-                        f'{titre}</span>'
+                        f'{titre}'
+                        f'</span>'
                     )
 
                 contenus_evenements.append(
-                    f'<div class="event">{contenu}</div>'
+                    f"""
+                    <div
+                        class="event"
+                        title="{nom_calendrier}"
+                        style="
+                            background-color: {couleur};
+                            color: {couleur_texte};
+                        "
+                    >
+                        {contenu}
+                    </div>
+                    """
                 )
+
+            # -------------------------------------------------
+            # Événements supplémentaires
+            # -------------------------------------------------
 
             nombre_cache = (
                 len(evenements_du_jour)
-                - len(contenus_evenements)
+                - min(
+                    len(evenements_du_jour),
+                    MAX_EVENEMENTS_PAR_JOUR,
+                )
             )
 
             if nombre_cache > 0:
+
                 contenus_evenements.append(
-                    f'<div class="more">'
-                    f'+{nombre_cache} autre(s)'
-                    f'</div>'
+                    f"""
+                    <div class="more">
+                        +{nombre_cache} autre(s)
+                    </div>
+                    """
                 )
+
+            # -------------------------------------------------
+            # Case complète
+            # -------------------------------------------------
 
             cellules.append(
                 f"""
                 <div class="{" ".join(classes)}">
+
                     <div class="day-number">
                         {numero_jour}
                     </div>
@@ -213,9 +391,14 @@ def creer_html_calendrier(annee, mois, evenements):
                     <div class="events">
                         {"".join(contenus_evenements)}
                     </div>
+
                 </div>
                 """
             )
+
+    # ---------------------------------------------------------
+    # HTML + CSS responsive
+    # ---------------------------------------------------------
 
     return f"""
     <!DOCTYPE html>
@@ -249,7 +432,6 @@ def creer_html_calendrier(annee, mois, evenements):
                     sans-serif;
 
                 background: #f8f9fa;
-
                 color: #212529;
             }}
 
@@ -258,16 +440,17 @@ def creer_html_calendrier(annee, mois, evenements):
 
                 display: grid;
 
-                /*
-                IMPORTANT :
-                toujours exactement
-                7 colonnes identiques.
-                */
                 grid-template-columns:
-                    repeat(7, minmax(0, 1fr));
+                    repeat(
+                        7,
+                        minmax(0, 1fr)
+                    );
 
-                border-top: 1px solid #dee2e6;
-                border-left: 1px solid #dee2e6;
+                border-top:
+                    1px solid #dee2e6;
+
+                border-left:
+                    1px solid #dee2e6;
             }}
 
             .weekday {{
@@ -281,19 +464,22 @@ def creer_html_calendrier(annee, mois, evenements):
 
                 background: #f1f3f5;
 
-                border-right: 1px solid #dee2e6;
-                border-bottom: 1px solid #dee2e6;
+                border-right:
+                    1px solid #dee2e6;
+
+                border-bottom:
+                    1px solid #dee2e6;
             }}
 
             .day {{
-                /*
-                min-width: 0 empêche le texte
-                d'élargir la colonne.
-                */
                 min-width: 0;
 
                 min-height:
-                    clamp(75px, 9vw, 125px);
+                    clamp(
+                        75px,
+                        9vw,
+                        125px
+                    );
 
                 padding: 7px;
 
@@ -301,8 +487,11 @@ def creer_html_calendrier(annee, mois, evenements):
 
                 background: white;
 
-                border-right: 1px solid #dee2e6;
-                border-bottom: 1px solid #dee2e6;
+                border-right:
+                    1px solid #dee2e6;
+
+                border-bottom:
+                    1px solid #dee2e6;
             }}
 
             .day.empty {{
@@ -338,20 +527,14 @@ def creer_html_calendrier(annee, mois, evenements):
 
                 margin-bottom: 4px;
 
-                padding: 4px 6px;
+                padding: 5px 6px;
 
-                border-radius: 5px;
-
-                background: #eef2f6;
+                border-radius: 6px;
 
                 font-size: 12px;
 
                 line-height: 1.25;
 
-                /*
-                Le texte n'a jamais
-                le droit d'agrandir la case.
-                */
                 overflow: hidden;
 
                 overflow-wrap: anywhere;
@@ -360,16 +543,18 @@ def creer_html_calendrier(annee, mois, evenements):
             }}
 
             .event-time {{
+                display: block;
+
+                margin-bottom: 2px;
+
                 font-weight: 700;
             }}
 
             .event-title {{
-                /*
-                Maximum deux lignes.
-                */
                 display: -webkit-box;
 
                 -webkit-box-orient: vertical;
+
                 -webkit-line-clamp: 2;
 
                 overflow: hidden;
@@ -385,10 +570,9 @@ def creer_html_calendrier(annee, mois, evenements):
                 color: #6c757d;
             }}
 
-
-            /*
-            TABLETTE / PETITE FENÊTRE
-            */
+            /* -----------------------------------------------
+               Tablette / petite fenêtre
+               ----------------------------------------------- */
 
             @media (max-width: 900px) {{
 
@@ -409,17 +593,16 @@ def creer_html_calendrier(annee, mois, evenements):
                 }}
 
                 .event {{
-                    padding: 3px 4px;
+                    padding: 4px;
 
                     font-size: 10px;
                 }}
 
             }}
 
-
-            /*
-            MOBILE
-            */
+            /* -----------------------------------------------
+               Mobile
+               ----------------------------------------------- */
 
             @media (max-width: 550px) {{
 
@@ -444,17 +627,13 @@ def creer_html_calendrier(annee, mois, evenements):
                 .event {{
                     margin-bottom: 2px;
 
-                    padding: 2px;
+                    padding: 3px;
 
                     font-size: 9px;
 
-                    border-radius: 3px;
+                    border-radius: 4px;
                 }}
 
-                /*
-                Sur téléphone :
-                une seule ligne par événement.
-                */
                 .event-title {{
                     -webkit-line-clamp: 1;
                 }}
@@ -484,14 +663,28 @@ def creer_html_calendrier(annee, mois, evenements):
 
 
 def creer_calendrier_mensuel():
-    """Crée le calendrier Google responsive."""
+    """Crée le calendrier Google responsive avec filtres."""
 
     aujourd_hui = date.today()
 
     etat = {
         "annee": aujourd_hui.year,
         "mois": aujourd_hui.month,
+        "calendriers_actifs": {},
     }
+
+    # ---------------------------------------------------------
+    # Cache des événements
+    # ---------------------------------------------------------
+
+    cache_evenements = {
+        "cle": None,
+        "evenements": [],
+    }
+
+    # ---------------------------------------------------------
+    # Conteneur principal
+    # ---------------------------------------------------------
 
     conteneur = toga.Box(
         style=Pack(
@@ -523,12 +716,53 @@ def creer_calendrier_mensuel():
         )
     )
 
+    # ---------------------------------------------------------
+    # Filtres de calendriers
+    # ---------------------------------------------------------
+
+    filtres_box = toga.Box(
+        style=Pack(
+            direction=COLUMN,
+            gap=4,
+            margin_bottom=8,
+        )
+    )
+
+    filtres_box.add(
+        toga.Label(
+            "Calendriers affichés",
+            style=Pack(
+                font_weight="bold",
+                margin_bottom=4,
+            )
+        )
+    )
+
+    actions_filtres = toga.Box(
+        style=Pack(
+            direction=ROW,
+            gap=6,
+            margin_bottom=4,
+        )
+    )
+
+    # ---------------------------------------------------------
+    # WebView
+    # ---------------------------------------------------------
+
     webview = toga.WebView(
         style=Pack(
             flex=1,
             height=650,
         )
     )
+
+    # Référence aux interrupteurs
+    interrupteurs = {}
+
+    # ---------------------------------------------------------
+    # Chargement du calendrier
+    # ---------------------------------------------------------
 
     def charger_mois():
         """Charge les événements et actualise le calendrier."""
@@ -541,12 +775,44 @@ def creer_calendrier_mensuel():
         )
 
         try:
-            evenements = (
-                lister_evenements_google_simples(
-                    annee,
-                    mois,
-                )
+
+            cle_mois = (
+                annee,
+                mois,
             )
+
+            # Nouvel appel Google uniquement
+            # lorsque le mois change.
+            if cache_evenements["cle"] != cle_mois:
+
+                cache_evenements["evenements"] = (
+                    lister_evenements_google_simples(
+                        annee,
+                        mois,
+                    )
+                )
+
+                cache_evenements["cle"] = cle_mois
+
+            # ---------------------------------------------
+            # Filtrage des calendriers
+            # ---------------------------------------------
+
+            evenements = [
+                evenement
+
+                for evenement
+                in cache_evenements["evenements"]
+
+                if etat[
+                    "calendriers_actifs"
+                ].get(
+                    evenement.get(
+                        "google_calendar_id"
+                    ),
+                    True,
+                )
+            ]
 
             contenu = creer_html_calendrier(
                 annee,
@@ -558,15 +824,20 @@ def creer_calendrier_mensuel():
 
             contenu = f"""
             <html>
+
             <body
                 style="
                     font-family: sans-serif;
                     padding: 20px;
                 "
             >
+
                 Impossible de charger le calendrier :
+
                 {escape(str(erreur))}
+
             </body>
+
             </html>
             """
 
@@ -575,16 +846,201 @@ def creer_calendrier_mensuel():
             contenu,
         )
 
+    # ---------------------------------------------------------
+    # Activation / désactivation d'un calendrier
+    # ---------------------------------------------------------
+
+    def changer_calendrier(
+        widget,
+        calendrier_id=None,
+        **kwargs,
+    ):
+        """Affiche ou masque un calendrier."""
+
+        if calendrier_id is None:
+            return
+
+        etat["calendriers_actifs"][
+            calendrier_id
+        ] = bool(
+            widget.value
+        )
+
+        charger_mois()
+
+    # ---------------------------------------------------------
+    # Tout afficher
+    # ---------------------------------------------------------
+
+    def tout_afficher(widget, **kwargs):
+        """Active tous les calendriers."""
+
+        for calendrier_id, interrupteur in (
+            interrupteurs.items()
+        ):
+
+            etat["calendriers_actifs"][
+                calendrier_id
+            ] = True
+
+            interrupteur.value = True
+
+        charger_mois()
+
+    # ---------------------------------------------------------
+    # Tout masquer
+    # ---------------------------------------------------------
+
+    def tout_masquer(widget, **kwargs):
+        """Masque tous les calendriers."""
+
+        for calendrier_id, interrupteur in (
+            interrupteurs.items()
+        ):
+
+            etat["calendriers_actifs"][
+                calendrier_id
+            ] = False
+
+            interrupteur.value = False
+
+        charger_mois()
+
+    bouton_tout_afficher = toga.Button(
+        "Tout afficher",
+        on_press=tout_afficher,
+    )
+
+    bouton_tout_masquer = toga.Button(
+        "Tout masquer",
+        on_press=tout_masquer,
+    )
+
+    actions_filtres.add(
+        bouton_tout_afficher,
+        bouton_tout_masquer,
+    )
+
+    filtres_box.add(
+        actions_filtres
+    )
+
+    # ---------------------------------------------------------
+    # Récupération de la liste des calendriers Google
+    # ---------------------------------------------------------
+
+    try:
+
+        calendriers_google = (
+            lister_calendriers_google()
+        )
+
+    except Exception as erreur:
+
+        calendriers_google = []
+
+        filtres_box.add(
+            toga.Label(
+                "Impossible de récupérer "
+                f"les calendriers : {erreur}"
+            )
+        )
+
+    # ---------------------------------------------------------
+    # Création des interrupteurs
+    # ---------------------------------------------------------
+
+    for calendrier_google in calendriers_google:
+
+        calendrier_id = (
+            calendrier_google["id"]
+        )
+
+        nom = calendrier_google.get(
+            "nom",
+            "Calendrier Google",
+        )
+
+        couleur = calendrier_google.get(
+            "couleur",
+            "#6c757d",
+        )
+
+        if not couleur_valide(
+            couleur
+        ):
+            couleur = "#6c757d"
+
+        # Tous visibles par défaut.
+        etat["calendriers_actifs"][
+            calendrier_id
+        ] = True
+
+        ligne_calendrier = toga.Box(
+            style=Pack(
+                direction=ROW,
+                gap=6,
+            )
+        )
+
+        indicateur = toga.Label(
+            "●",
+            style=Pack(
+                color=couleur,
+                width=20,
+                margin_top=5,
+            )
+        )
+
+        interrupteur = toga.Switch(
+            nom,
+            value=True,
+            on_change=(
+                lambda widget,
+                calendrier_id=calendrier_id,
+                **kwargs:
+                changer_calendrier(
+                    widget,
+                    calendrier_id=calendrier_id,
+                )
+            ),
+            style=Pack(
+                flex=1,
+            )
+        )
+
+        interrupteurs[
+            calendrier_id
+        ] = interrupteur
+
+        ligne_calendrier.add(
+            indicateur,
+            interrupteur,
+        )
+
+        filtres_box.add(
+            ligne_calendrier
+        )
+
+    # ---------------------------------------------------------
+    # Mois précédent
+    # ---------------------------------------------------------
+
     def mois_precedent(widget, **kwargs):
         """Affiche le mois précédent."""
 
         etat["mois"] -= 1
 
         if etat["mois"] == 0:
+
             etat["mois"] = 12
             etat["annee"] -= 1
 
         charger_mois()
+
+    # ---------------------------------------------------------
+    # Mois suivant
+    # ---------------------------------------------------------
 
     def mois_suivant(widget, **kwargs):
         """Affiche le mois suivant."""
@@ -592,6 +1048,7 @@ def creer_calendrier_mensuel():
         etat["mois"] += 1
 
         if etat["mois"] == 13:
+
             etat["mois"] = 1
             etat["annee"] += 1
 
@@ -621,6 +1078,7 @@ def creer_calendrier_mensuel():
 
     conteneur.add(
         navigation,
+        filtres_box,
         webview,
     )
 

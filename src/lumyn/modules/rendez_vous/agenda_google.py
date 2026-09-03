@@ -73,6 +73,69 @@ def obtenir_service_google_calendar():
         credentials=identifiants,
     )
 
+def lister_calendriers_google():
+    """Récupère la liste des calendriers disponibles dans Google."""
+
+    service = obtenir_service_google_calendar()
+
+    calendriers = []
+    page_token = None
+
+    while True:
+        resultat = (
+            service.calendarList()
+            .list(
+                pageToken=page_token,
+                showHidden=True,
+            )
+            .execute()
+        )
+
+        for calendrier in resultat.get(
+            "items",
+            [],
+        ):
+            if calendrier.get("deleted"):
+                continue
+
+            calendrier_id = calendrier.get("id")
+
+            if not calendrier_id:
+                continue
+
+            calendriers.append(
+                {
+                    "id": calendrier_id,
+
+                    "nom": (
+                        calendrier.get("summaryOverride")
+                        or calendrier.get("summary")
+                        or "Calendrier Google"
+                    ),
+
+                    "couleur": (
+                        calendrier.get("backgroundColor")
+                        or "#6c757d"
+                    ),
+
+                    "selectionne_google": bool(
+                        calendrier.get("selected")
+                    ),
+
+                    "masque_google": bool(
+                        calendrier.get("hidden")
+                    ),
+                }
+            )
+
+        page_token = resultat.get(
+            "nextPageToken"
+        )
+
+        if not page_token:
+            break
+
+    return calendriers
 
 def lister_evenements_google(annee, mois):
     """Récupère les événements de tous les calendriers Google."""
