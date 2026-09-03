@@ -13,6 +13,8 @@ from lumyn.modules.rendez_vous.agenda_google import (
     lister_evenements_google_simples,
 )
 
+import json
+from pathlib import Path
 
 NOMS_MOIS = [
     "",
@@ -42,6 +44,13 @@ JOURS = [
 
 MAX_EVENEMENTS_PAR_JOUR = 3
 COULEUR_PAR_DEFAUT = "#eef2f6"
+
+DOSSIER_LUMYN = Path.home() / ".lumyn"
+
+FICHIER_PREFERENCES_CALENDRIERS = (
+    DOSSIER_LUMYN
+    / "calendriers_affichage.json"
+)
 
 
 def nettoyer_titre_evenement(titre, heure):
@@ -135,6 +144,55 @@ def couleur_texte_pour_fond(couleur):
 
     return "#ffffff"
 
+def charger_preferences_calendriers():
+    """Charge les calendriers affichés ou masqués par l'utilisateur."""
+
+    if not FICHIER_PREFERENCES_CALENDRIERS.exists():
+        return {}
+
+    try:
+        with FICHIER_PREFERENCES_CALENDRIERS.open(
+            "r",
+            encoding="utf-8",
+        ) as fichier:
+            donnees = json.load(fichier)
+
+        if not isinstance(donnees, dict):
+            return {}
+
+        return {
+            str(calendrier_id): bool(actif)
+            for calendrier_id, actif
+            in donnees.items()
+        }
+
+    except (
+        OSError,
+        json.JSONDecodeError,
+    ):
+        return {}
+
+
+def sauvegarder_preferences_calendriers(
+    preferences,
+):
+    """Enregistre les calendriers affichés ou masqués."""
+
+    DOSSIER_LUMYN.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with FICHIER_PREFERENCES_CALENDRIERS.open(
+        "w",
+        encoding="utf-8",
+    ) as fichier:
+        json.dump(
+            preferences,
+            fichier,
+            ensure_ascii=False,
+            indent=4,
+        )
 
 def creer_html_calendrier(
     annee,
@@ -663,7 +721,7 @@ def creer_html_calendrier(
 
 
 def creer_calendrier_mensuel():
-    """Crée le calendrier Google responsive avec filtres."""
+    """Crée le calendrier Google responsive avec filtres mémorisés."""
 
     aujourd_hui = date.today()
 
@@ -671,16 +729,20 @@ def creer_calendrier_mensuel():
         "annee": aujourd_hui.year,
         "mois": aujourd_hui.month,
         "calendriers_actifs": {},
+        "filtres_ouverts": False,
+        "mise_a_jour_filtres": False,
     }
 
-    # ---------------------------------------------------------
-    # Cache des événements
-    # ---------------------------------------------------------
+    preferences = (
+        charger_preferences_calendriers()
+    )
 
     cache_evenements = {
         "cle": None,
         "evenements": [],
     }
+
+    interrupteurs = {}
 
     # ---------------------------------------------------------
     # Conteneur principal
@@ -717,10 +779,17 @@ def creer_calendrier_mensuel():
     )
 
     # ---------------------------------------------------------
-    # Filtres de calendriers
+    # Zone des filtres
     # ---------------------------------------------------------
 
-    filtres_box = toga.Box(
+    zone_filtres = toga.Box(
+        style=Pack(
+            direction=COLUMN,
+            gap=5,
+        )
+    )
+
+    filtres_contenu = toga.Box(
         style=Pack(
             direction=COLUMN,
             gap=4,
@@ -728,21 +797,11 @@ def creer_calendrier_mensuel():
         )
     )
 
-    filtres_box.add(
-        toga.Label(
-            "Calendriers affichés",
-            style=Pack(
-                font_weight="bold",
-                margin_bottom=4,
-            )
-        )
-    )
-
     actions_filtres = toga.Box(
         style=Pack(
             direction=ROW,
             gap=6,
-            margin_bottom=4,
+            margin_bottom=5,
         )
     )
 
@@ -757,8 +816,36 @@ def creer_calendrier_mensuel():
         )
     )
 
-    # Référence aux interrupteurs
-    interrupteurs = {}
+    # ---------------------------------------------------------
+    # Mise à jour du texte du bouton Calendriers
+    # ---------------------------------------------------------
+
+    def mettre_a_jour_bouton_filtres():
+        """Met à jour le nombre de calendriers actuellement affichés."""
+
+        total = len(
+            etat["calendriers_actifs"]
+        )
+
+        actifs = sum(
+            1
+            for actif
+            in etat[
+                "calendriers_actifs"
+            ].values()
+            if actif
+        )
+
+        if etat["filtres_ouverts"]:
+            symbole = "▲"
+        else:
+            symbole = "▼"
+
+        bouton_filtres.text = (
+            f"⚙ Calendriers "
+            f"({actifs}/{total} affichés) "
+            f"{symbole}"
+        )
 
     # ---------------------------------------------------------
     # Chargement du calendrier
@@ -781,28 +868,34 @@ def creer_calendrier_mensuel():
                 mois,
             )
 
-            # Nouvel appel Google uniquement
-            # lorsque le mois change.
-            if cache_evenements["cle"] != cle_mois:
+            # Un nouvel appel Google uniquement
+            # lorsqu'on change de mois.
+            if (
+                cache_evenements["cle"]
+                != cle_mois
+            ):
 
-                cache_evenements["evenements"] = (
+                cache_evenements[
+                    "evenements"
+                ] = (
                     lister_evenements_google_simples(
                         annee,
                         mois,
                     )
                 )
 
-                cache_evenements["cle"] = cle_mois
+                cache_evenements[
+                    "cle"
+                ] = cle_mois
 
-            # ---------------------------------------------
-            # Filtrage des calendriers
-            # ---------------------------------------------
-
+            # Filtrage local.
             evenements = [
                 evenement
 
                 for evenement
-                in cache_evenements["evenements"]
+                in cache_evenements[
+                    "evenements"
+                ]
 
                 if etat[
                     "calendriers_actifs"
@@ -847,7 +940,7 @@ def creer_calendrier_mensuel():
         )
 
     # ---------------------------------------------------------
-    # Activation / désactivation d'un calendrier
+    # Changement individuel d'un calendrier
     # ---------------------------------------------------------
 
     def changer_calendrier(
@@ -866,24 +959,64 @@ def creer_calendrier_mensuel():
             widget.value
         )
 
+        # Lors d'un "Tout afficher" / "Tout masquer",
+        # on attend la fin avant de recharger.
+        if etat[
+            "mise_a_jour_filtres"
+        ]:
+            return
+
+        sauvegarder_preferences_calendriers(
+            etat[
+                "calendriers_actifs"
+            ]
+        )
+
+        mettre_a_jour_bouton_filtres()
+
         charger_mois()
 
     # ---------------------------------------------------------
     # Tout afficher
     # ---------------------------------------------------------
 
-    def tout_afficher(widget, **kwargs):
-        """Active tous les calendriers."""
+    def tout_afficher(
+        widget,
+        **kwargs,
+    ):
+        """Affiche tous les calendriers."""
 
-        for calendrier_id, interrupteur in (
-            interrupteurs.items()
-        ):
+        etat[
+            "mise_a_jour_filtres"
+        ] = True
 
-            etat["calendriers_actifs"][
-                calendrier_id
-            ] = True
+        try:
 
-            interrupteur.value = True
+            for calendrier_id, interrupteur in (
+                interrupteurs.items()
+            ):
+
+                etat[
+                    "calendriers_actifs"
+                ][
+                    calendrier_id
+                ] = True
+
+                interrupteur.value = True
+
+        finally:
+
+            etat[
+                "mise_a_jour_filtres"
+            ] = False
+
+        sauvegarder_preferences_calendriers(
+            etat[
+                "calendriers_actifs"
+            ]
+        )
+
+        mettre_a_jour_bouton_filtres()
 
         charger_mois()
 
@@ -891,29 +1024,95 @@ def creer_calendrier_mensuel():
     # Tout masquer
     # ---------------------------------------------------------
 
-    def tout_masquer(widget, **kwargs):
+    def tout_masquer(
+        widget,
+        **kwargs,
+    ):
         """Masque tous les calendriers."""
 
-        for calendrier_id, interrupteur in (
-            interrupteurs.items()
-        ):
+        etat[
+            "mise_a_jour_filtres"
+        ] = True
 
-            etat["calendriers_actifs"][
-                calendrier_id
+        try:
+
+            for calendrier_id, interrupteur in (
+                interrupteurs.items()
+            ):
+
+                etat[
+                    "calendriers_actifs"
+                ][
+                    calendrier_id
+                ] = False
+
+                interrupteur.value = False
+
+        finally:
+
+            etat[
+                "mise_a_jour_filtres"
             ] = False
 
-            interrupteur.value = False
+        sauvegarder_preferences_calendriers(
+            etat[
+                "calendriers_actifs"
+            ]
+        )
+
+        mettre_a_jour_bouton_filtres()
 
         charger_mois()
 
-    bouton_tout_afficher = toga.Button(
-        "Tout afficher",
-        on_press=tout_afficher,
+    # ---------------------------------------------------------
+    # Ouvrir / fermer le panneau Calendriers
+    # ---------------------------------------------------------
+
+    def basculer_filtres(
+        widget,
+        **kwargs,
+    ):
+        """Ouvre ou ferme la liste des calendriers."""
+
+        etat[
+            "filtres_ouverts"
+        ] = not etat[
+            "filtres_ouverts"
+        ]
+
+        zone_filtres.clear()
+
+        if etat[
+            "filtres_ouverts"
+        ]:
+
+            zone_filtres.add(
+                filtres_contenu
+            )
+
+        mettre_a_jour_bouton_filtres()
+
+    bouton_filtres = toga.Button(
+        "⚙ Calendriers",
+        on_press=basculer_filtres,
     )
 
-    bouton_tout_masquer = toga.Button(
-        "Tout masquer",
-        on_press=tout_masquer,
+    # ---------------------------------------------------------
+    # Boutons Tout afficher / Tout masquer
+    # ---------------------------------------------------------
+
+    bouton_tout_afficher = (
+        toga.Button(
+            "Tout afficher",
+            on_press=tout_afficher,
+        )
+    )
+
+    bouton_tout_masquer = (
+        toga.Button(
+            "Tout masquer",
+            on_press=tout_masquer,
+        )
     )
 
     actions_filtres.add(
@@ -921,12 +1120,12 @@ def creer_calendrier_mensuel():
         bouton_tout_masquer,
     )
 
-    filtres_box.add(
+    filtres_contenu.add(
         actions_filtres
     )
 
     # ---------------------------------------------------------
-    # Récupération de la liste des calendriers Google
+    # Récupération des calendriers Google
     # ---------------------------------------------------------
 
     try:
@@ -939,7 +1138,7 @@ def creer_calendrier_mensuel():
 
         calendriers_google = []
 
-        filtres_box.add(
+        filtres_contenu.add(
             toga.Label(
                 "Impossible de récupérer "
                 f"les calendriers : {erreur}"
@@ -950,9 +1149,11 @@ def creer_calendrier_mensuel():
     # Création des interrupteurs
     # ---------------------------------------------------------
 
-    for calendrier_google in calendriers_google:
+    for calendrier_google in (
+        calendriers_google
+    ):
 
-        calendrier_id = (
+        calendrier_id = str(
             calendrier_google["id"]
         )
 
@@ -971,10 +1172,44 @@ def creer_calendrier_mensuel():
         ):
             couleur = "#6c757d"
 
-        # Tous visibles par défaut.
-        etat["calendriers_actifs"][
+        # -----------------------------------------------------
+        # État initial
+        # -----------------------------------------------------
+
+        if calendrier_id in preferences:
+
+            actif = bool(
+                preferences[
+                    calendrier_id
+                ]
+            )
+
+        else:
+
+            # Si Lumyn ne connaît pas encore ce calendrier,
+            # on reprend l'état d'affichage Google.
+            actif = bool(
+                calendrier_google.get(
+                    "selectionne_google",
+                    True,
+                )
+            )
+
+            if calendrier_google.get(
+                "masque_google",
+                False,
+            ):
+                actif = False
+
+        etat[
+            "calendriers_actifs"
+        ][
             calendrier_id
-        ] = True
+        ] = actif
+
+        # -----------------------------------------------------
+        # Ligne du calendrier
+        # -----------------------------------------------------
 
         ligne_calendrier = toga.Box(
             style=Pack(
@@ -994,7 +1229,7 @@ def creer_calendrier_mensuel():
 
         interrupteur = toga.Switch(
             nom,
-            value=True,
+            value=actif,
             on_change=(
                 lambda widget,
                 calendrier_id=calendrier_id,
@@ -1018,7 +1253,7 @@ def creer_calendrier_mensuel():
             interrupteur,
         )
 
-        filtres_box.add(
+        filtres_contenu.add(
             ligne_calendrier
         )
 
@@ -1026,7 +1261,10 @@ def creer_calendrier_mensuel():
     # Mois précédent
     # ---------------------------------------------------------
 
-    def mois_precedent(widget, **kwargs):
+    def mois_precedent(
+        widget,
+        **kwargs,
+    ):
         """Affiche le mois précédent."""
 
         etat["mois"] -= 1
@@ -1042,7 +1280,10 @@ def creer_calendrier_mensuel():
     # Mois suivant
     # ---------------------------------------------------------
 
-    def mois_suivant(widget, **kwargs):
+    def mois_suivant(
+        widget,
+        **kwargs,
+    ):
         """Affiche le mois suivant."""
 
         etat["mois"] += 1
@@ -1076,11 +1317,19 @@ def creer_calendrier_mensuel():
         suivant,
     )
 
+    # ---------------------------------------------------------
+    # Interface finale
+    # ---------------------------------------------------------
+
     conteneur.add(
         navigation,
-        filtres_box,
+        bouton_filtres,
+        zone_filtres,
         webview,
     )
+
+    # Le panneau reste fermé au démarrage.
+    mettre_a_jour_bouton_filtres()
 
     charger_mois()
 
