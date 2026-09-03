@@ -38,6 +38,7 @@ Faire renvoyer à l'analyseur une structure de données complète (titre, jour, 
 Le module Rendez-vous possède maintenant une architecture modulaire complète.
 
 L'analyse comprend :
+
 - titre
 - date
 - heure
