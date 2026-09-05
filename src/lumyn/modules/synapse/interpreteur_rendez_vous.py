@@ -29,7 +29,7 @@ def interpreter_rendez_vous(texte):
     ambiguities = []
     if len(modes) > 1:
         ambiguities.append('Plusieurs modes de rendez-vous sont indiqués. Précise lequel utiliser.')
-    titre = rdv.get('titre') or ''
+    titre = (rdv.get('titre') or '').strip(' —–')
     lieu = rdv.get('lieu')
     profession = re.search(rf'\b({PROFESSIONS})\b', titre, re.IGNORECASE)
     professionnel = None

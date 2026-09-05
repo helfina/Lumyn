@@ -15,7 +15,9 @@ import toga
 
 from toga.style.pack import COLUMN, ROW, Pack
 
-from lumyn.modules.rendez_vous.gestion import preparer_rendez_vous
+from lumyn.modules.synapse.orchestrateur_rendez_vous import (
+    preparer_rendez_vous_synapse as preparer_rendez_vous,
+)
 
 from lumyn.modules.rendez_vous.stockage import (
     charger_rendez_vous,
@@ -407,7 +409,8 @@ class InterfaceRendezVous:
         )
 
         aide_creation = toga.Label(
-            "Écris ton rendez-vous naturellement.",
+            "Écris puis appuie sur Entrée pour vérifier le résumé. "
+            "Appuie encore sur Entrée pour confirmer.",
             style=Pack(
                 color="#6c757d",
                 margin_left=12,
@@ -416,6 +419,7 @@ class InterfaceRendezVous:
         )
 
         self.rdv_input = toga.TextInput(
+            on_confirm=self.valider_depuis_saisie,
             placeholder=(
                 "Exemple : Dentiste mardi à 14h30"
             ),
@@ -1506,11 +1510,17 @@ class InterfaceRendezVous:
             )
         )
 
+        lieu_saisie = (
+            rendez_vous.get("lieu_explicite")
+            if rendez_vous.get("lieu_source") in ("carnet", "maison")
+            else rendez_vous.get("lieu")
+        )
+
         self.rdv_input.value = (
             f"{titre} "
             f"{date_saisie} "
             f"{heure}"
-            + (f" à {rendez_vous['lieu']}" if rendez_vous.get("lieu") else "")
+            + (f" à {lieu_saisie}" if lieu_saisie else "")
         ).strip()
 
         calendrier_id = rendez_vous.get(
@@ -1555,6 +1565,18 @@ class InterfaceRendezVous:
     # ANALYSE
     # =========================================================
 
+    def valider_depuis_saisie(self, widget=None, **kwargs):
+        """Entrée prépare le résumé ; une seconde Entrée confirme ce même résumé."""
+        saisie = (self.rdv_input.value, self._calendrier_selectionne()[0])
+        if (
+            self.resultat_courant
+            and self.resultat_courant.get("etat") == "confirmation"
+            and self.saisie_analysee == saisie
+        ):
+            self.confirmer_rendez_vous(widget)
+        else:
+            self.analyser_rendez_vous(widget)
+
     def analyser_rendez_vous(
         self,
         widget,
@@ -1594,6 +1616,7 @@ class InterfaceRendezVous:
         elif etat_resultat in (
             "erreur",
             "incomplet",
+            "ambigu",
         ):
             self.modifier_button.enabled = True
             self.confirmer_button.enabled = False
