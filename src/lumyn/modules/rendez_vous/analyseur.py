@@ -53,32 +53,45 @@ def calculer_annee(jour, mois, annee=None):
     if annee is not None:
         return annee
 
-    date_possible = date(aujourd_hui.year, mois, jour)
-
-    if date_possible < aujourd_hui:
-        return aujourd_hui.year + 1
-
-    return aujourd_hui.year
+    # Valider aussi le 29 février, même si cette année n'est pas bissextile.
+    date(2000, mois, jour)
+    for annee_possible in range(aujourd_hui.year, 10000):
+        try:
+            date_possible = date(annee_possible, mois, jour)
+        except ValueError:
+            continue
+        if date_possible >= aujourd_hui:
+            return annee_possible
+    raise ValueError("Aucune prochaine date représentable.")
 
 
 def extraire_heure(texte, rendez_vous):
     """Extrait une heure comme 14h30, 14 h 30 ou 14:30."""
 
-    motif = r"\b([01]?\d|2[0-3])\s*(?:h|:)\s*([0-5]\d)?\b"
-    resultat = re.search(motif, texte, flags=re.IGNORECASE)
-
-    if not resultat:
+    motif = r"\b\d{1,3}\s*(?:h|:)\s*\d*(?!\w)"
+    resultats = list(re.finditer(motif, texte, flags=re.IGNORECASE))
+    if not resultats:
         return texte
-
-    heures = int(resultat.group(1))
-    minutes = int(resultat.group(2) or 0)
-
-    if minutes:
-        rendez_vous["heure"] = f"{heures:02d}h{minutes:02d}"
-    else:
-        rendez_vous["heure"] = f"{heures:02d}h"
-
-    return texte[: resultat.start()] + " " + texte[resultat.end() :]
+    if len(resultats) > 1:
+        rendez_vous["erreurs"].append("Indique une seule heure de début.")
+    for resultat in resultats:
+        valeur = resultat.group(0).strip()
+        valide = re.fullmatch(
+            r"([01]?\d|2[0-3])\s*(?:h(?:\s*([0-5]\d))?|:\s*([0-5]\d))",
+            valeur, flags=re.IGNORECASE,
+        )
+        if not valide:
+            rendez_vous["erreurs"].append(f"L'heure {valeur} est invalide.")
+        elif len(resultats) == 1:
+            heures = int(valide.group(1))
+            minutes = int(valide.group(2) or valide.group(3) or 0)
+            rendez_vous["heure"] = f"{heures:02d}h" + (
+                f"{minutes:02d}" if minutes else ""
+            )
+    for resultat in reversed(resultats):
+        avant = re.sub(r"\b[àa]\s*$", "", texte[:resultat.start()], flags=re.IGNORECASE)
+        texte = avant + " " + texte[resultat.end():]
+    return texte
 
 
 def extraire_jour_ecrit(texte):
@@ -95,6 +108,14 @@ def extraire_date_relative(texte, rendez_vous):
     """Reconnaît aujourd'hui, demain et après-demain."""
 
     aujourd_hui = date.today()
+
+    relatif = re.search(r"\bdans\s+(\d+)\s+jours?\b", texte, re.IGNORECASE)
+    if relatif:
+        try:
+            rendez_vous["date"] = aujourd_hui + timedelta(days=int(relatif.group(1)))
+        except (OverflowError, ValueError):
+            rendez_vous["erreurs"].append("Le délai indiqué est trop grand.")
+        return texte[:relatif.start()] + " " + texte[relatif.end():]
 
     expressions = [
         (r"\baujourd['’]hui\b", 0),
@@ -117,7 +138,7 @@ def extraire_date_relative(texte, rendez_vous):
 def extraire_date_numerique(texte, rendez_vous):
     """Reconnaît 18/08, 18-08, 18.08 ou 18/08/2026."""
 
-    motif = r"\b(0?[1-9]|[12]\d|3[01])[/.-](0?[1-9]|1[0-2])(?:[/.-](\d{4}))?\b"
+    motif = r"\b(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d{4}))?\b"
     resultat = re.search(motif, texte)
 
     if not resultat:
@@ -231,6 +252,17 @@ def extraire_date(texte, rendez_vous):
     return texte
 
 
+def extraire_lieu(texte, rendez_vous):
+    """Reconnaît « à Lorient » après retrait de la date et de l'heure."""
+    # Les « à » restés seuls étaient associés à l'heure.
+    texte = re.sub(r"\b[àa]\s*$", " ", texte, flags=re.IGNORECASE)
+    resultat = re.search(r"(?:^|\s+)[àa]\s+(\S.*)$", texte, flags=re.IGNORECASE)
+    if resultat:
+        rendez_vous["lieu"] = re.sub(r"\s+", " ", resultat.group(1)).strip(" ,.")
+        return texte[:resultat.start()]
+    return texte
+
+
 def extraire_titre(texte, rendez_vous):
     """Construit le titre avec le texte restant."""
 
@@ -239,7 +271,7 @@ def extraire_titre(texte, rendez_vous):
     texte = re.sub(r"\s+", " ", texte).strip(" ,.-")
 
     if texte:
-        rendez_vous["titre"] = texte.capitalize()
+        rendez_vous["titre"] = texte[:1].upper() + texte[1:]
 
 
 def analyser_rendez_vous(texte):
@@ -250,6 +282,7 @@ def analyser_rendez_vous(texte):
 
     texte_restant = extraire_heure(texte_restant, rendez_vous)
     texte_restant = extraire_date(texte_restant, rendez_vous)
+    texte_restant = extraire_lieu(texte_restant, rendez_vous)
     extraire_titre(texte_restant, rendez_vous)
 
     if not rendez_vous["titre"]:

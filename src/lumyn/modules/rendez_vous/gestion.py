@@ -43,6 +43,7 @@ def preparer_rendez_vous(texte):
         )
 
     date_formatee = rendez_vous["date"].strftime("%d/%m/%Y")
+    lieu = f"Lieu : {rendez_vous['lieu']}\n" if rendez_vous.get("lieu") else ""
 
     return creer_resultat(
         etat="confirmation",
@@ -51,7 +52,8 @@ def preparer_rendez_vous(texte):
             f"Titre : {rendez_vous['titre']}\n"
             f"Jour : {rendez_vous['jour_calcule']}\n"
             f"Date : {date_formatee}\n"
-            f"Heure : {rendez_vous['heure']}\n\n"
+            f"Heure : {rendez_vous['heure']}\n"
+            f"{lieu}\n"
             "Confirmer ce rendez-vous ?"
         ),
         rendez_vous=rendez_vous,

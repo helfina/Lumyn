@@ -125,3 +125,31 @@ Créer le premier bouton de Lumyn.
 - Création d'un objet résultat (`etat`, `message`, `rendez_vous`).
 - L'interface utilise désormais cet objet résultat.
 - Ajout d'un bouton Confirmer (préparation de la suite).
+
+# 05/09/2026 — Reprise et stabilisation
+
+- Comparaison du dépôt et de l'archive, puis conservation des ajouts Google.
+- Préservation du mode local, correction des écritures et des confirmations.
+- Saisie du lieu, délais en jours, heures invalides et dates bissextiles.
+- 57 tests isolés réussis après les corrections, avec Google simulé.
+- Documentation actualisée ; prochaine étape : validation native Windows.
+
+
+# 05/09/2026 — Validation manuelle réelle Windows et Google Calendar
+
+Résultats des essais réels confirmés par l'utilisatrice sur la branche
+`codex/lumyn-fiabilisation-rendez-vous` :
+
+- Démarrage Windows avec `briefcase dev` : OK ; aucun `ResourceWarning` SSL
+  observé au lancement.
+- Création Google et affichage dans Lumyn et Google Calendar : OK.
+- Modification et suppression d'un rendez-vous : OK, effet immédiat observé.
+- Déplacement entre calendriers Google : OK, aucun doublon observé.
+- Liaison Lumyn/Google cohérente pendant ces opérations.
+
+Cette validation réelle complète les 57 tests automatiques avec Google simulé.
+PROJECT_STATE.md et docs/TESTING.md distinguent désormais les résultats confirmés
+et les contrôles complémentaires non confirmés, notamment Android.
+Tous les tests ont été relancés après les modifications documentaires : 57 réussis.
+Aucune fonctionnalité, aucun code applicatif et aucun test modifié.
+Arrêt après documentation ; PR conservée en brouillon, sans fusion.

@@ -219,11 +219,12 @@ def creer_html_calendrier(
             continue
 
         try:
-            jour = int(
-                date_evenement.split("-")[2]
-            )
+            date_objet = date.fromisoformat(date_evenement)
+            if (date_objet.year, date_objet.month) != (annee, mois):
+                continue
+            jour = date_objet.day
 
-        except (IndexError, ValueError):
+        except (TypeError, ValueError):
             continue
 
         evenements_par_jour.setdefault(
@@ -757,7 +758,7 @@ def creer_calendrier_mensuel():
     )
 
     # ---------------------------------------------------------
-    # Navigation
+    # Navigation du mois
     # ---------------------------------------------------------
 
     navigation = toga.Box(
@@ -807,21 +808,67 @@ def creer_calendrier_mensuel():
 
     # ---------------------------------------------------------
     # WebView
+    #
+    # Sa hauteur sera recalculée selon le nombre
+    # de semaines du mois pour éviter son propre scroll.
     # ---------------------------------------------------------
 
     webview = toga.WebView(
         style=Pack(
-            flex=1,
-            height=650,
+            height=800,
         )
     )
 
     # ---------------------------------------------------------
-    # Mise à jour du texte du bouton Calendriers
+    # Calcule la hauteur nécessaire au calendrier
+    # ---------------------------------------------------------
+
+    def calculer_hauteur_calendrier(
+        annee,
+        mois,
+    ):
+        """Calcule une hauteur suffisante pour afficher le mois entier."""
+
+        calendrier_python = calendar.Calendar(
+            firstweekday=0,
+        )
+
+        semaines = (
+            calendrier_python.monthdayscalendar(
+                annee,
+                mois,
+            )
+        )
+
+        nombre_semaines = len(
+            semaines
+        )
+
+        # En-tête Lun/Mar/Mer...
+        hauteur_entete = 55
+
+        # On laisse suffisamment de place à chaque semaine
+        # pour les cartes de rendez-vous.
+        hauteur_semaine = 150
+
+        # Petite marge de sécurité.
+        marge = 30
+
+        return (
+            hauteur_entete
+            + (
+                nombre_semaines
+                * hauteur_semaine
+            )
+            + marge
+        )
+
+    # ---------------------------------------------------------
+    # Mise à jour du bouton des filtres
     # ---------------------------------------------------------
 
     def mettre_a_jour_bouton_filtres():
-        """Met à jour le nombre de calendriers actuellement affichés."""
+        """Met à jour le nombre de calendriers affichés."""
 
         total = len(
             etat["calendriers_actifs"]
@@ -848,7 +895,7 @@ def creer_calendrier_mensuel():
         )
 
     # ---------------------------------------------------------
-    # Chargement du calendrier
+    # Chargement du mois
     # ---------------------------------------------------------
 
     def charger_mois():
@@ -861,6 +908,14 @@ def creer_calendrier_mensuel():
             f"{NOMS_MOIS[mois]} {annee}"
         )
 
+        # Adapte la hauteur du WebView au mois.
+        webview.style.height = (
+            calculer_hauteur_calendrier(
+                annee,
+                mois,
+            )
+        )
+
         try:
 
             cle_mois = (
@@ -868,8 +923,8 @@ def creer_calendrier_mensuel():
                 mois,
             )
 
-            # Un nouvel appel Google uniquement
-            # lorsqu'on change de mois.
+            # Nouvel appel Google uniquement
+            # lorsque le mois change.
             if (
                 cache_evenements["cle"]
                 != cle_mois
@@ -888,7 +943,10 @@ def creer_calendrier_mensuel():
                     "cle"
                 ] = cle_mois
 
-            # Filtrage local.
+            # -------------------------------------------------
+            # Filtrage local
+            # -------------------------------------------------
+
             evenements = [
                 evenement
 
@@ -940,7 +998,7 @@ def creer_calendrier_mensuel():
         )
 
     # ---------------------------------------------------------
-    # Changement individuel d'un calendrier
+    # Activation / désactivation d'un calendrier
     # ---------------------------------------------------------
 
     def changer_calendrier(
@@ -959,8 +1017,6 @@ def creer_calendrier_mensuel():
             widget.value
         )
 
-        # Lors d'un "Tout afficher" / "Tout masquer",
-        # on attend la fin avant de recharger.
         if etat[
             "mise_a_jour_filtres"
         ]:
@@ -1065,7 +1121,7 @@ def creer_calendrier_mensuel():
         charger_mois()
 
     # ---------------------------------------------------------
-    # Ouvrir / fermer le panneau Calendriers
+    # Ouverture / fermeture du panneau Calendriers
     # ---------------------------------------------------------
 
     def basculer_filtres(
@@ -1098,21 +1154,17 @@ def creer_calendrier_mensuel():
     )
 
     # ---------------------------------------------------------
-    # Boutons Tout afficher / Tout masquer
+    # Actions générales des filtres
     # ---------------------------------------------------------
 
-    bouton_tout_afficher = (
-        toga.Button(
-            "Tout afficher",
-            on_press=tout_afficher,
-        )
+    bouton_tout_afficher = toga.Button(
+        "Tout afficher",
+        on_press=tout_afficher,
     )
 
-    bouton_tout_masquer = (
-        toga.Button(
-            "Tout masquer",
-            on_press=tout_masquer,
-        )
+    bouton_tout_masquer = toga.Button(
+        "Tout masquer",
+        on_press=tout_masquer,
     )
 
     actions_filtres.add(
@@ -1125,7 +1177,7 @@ def creer_calendrier_mensuel():
     )
 
     # ---------------------------------------------------------
-    # Récupération des calendriers Google
+    # Liste des calendriers Google
     # ---------------------------------------------------------
 
     try:
@@ -1173,7 +1225,7 @@ def creer_calendrier_mensuel():
             couleur = "#6c757d"
 
         # -----------------------------------------------------
-        # État initial
+        # État initial du calendrier
         # -----------------------------------------------------
 
         if calendrier_id in preferences:
@@ -1186,8 +1238,6 @@ def creer_calendrier_mensuel():
 
         else:
 
-            # Si Lumyn ne connaît pas encore ce calendrier,
-            # on reprend l'état d'affichage Google.
             actif = bool(
                 calendrier_google.get(
                     "selectionne_google",
@@ -1318,7 +1368,7 @@ def creer_calendrier_mensuel():
     )
 
     # ---------------------------------------------------------
-    # Interface finale
+    # Assemblage
     # ---------------------------------------------------------
 
     conteneur.add(
@@ -1328,7 +1378,7 @@ def creer_calendrier_mensuel():
         webview,
     )
 
-    # Le panneau reste fermé au démarrage.
+    # Panneau fermé au démarrage.
     mettre_a_jour_bouton_filtres()
 
     charger_mois()

@@ -1,176 +1,35 @@
-﻿# AI_CONTEXT.md
-
 # Contexte du projet Lumyn
 
-> Ce document permet à une IA ou à un développeur de reprendre immédiatement le projet.
-
----
-
-# Identité
-
-Nom du projet : Lumyn
-
-Nom du futur moteur intelligent : Synapse
-
-Type de projet :
-
-Assistant personnel modulaire.
-
-Objectif principal :
-
-Réduire la charge mentale en résolvant progressivement des problèmes réels du quotidien.
-
----
-
-# Philosophie
-
-Lumyn n'a pas vocation à faire "tout".
-
-Chaque fonctionnalité doit répondre à un problème concret rencontré par l'utilisateur.
-
-La simplicité est toujours privilégiée.
-
-Les données restent locales lorsque c'est possible.
-
----
-
-# Première fonctionnalité
-
-Création ultra rapide d'un rendez-vous.
-
-Objectifs :
-
-- saisir rapidement un rendez-vous ;
-- ajouter automatiquement des rappels ;
-- synchroniser avec Google Agenda.
-
----
-
-# Plateformes
-
-- Windows
-- Android
-
-Une seule base de code Python.
-
----
-
-# Technologies actuelles
-
-Langage :
-
-- Python 3.13
-
-Framework envisagé :
-
-- BeeWare
-- Toga
-- Briefcase
-
-Gestion de versions :
-
-- Git
-- GitHub
-
----
-
-# Architecture actuelle
-
-Documentation :
-
-- README.md
-- PROJECT_STATE.md
-- ROADMAP.md
-- JOURNAL.md
-- DECISIONS.md
-- DEV_GUIDE.md
-
-Documentation technique :
-
-docs/
-
-Code :
-
-src/
-
-Tests :
-
-tests/
-
-Ressources :
-
-assets/
-
----
-
-# Environnement du développeur
-
-Système :
-
-Windows 10 Pro
-
-Processeur :
-
-Intel Core i7-3770K
-
-Mémoire :
-
-8 Go
-
-Carte graphique :
-
-NVIDIA GeForce GT630
-
-Python :
-
-3.13.3
-
-Git :
-
-2.54
-
-Visual Studio Code :
-
-1.120
-
----
-
-# Méthode de développement
-
-Toujours une seule prochaine étape.
-
-Le projet doit rester fonctionnel.
-
-Chaque séance se termine par :
-
-- mise à jour de la documentation ;
-- commit Git ;
-- push GitHub.
-
----
-
-# État actuel
-
-Version :
-
-0.0.2
-
-Le projet est documenté.
-
-Git et GitHub sont configurés.
-
-La prochaine étape est la création de l'environnement Python puis l'installation de BeeWare.
-
----
-
-# Règles importantes
-
-Ne jamais compliquer le projet inutilement.
-
-Privilégier les explications simples.
-
-Donner les commandes PowerShell prêtes à copier-coller.
-
-Toujours expliquer pourquoi une décision est prise.
-
-Si une décision importante est prise, mettre à jour DECISIONS.md.
+## Identité et objectif
+
+Lumyn est un assistant personnel modulaire destiné à réduire la charge mentale.
+Synapse est le nom envisagé pour un futur moteur intelligent, pas encore développé.
+Chaque fonctionnalité répond à un problème réel ; simplicité et données locales
+lorsque possible. Windows et Android sont les plateformes visées, en Python,
+BeeWare, Toga et Briefcase. Le poste de développement utilise Python 3.13.
+
+## Reprendre le travail
+
+Lire d'abord PROJECT_STATE.md, ROADMAP.md, DEV_GUIDE.md et docs/TESTING.md.
+Version 0.0.3 : le code contient un module Rendez-vous local et Google, un
+calendrier filtrable et 57 tests. Ne pas repartir de l'ancienne étape
+« installer BeeWare » : elle est largement dépassée.
+
+La reprise du 05/09/2026 a intégré trois fichiers de Lumyn.zip plus avancés que
+le commit GitHub 0d35547. Le mode local du dépôt a été préservé en parallèle des
+opérations Google apportées par l'archive.
+
+## Méthode
+
+Une seule prochaine étape ; ne supprimer aucune fonctionnalité.
+Tester après chaque modification. Mettre à jour PROJECT_STATE.md, puis créer des
+commits clairs et pousser une branche révisable. S'arrêter pour un choix important
+non tranché par la documentation. Fournir des explications simples et, si besoin,
+des commandes PowerShell directement utilisables.
+
+## Limites à ne pas masquer
+
+Les tests de cette reprise tournent sous Linux avec Toga Dummy et Google simulé.
+Ils ne prouvent pas le rendu Windows/Android ni une synchronisation réelle.
+Ne jamais committer identifiants Google, jetons ou données personnelles.
+Ne pas utiliser le compte Google réel pour des tests automatiques.

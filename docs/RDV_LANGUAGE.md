@@ -181,3 +181,17 @@ Jour : mardi
 Heure : 14h30
 
 Confirmer la création ?
+
+```
+
+## Prise en charge vérifiée le 05/09/2026
+
+Les exemples de ce document décrivent une cible progressive. Les tests couvrent
+les dates numériques/écrites, les jours seuls, aujourd'hui/demain/après-demain,
+« dans N jours », les six formats d'heure ci-dessus et les lieux introduits par
+« à ». Plusieurs heures sont refusées ; les noms et acronymes gardent leur casse.
+
+Un 29 février sans année désigne la prochaine occurrence valide. Un jour seul
+correspond à la prochaine occurrence, jamais aujourd'hui (règle préexistante).
+« La semaine prochaine », plusieurs dates et les autres expressions ambiguës
+restent à fiabiliser. Le résumé doit toujours être relu avant confirmation.
