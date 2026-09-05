@@ -1,4 +1,4 @@
-﻿# 💡 Lumyn
+# 💡 Lumyn
 
 > **Votre second cerveau numérique.**
 
@@ -97,26 +97,17 @@ Version actuelle :
 
 **0.0.3**
 
-Le prototype gère les rendez-vous locaux et Google et dispose de 57 tests automatisés.
-Le rendu natif Windows/Android et la connexion Google réelle restent à valider.
+La version 0.0.3 gère les rendez-vous locaux et Google, validés sous Windows avec
+Google réel le 05/09/2026. Sur `feature/synapse-rendez-vous`, la future 0.0.4 ajoute
+le Carnet et Synapse local ; 132 tests automatisés passent. La nouvelle intégration
+Synapse attend sa validation native ; Android reste à valider.
 
 ---
 
 # Feuille de route
 
-Version 0.1 :
-
-- première application BeeWare ;
-- première fenêtre ;
-- première interface.
-
-Version 0.2 :
-
-- création rapide de rendez-vous.
-
-Version 0.3 :
-
-- synchronisation Google Agenda.
+Voir [ROADMAP.md](ROADMAP.md). Prochaine étape : valider le Carnet et Synapse
+ensemble sous Windows avant de décider la livraison 0.0.4.
 
 ---
 

@@ -1,4 +1,4 @@
-﻿# Architecture de Lumyn
+# Architecture de Lumyn
 
 ## Objectif
 
@@ -70,7 +70,7 @@ modules/
 └── synapse/
 ```
 
-Chaque module est indépendant.
+Les modules séparent leurs responsabilités ; Synapse orchestre les modules Lieux et Rendez-vous.
 
 ---
 
@@ -191,3 +191,30 @@ Le stockage local se trouve dans `~/.lumyn/rendez_vous.json`. Il ne gère pas
 les écritures concurrentes de plusieurs processus. Google et le fichier local
 ne forment pas une transaction atomique ; les tentatives de restauration
 restent limitées en cas de plusieurs pannes simultanées.
+
+
+## Carnet et Synapse — 05/09/2026
+
+`app.py` conserve la navigation entre Rendez-vous (écran initial) et Carnet.
+Le module `lieux/` contient `modele.py`, `stockage.py`, `gestion.py`, `validation.py`
+et `ui.py`. Son JSON est `~/.lumyn/lieux.json`. La validation prépare des copies
+profondes avant sauvegarde ; le stockage conserve les champs anciens et effectue
+un remplacement atomique. Les ambiguïtés des fiches anciennes restent lisibles.
+
+Le parcours Rendez-vous est désormais :
+
+1. `synapse/interpreteur_rendez_vous.py` sépare mode/métier/lieu et délègue les dates
+   et heures à `rendez_vous/analyseur.py`.
+2. `synapse/orchestrateur_rendez_vous.py` résout le carnet sans écriture ni réseau.
+   Il ajoute `mode`, `lieu_source`, `lieu_explicite`, `lieu_id` au rendez-vous.
+3. `rendez_vous/gestion.py::valider_rendez_vous` conserve les contrôles et le résumé
+   déterministes ; `preparer_rendez_vous` reste utilisable sans Synapse.
+4. `rendez_vous/ui.py` demande confirmation puis utilise le CRUD local/Google
+   existant. Lors d'une modification, une adresse résolue reste distincte du lieu
+   explicitement saisi ; les identifiants Google sont conservés.
+
+`recherche_lieux.py` définit `FournisseurLieux`, `PropositionLieu` et une préparation
+optionnelle. Sans fournisseur et autorisation explicite, aucun appel externe.
+La priorité personnelle est contrôlée avant tout appel ; les propositions ne
+modifient ni le rendez-vous ni le carnet. Aucun fournisseur réel n'est implémenté
+ou connecté à l'interface. L'historique de résolution reste une étape ultérieure.

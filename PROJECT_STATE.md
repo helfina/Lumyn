@@ -1,59 +1,52 @@
 # État actuel de Lumyn
 
-## Version et phase
+## Version et branche — 05/09/2026
 
-0.0.3 — prototype Rendez-vous en cours de stabilisation (05/09/2026).
-Le prototype a été validé manuellement sous Windows avec Google Calendar réel
-le 05/09/2026 pour les opérations détaillées ci-dessous. Android et la compilation
-APK restent à valider ; cette validation ne constitue pas une livraison empaquetée.
-
-## Sources de cette reprise
-
-- Dépôt `helfina/Lumyn`, base `0d35547` du 03/09/2026.
-- Archive Lumyn.zip : trois fichiers plus avancés (`agenda_google.py`,
-  `calendrier_ui.py`, `ui.py`), intégrés dans une branche de travail.
-- Lecture du code applicatif, tests, configuration et documentation des deux versions.
-  Les environnements Windows générés et caches ne constituent pas le code à maintenir.
-- Les identifiants Google présents dans l'archive ne sont pas copiés dans le dépôt.
+Version déclarée : **0.0.3**, stable et fusionnée dans main avant cette reprise.
+La version **0.0.4 Carnet de lieux + Synapse Rendez-vous** est en préparation sur
+`feature/synapse-rendez-vous`, reprise au commit `3f0f119` après les trois commits
+Carnet (`81ab732`, `ab3cd5e`, `3f0f119`). Cette séance ne modifie ni ne fusionne main.
+La version dans pyproject.toml reste 0.0.3 en attendant la validation native.
 
 ## Fonctionnalités présentes
 
-- Analyse d'un rendez-vous, informations manquantes et incohérences jour/date.
-- Confirmation explicite avant enregistrement ; changement de texte ou de calendrier
-  après analyse impose une nouvelle analyse.
-- Dates numériques et écrites, jours, aujourd'hui/demain/après-demain, dans N jours.
-- Lieu introduit par « à » et conservation de la casse des noms/acronymes.
-- Création, modification et suppression locales avec identifiants stables.
-- Choix explicite « Sur cet appareil uniquement » ou calendrier Google.
-  Le mode local reste disponible sans connexion, sans notification automatique locale.
-- Création, modification, déplacement et suppression des événements Google liés.
-- Durée Google conservée à 60 minutes par défaut ; rappels à J-1 et H-1.
-- Calendrier mensuel, couleurs, filtres persistants, navigation et défilement.
+- Rendez-vous locaux et Google : création, modification, suppression et déplacement
+  liés, identifiants stables, durée Google de 60 minutes, rappels J-1/H-1.
+- Calendrier mensuel, couleurs, filtres persistants et navigation.
+- Carnet local : fiches, alias, profession, catégorie, notes, visio, plusieurs
+  adresses et adresse favorite ; navigation Rendez-vous/Carnet conservée.
+- Synapse local sépare titre, métier, date, heure, mode et lieu, puis utilise le
+  parseur et la validation déterministes existants. Aucun modèle distant.
+- Priorité à l'intention explicite, puis au carnet. Un site indiqué prime sur la
+  favorite ; un qualificatif inconnu ou plusieurs correspondances demandent une
+  précision. Aucune adresse inventée ni fiche enregistrée automatiquement.
+- VISIO et DOMICILE utilisent l'adresse de la fiche Maison et ajoutent le mode au
+  titre Google. Aucun lien récurrent de visioconférence n'est généré.
+- Entrée prépare le résumé ; une seconde Entrée confirme si la saisie et le
+  calendrier sont inchangés. Les boutons existants restent disponibles.
+- Interface de fournisseur externe définie et testée avec des doubles, inactive
+  dans l'application. Les propositions exigent une sélection explicite.
 
-## Corrections de cette séance
+## Fiabilisation du carnet
 
-- Un fichier local illisible n'est plus considéré comme une liste vide.
-- Écriture dans un fichier temporaire puis remplacement atomique ; protection
-  de l'ancien contenu si la sérialisation ou le remplacement échoue.
-- Refus des heures invalides ou multiples (exemple : 14:99).
-- Gestion du prochain 29 février lorsque l'année n'est pas indiquée.
-- Lieu affiché avant confirmation et rechargé lors d'une modification.
-- Une saisie de lieu seul ne devient pas un titre de rendez-vous.
-- Tentative de restauration Google aussi si l'écriture locale lève une exception
-  lors d'une modification liée.
-- Un événement d'un autre mois n'est plus affiché au même numéro de jour.
+Validation du nom, des alias et des adresses, copies profondes, une seule favorite
+par fiche et une seule fiche Maison lors d'un enregistrement. Maison, domicile et
+chez moi identifient cette même fiche. Les anciens champs inconnus sont conservés.
+Les conflits anciens restent visibles pour correction et bloquent la résolution
+ambiguë. Un fichier illisible n'est jamais remplacé silencieusement par une liste
+vide. Le remplacement atomique du JSON et le CRUD existant sont conservés.
 
-## Vérification automatique effectuée
+## Vérifications de cette reprise
 
-- À l'origine : 1 test purement arithmétique, réussi dans les deux versions.
-- Après les modifications : 57 tests réussis sous Linux / Python 3.12.13,
-  Toga Dummy 0.5.6. La commande `python -m pytest -q` est relancée après chaque
-  modification ; les nouveaux tests de régression ont d'abord reproduit les défauts.
-- Tests : analyse, stockage réel dans un dossier temporaire, pannes d'écriture,
-  contrôleur Toga avec backend de test, cycle local, liaison Google simulée,
-  pagination, fuseaux horaires, rappels et HTML du calendrier.
-- Accès réseau bloqué pendant les tests automatiques ; Google y reste simulé.
-- Syntaxe de tous les fichiers Python vérifiée.
+- Base : **78 tests réussis**, résultat reproduit avant développement.
+- Après développement et documentation : **132 tests réussis**, Linux/Python 3.12,
+  Toga Dummy ; 54 cas supplémentaires. Suite relancée après les modifications.
+- Couverture : carnet, données anciennes et pannes, expressions Synapse, priorités
+  et ambiguïtés, Maison, parcours clavier et modification Google simulée, recherche
+  externe inactive. Aucun compte Google réel utilisé par ces tests.
+- Données des rendez-vous, du carnet et préférences redirigées dans les dossiers
+  temporaires. Connexions externes bloquées ; loopback autorisé pour asyncio Windows.
+- Pillow explicité dans les dépendances de test pour le backend Toga Dummy.
 
 ## Validation manuelle réelle — 05/09/2026
 
@@ -73,33 +66,34 @@ automatiques ; ils ne proviennent pas d'une simulation Google.
 
 L'affichage Windows et l'utilisation de Google réel sont donc validés pour ce
 périmètre. Les détails et les contrôles non confirmés figurent dans docs/TESTING.md.
-Les tests automatiques ont été relancés après cette mise à jour documentaire :
-57 réussis. Aucune fonctionnalité ni aucun test modifié.
+La mise à jour documentaire historique avait été vérifiée avec 57 tests réussis.
 
-## Limites connues et validations restantes
 
-- Android, compilation APK et parcours OAuth initial/renouvellement des jetons
-  non confirmés par ce compte rendu. La connexion Google réelle sous Windows
-  a bien été utilisée pour les opérations validées.
-- Les appels Google sont synchrones : une connexion lente peut figer l'interface.
-- Le stockage n'est pas prévu pour plusieurs processus écrivant simultanément.
-- En cas de panne Google ET locale, les tentatives de restauration ne garantissent
-  pas la cohérence. Une stratégie de reprise persistante reste à concevoir.
-- Les événements Google sur plusieurs jours ne sont pas déployés sur chaque case.
-- L'analyse reste fondée sur des règles : plusieurs dates concurrentes, certaines
-  formulations ambiguës et « la semaine prochaine » ne sont pas fiabilisées.
-  Toujours relire la date et le titre proposés avant confirmation.
-- Les rappels locaux, tâches, notes et Synapse ne sont pas développés.
+## Validation Carnet rapportée par l'utilisatrice — 05/09/2026
 
-## Prochaine étape unique
+Sur la base `3f0f119` : 78 tests réussis sous Windows/Python 3.13, CRUD du carnet
+et navigation entre les deux écrans validés manuellement. Cette validation ne
+couvre pas encore l'intégration Synapse ajoutée pendant cette séance.
 
-La validation Windows/Google décrite ci-dessus est terminée. Attendre les
-instructions de l’utilisatrice avant toute nouvelle étape. La PR reste en brouillon
-et ne doit être ni fusionnée ni sortie du brouillon sans son accord explicite.
+## Limites connues
 
-## Choix à demander avant une évolution importante
+- Un crash de fermeture Windows (access violation, déchargement pythonnet,
+  WinForms/proactor) a été signalé, puis le lancement suivant a réussi.
+  Non reproduisible dans cet environnement Linux ; aucune correction spéculative.
+  Protocole de diagnostic dans docs/TESTING.md.
+- Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
+  concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi
+  littéralement n'est pas une adresse vérifiée. Toujours relire le résumé.
+- Historique et fournisseur externe réel non développés ; résolution des ambiguïtés
+  par correction de la saisie ou du carnet, sans sélecteur de propositions dédié.
+- Appels Google synchrones ; pas de transaction atomique Google/local, ni de
+  garantie de reprise après double panne, ni d'écritures locales multiprocessus.
+- Android/APK/OAuth Android, rappels locaux, tâches et notes restent à développer
+  ou valider ; pas de livraison 0.0.4 annoncée.
 
-Ne pas décider seul d'une synchronisation automatique en arrière-plan, de règles
-  de résolution des conflits ou d'une nouvelle architecture Android/OAuth.
-Le présent travail reste limité à la fiabilisation du module existant et à la
-  saisie structurée prévue dans la documentation.
+## Prochaine étape et décisions réservées
+
+Valider cette branche sous Windows avec les scénarios Synapse de docs/TESTING.md,
+puis décider de la livraison 0.0.4. Aucun merge ni changement d'état de PR pendant
+cette reprise. Demander le choix de l'utilisatrice avant un fournisseur externe
+réel, une synchronisation en arrière-plan ou une nouvelle architecture OAuth.

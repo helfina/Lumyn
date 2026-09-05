@@ -95,3 +95,22 @@ Une éventuelle réorganisation sera décidée uniquement après avoir compris s
 Chaque nouveau composant graphique sera appris individuellement avant de construire des écrans plus complexes.
 
 L'objectif est de comprendre chaque concept avant d'en introduire un nouveau.
+
+## 05/09/2026 — Carnet et Synapse local
+
+- Poursuivre uniquement `feature/synapse-rendez-vous` ; conserver 0.0.3 tant que
+  la future 0.0.4 n'est pas validée. Ne pas modifier main.
+- Garder le parseur déterministe comme validation et repli. Synapse local utilise
+  des règles explicites ; aucun LLM ou service distant ajouté.
+- Respecter l'intention, puis le carnet personnel. Un site explicite prime sur la
+  favorite ; plusieurs fiches/adresses ou un qualificatif inconnu bloquent le choix.
+- VISIO/DOMICILE emploient Maison pour le champ Google location, avec suffixe du
+  mode dans le titre. Pas de lien visio récurrent, ni adresse professionnelle
+  substituée au domicile. Le téléphone ne reçoit pas d'adresse physique implicite.
+- Une seule Maison, alias dédupliqués et une favorite au maximum à l'enregistrement.
+  Les données anciennes conflictuelles demandent correction sans effacement.
+- Conserver la confirmation : première Entrée pour le résumé, seconde Entrée
+  pour enregistrer la même saisie et le même calendrier.
+- Préparer seulement l'interface d'un fournisseur externe. Aucun fournisseur
+  choisi, aucune adresse importée ni fiche enregistrée sans intervention explicite.
+- Ne pas modifier l'arrêt WinForms/pythonnet sans reproduction du crash Windows.

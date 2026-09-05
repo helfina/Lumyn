@@ -153,3 +153,23 @@ et les contrôles complémentaires non confirmés, notamment Android.
 Tous les tests ont été relancés après les modifications documentaires : 57 réussis.
 Aucune fonctionnalité, aucun code applicatif et aucun test modifié.
 Arrêt après documentation ; PR conservée en brouillon, sans fusion.
+
+
+# 05/09/2026 — Carnet fiabilisé et première intégration Synapse locale
+
+- Reprise vérifiée de `feature/synapse-rendez-vous` au commit `3f0f119` ; la
+  stabilisation 0.0.3 était déjà fusionnée. Les 78 tests de la base passent.
+- Validation Carnet/navigation Windows rapportée par l'utilisatrice ; crash de
+  fermeture pythonnet signalé puis relance réussie. Diagnostic natif encore ouvert.
+- Renforcement des fiches, des alias, de Maison et des sauvegardes ; isolation
+  globale des fichiers personnels dans les tests.
+- Interpréteur et orchestrateur Synapse locaux intégrés au parcours existant :
+  métier, alias, site explicite, VISIO/DOMICILE à Maison, ambiguïtés bloquantes.
+- Préparation/confirmation au clavier, préservation des identifiants Google lors
+  d'une modification, aucun changement du mécanisme de déplacement/suppression.
+- Abstraction externe ajoutée après les tests locaux ; aucun fournisseur actif.
+- Régressions supplémentaires : ville après alias, lieu physique manquant et
+  distinction entre Maison et Maison médicale.
+- 132 tests réussis après code et documentation, soit 54 cas ajoutés ; Google simulé.
+- Documentation synchronisée ; version conservée à 0.0.3. Prochaine étape : essais
+  natifs de cette branche avant décision 0.0.4. Aucun merge effectué par cette séance.
