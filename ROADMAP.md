@@ -1,6 +1,6 @@
 # Feuille de route de Lumyn
 
-État au 05/09/2026. Version déclarée : 0.0.3 ; travail courant exclusivement sur
+État au 05/09/2026. Version déclarée sur la branche : 0.0.4 candidate ; travail courant exclusivement sur
 `feature/synapse-rendez-vous`.
 
 ## 0.0.3 — Rendez-vous stable
@@ -25,7 +25,10 @@
 - [x] Correctif du focus après changement de calendrier ; 137 tests Linux et Windows réussis.
 - [x] Contrôle natif Windows du nouveau correctif de focus.
 - [x] Crash de fermeture Windows intermittent reproduit sur f244bd0, c92aaab et main 0.0.3 (78093a0) ; défaut préexistant, non introduit par Synapse ni le correctif de focus.
-- [ ] Décision de livraison, changement de version et fusion autorisée.
+- [x] Audit de e030674 face à main 78093a0 ; aucun nouveau défaut bloquant identifié.
+- [x] Investigation du crash documentée ; aucune correction sûre démontrée.
+- [x] Version 0.0.4 et CHANGELOG préparés, 137 tests Linux relancés.
+- [ ] Autorisation de fusion et décision de publication (défaut de fermeture connu).
 
 ## Au-delà
 

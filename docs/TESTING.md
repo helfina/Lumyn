@@ -207,3 +207,22 @@ Le contrôle natif Windows du correctif de focus est validé. Le crash de fermet
 Windows reste un défaut intermittent connu, reproduit indépendamment du correctif
 de focus et sans régression fonctionnelle observée. La décision de livraison 0.0.4
 reste à prendre en tenant compte de ce défaut connu.
+
+
+## Audit final et candidate 0.0.4 — 05/09/2026
+
+Reprise de e030674 et comparaison à main 78093a0. `python -m pytest -q` :
+**137 réussis** sous Linux/Python 3.12 avant et après changement de version et
+chaque document de ce lot. Aucun test ajouté, aucun code applicatif modifié.
+Les 137 tests Windows/Python 3.13 (3.83 s), le focus natif et Google réel restent
+les validations utilisateur déjà acquises ; ils n'ont pas été rejoués sous Linux.
+
+`python -m compileall -q src tests` : réussi. Version TOML vérifiée : 0.0.4.
+`git diff --check` et comparaison avec main : réussis. En début d'audit, un cache
+bytecode local incomplet empêchait pytest de démarrer ; suppression des seuls
+.pyc de l'environnement de test puis relance réussie, sans changement du dépôt.
+
+Le rapport [AUDIT_0.0.4.md](AUDIT_0.0.4.md) détaille le crash : aucune correction
+native sûre démontrée, aucun contournement appliqué. Aucun exécutable Windows ou
+APK 0.0.4 construit ici. La candidate est recommandée pour fusion avec défaut
+connu ; publication et fusion restent des décisions utilisateur.

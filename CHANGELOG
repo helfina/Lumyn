@@ -1,5 +1,24 @@
 # Lumyn Release Notes
 
+## 0.0.4 — candidate préparée le 05/09/2026 (non publiée)
+
+Depuis main 0.0.3 :
+
+* Carnet local : fiches, alias, professions, plusieurs adresses et favorite.
+* Synapse local : résolution par le Carnet, site explicite prioritaire, ambiguïtés
+  bloquantes ; VISIO/DOMICILE à Maison sans lien Google Meet automatique.
+* Navigation Carnet/Rendez-vous et saisie au clavier : résumé puis confirmation,
+  avec retour du focus et invalidation après changement de calendrier.
+* Préservation du CRUD Google et des identifiants ; fournisseur externe inactif.
+* 137 tests réussis sous Linux et Windows/Python 3.13 ; parcours natifs et Google
+  réels validés par l'utilisatrice, détails dans docs/TESTING.md.
+* Audit final : version et documentation uniquement, aucune nouvelle fonctionnalité.
+
+Défaut connu : access violation intermittent à la fermeture Windows, déjà présent
+sur main 0.0.3 (78093a0). Cause précise non démontrée, aucun contournement livré.
+Voir docs/AUDIT_0.0.4.md. Android et installateurs 0.0.4 non validés dans cet audit.
+La fusion, le statut final de PR et la publication restent soumis à autorisation.
+
 ## 0.0.1 (21 Jul 2026)
 
 * Initial release

@@ -114,3 +114,14 @@ L'objectif est de comprendre chaque concept avant d'en introduire un nouveau.
 - Préparer seulement l'interface d'un fournisseur externe. Aucun fournisseur
   choisi, aucune adresse importée ni fiche enregistrée sans intervention explicite.
 - Ne pas modifier l'arrêt WinForms/pythonnet sans reproduction du crash Windows.
+
+
+## 05/09/2026 — Préparation autorisée de 0.0.4 après audit
+
+L'instruction de finalisation autorise le changement de version si l'audit est
+satisfaisant. Aucun nouveau défaut bloquant identifié dans les parcours validés :
+version 0.0.4 préparée sur la branche, main inchangée. Le crash de fermeture
+préexistant reste connu ; aucune correction native sûre n'est démontrée.
+Ne pas remplacer l'absence de diagnostic par un contournement de shutdown.
+Recommandation de fusion avec défaut documenté ; décision finale de fusion,
+statut de PR et publication réservés à l'utilisatrice.

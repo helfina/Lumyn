@@ -30,7 +30,7 @@ Elle contient notamment :
 - l'intégration Google Calendar ;
 - le calendrier filtrable.
 
-La branche `feature/synapse-rendez-vous` prépare la future 0.0.4 avec :
+La branche `feature/synapse-rendez-vous` déclare maintenant la candidate 0.0.4 avec :
 - le Carnet ;
 - Synapse local ;
 - l'interprétation des rendez-vous ;
@@ -243,16 +243,20 @@ Travailler uniquement sur :
 
     feature/synapse-rendez-vous
 
-La version déclarée reste **0.0.3** tant qu'une décision explicite de livraison
-0.0.4 n'a pas été prise.
+La candidate **0.0.4** est déclarée dans pyproject.toml après l'audit autorisé
+par l'utilisatrice depuis e030674, comparé à main 78093a0. main reste en 0.0.3.
 
 Le Carnet, Synapse, les 137 tests, le correctif de focus natif Windows et le CRUD
-Google réel sont validés.
+Google réel sont validés. L'audit n'a pas identifié de nouveau défaut bloquant
+dans ce périmètre ; code applicatif et tests inchangés. 137 tests Linux relancés
+après la version et les documents, syntaxe Python/TOML/diff vérifiés.
 
-Le crash de fermeture Windows est désormais confirmé comme un défaut
-préexistant également présent sur la 0.0.3 stable.
+Le crash de fermeture reste préexistant et non corrigé. La lecture des sources
+Toga/pythonnet n'établit pas de correction sûre pour le cas utilisateur ; aucune
+modification de boucle, de runtime ou d'allocateur appliquée. Voir
+`docs/AUDIT_0.0.4.md` pour les preuves, hypothèses et diagnostic natif restant.
 
-Ne pas fusionner dans `main` et ne pas modifier la version sans décision
-explicite de l'utilisatrice.
-
-La prochaine décision concerne la livraison de la future **0.0.4**.
+Recommandation : **prête à fusionner avec défaut connu**. La PR est préparée en
+brouillon. Ne pas fusionner dans main, changer l'état final de PR, créer un tag
+ou publier une release sans autorisation explicite. Aucun installateur 0.0.4
+construit ou testé pendant cet audit. Prochaine étape : décision utilisateur.

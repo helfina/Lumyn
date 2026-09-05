@@ -2,11 +2,13 @@
 
 ## Version et branche — 05/09/2026
 
-Version déclarée : **0.0.3**, stable et fusionnée dans main avant cette reprise.
+Version déclarée sur cette branche : **0.0.4**, candidate préparée après audit.
+La version de main reste 0.0.3 (78093a0), sans fusion effectuée.
 La version **0.0.4 Carnet de lieux + Synapse Rendez-vous** est en préparation sur
 `feature/synapse-rendez-vous`, reprise au commit `3f0f119` après les trois commits
 Carnet (`81ab732`, `ab3cd5e`, `3f0f119`). Cette séance ne modifie ni ne fusionne main.
-La version dans pyproject.toml reste 0.0.3 en attendant une décision de livraison.
+La préparation de version 0.0.4 est autorisée pour cet audit ; sa publication
+et la fusion restent en attente de décision.
 
 ## Fonctionnalités présentes
 
@@ -118,9 +120,10 @@ Le correctif de focus après changement de calendrier est désormais validé
 nativement sous Windows. Les 137 tests passent également sous Windows/Python 3.13
 en 3.83 s. Les scénarios Synapse et le CRUD Google réel sont validés.
 
-La branche feature/synapse-rendez-vous peut maintenant passer à la décision de
-livraison 0.0.4. Aucun fournisseur externe n'est activé. Ne pas fusionner ni
-changer la version sans décision explicite de l'utilisatrice.
+La candidate 0.0.4 est préparée sur feature/synapse-rendez-vous après audit.
+Recommandation : prête à fusionner avec le crash préexistant documenté.
+Attendre l'autorisation explicite avant fusion ou changement d'état final de PR.
+Aucun fournisseur externe n'est activé.
 
 ## Dernière validation et correctif de focus — 05/09/2026
 
@@ -149,3 +152,19 @@ intermittente. Il a été reproduit sur `f244bd0` et sur `c92aaab`, avec la mêm
 trace `proactor.py` / `pythonnet.unload()` / `clr_loader`. Il a aussi été reproduit
 sur `f244bd0` après remplacement de tout `rendez_vous/ui.py` par celui de
 `c92aaab`. Le correctif de focus n'est donc pas retenu comme cause.
+
+
+## Audit final depuis e030674 — 05/09/2026
+
+Comparaison avec main 78093a0 : aucune régression bloquante mise en évidence dans
+les parcours validés. Code applicatif et tests inchangés pendant ce lot.
+137 tests Linux réussis avant/après version et documentation ; les 137 Windows
+et le focus natif étaient déjà confirmés. Syntaxe Python, TOML et diff vérifiés.
+Version applicative unique dans pyproject.toml passée à 0.0.4 ; CHANGELOG complété.
+
+Le crash ne reçoit aucun correctif : les sources amont donnent une piste de
+callbacks .NET tardifs et des précédents de finalisation, sans preuve suffisante
+pour ce cas. Linux ne permet pas d'en valider une correction native. Le rapport
+[docs/AUDIT_0.0.4.md](docs/AUDIT_0.0.4.md) distingue faits, hypothèses et diagnostic
+restant. Recommandation : **prête à fusionner**, avec défaut connu, sous réserve
+de l'autorisation de l'utilisatrice. Aucun installateur ni release publié.

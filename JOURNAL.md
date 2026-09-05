@@ -235,3 +235,18 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
 - Version déclarée conservée à 0.0.3. Aucun merge dans `main` ni changement de
   version sans décision explicite de l'utilisatrice. La prochaine décision
   concerne la livraison de la future 0.0.4.
+
+# 05/09/2026 — Audit final et préparation technique 0.0.4
+
+- Reprise de e030674, lecture prioritaire des documents, audit du diff avec main
+  78093a0. Aucun nouveau défaut bloquant mis en évidence dans le périmètre validé.
+- Code Carnet/Synapse/Rendez-vous/Google conservé, aucun test supplémentaire ajouté.
+- Investigation des sources Toga 0.5.6/pythonnet 3.1.0 et signalements amont :
+  callbacks tardifs et finalisation restent des pistes, pas une cause prouvée.
+  Aucun correctif sûr démontré sous Linux ; crash préexistant conservé et documenté.
+- 137 tests Linux réussis avant et après préparation, syntaxe Python et diff
+  vérifiés. Les validations Windows 137 tests, focus et Google réel sont conservées.
+- pyproject.toml passé à 0.0.4 selon l'autorisation de préparer la livraison après
+  audit ; CHANGELOG et documents synchronisés. Rapport docs/AUDIT_0.0.4.md ajouté.
+- Recommandation : prête à fusionner avec le défaut de fermeture connu. Préparation
+  d'une PR en brouillon ; aucune fusion, sortie de brouillon, release ou tag créé.
