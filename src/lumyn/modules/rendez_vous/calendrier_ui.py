@@ -219,11 +219,12 @@ def creer_html_calendrier(
             continue
 
         try:
-            jour = int(
-                date_evenement.split("-")[2]
-            )
+            date_objet = date.fromisoformat(date_evenement)
+            if (date_objet.year, date_objet.month) != (annee, mois):
+                continue
+            jour = date_objet.day
 
-        except (IndexError, ValueError):
+        except (TypeError, ValueError):
             continue
 
         evenements_par_jour.setdefault(
