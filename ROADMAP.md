@@ -22,7 +22,7 @@
 - [x] 132 tests automatiques isolés réussis après documentation.
 - [x] Validation native Carnet/Synapse et CRUD Google réel du 05/09/2026 sur c92aaab.
 - [x] 132 tests confirmés sous Windows/Python 3.13.
-- [x] Correctif du focus après changement de calendrier ; 137 tests Linux réussis.
+- [x] Correctif du focus après changement de calendrier ; 137 tests Linux et Windows réussis.
 - [x] Contrôle natif Windows du nouveau correctif de focus.
 - [x] Crash de fermeture Windows intermittent reproduit sur f244bd0 et c92aaab ; indépendant du correctif de focus, à surveiller.
 - [ ] Décision de livraison, changement de version et fusion autorisée.

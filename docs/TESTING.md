@@ -116,8 +116,6 @@ comme défaut Lumyn. La présence des rappels est confirmée, pas leur déclench
 Dans le Carnet, ajouter une adresse nécessite « Ajouter l'adresse », puis
 « Enregistrer la fiche ». Le parcours fonctionne ; son ergonomie reste inchangée.
 
-### Incident de fermeture
-
 ### Crash de fermeture Windows intermittent
 
 Un crash de fermeture reste observable de manière intermittente sous Windows :
