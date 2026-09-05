@@ -78,21 +78,37 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
 
 - Crash de fermeture Windows intermittent : `Windows fatal exception: access violation`
   observé dans `toga_winforms/libs/proactor.py` pendant le déchargement de
-  `pythonnet` / `clr_loader`. Le problème a été reproduit plusieurs fois sur
-  `f244bd0`, mais aussi sur l'ancien commit `c92aaab`.
-- Le crash se produit même sans interaction avec Lumyn et a également été reproduit
-  après remplacement complet de `rendez_vous/ui.py` par la version de `c92aaab`.
-  Le correctif de focus n'est donc pas identifié comme cause.
+  `pythonnet` / `clr_loader`.
+
+- Le problème a été reproduit plusieurs fois sur `f244bd0`, sur l'ancien commit
+  `c92aaab`, ainsi que sur la version stable 0.0.3 de `main` au commit `78093a0`.
+  Sur `main`, le test a été effectué dans un environnement Briefcase neuf, avec
+  ouverture puis fermeture immédiate de Lumyn sans interaction.
+
+- Le crash a également été reproduit sur `f244bd0` après remplacement complet de
+  `rendez_vous/ui.py` par la version de `c92aaab`. Le correctif de focus n'est donc
+  pas identifié comme cause.
+
+- Le crash est confirmé comme préexistant à la branche Synapse et au correctif de
+  focus ; il n'est pas considéré comme une régression introduite par la future
+  0.0.4. La cause exacte côté Toga WinForms/pythonnet reste à investiguer
+  séparément.
+
 - Certaines fermetures restent parfaitement propres : le défaut est intermittent.
   Aucun impact sur les données ou le fonctionnement de Lumyn n'a été observé avant
-  la fermeture. Aucun correctif spéculatif Toga/pythonnet n'est appliqué pour le moment.
+  la fermeture. Aucun correctif spéculatif Toga/pythonnet n'est appliqué pour le
+  moment.
+
 - Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
   concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi
   littéralement n'est pas une adresse vérifiée. Toujours relire le résumé.
+
 - Historique et fournisseur externe réel non développés ; résolution des ambiguïtés
   par correction de la saisie ou du carnet, sans sélecteur de propositions dédié.
+
 - Appels Google synchrones ; pas de transaction atomique Google/local, ni de
   garantie de reprise après double panne, ni d'écritures locales multiprocessus.
+
 - Android/APK/OAuth Android, rappels locaux, tâches et notes restent à développer
   ou valider ; pas de livraison 0.0.4 annoncée.
 

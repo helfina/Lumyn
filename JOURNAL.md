@@ -175,37 +175,63 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
   natifs de cette branche avant décision 0.0.4. Aucun merge effectué par cette séance.
 
 
-# 05/09/2026 — Validation complète Windows/Google et correctif de focus
+# 05/09/2026 — Validation complète Windows/Google, focus et crash de fermeture
 
 - Compte rendu utilisateur sur `c92aaab` : 132 tests réussis en 3.94 s sous
   Windows/Python 3.13 ; application native WinForms, démarrage et navigation OK.
-- Carnet : CRUD, plusieurs adresses et favorite validés. Synapse : professionnel,
-  favorite, site explicite non favori, VISIO/DOMICILE à Maison et ambiguïtés bloquées.
-- Google réel : créations VISIO/DOMICILE, rappels, aucun lien Meet automatique ;
-  modification du même événement, déplacement Famille → Gaelle et suppression.
-  Aucun doublon, liaison cohérente. Détails dans `docs/TESTING.md`.
-- Défaut de focus identifié : après saisie puis changement de calendrier, le focus
-  restait sur le sélecteur. Correctif ajouté via `on_change` et
-  `TextInput.focus()`, avec invalidation de l'ancienne préparation.
-- Après publication du correctif `f244bd0`, récupération et validation sur le poste
-  Windows réel : 137 tests réussis sous Python 3.13 en 3.83 s.
+
+- Carnet validé manuellement : création, modification, suppression, plusieurs
+  adresses et adresse favorite.
+
+- Synapse validé manuellement : professionnel reconnu, priorité au Carnet,
+  adresse favorite, site explicite non favori, VISIO/DOMICILE à Maison et
+  ambiguïtés bloquant la confirmation.
+
+- Google Calendar réel validé : créations VISIO/DOMICILE, rappels présents,
+  aucun lien Google Meet automatique, modification du même événement,
+  déplacement Famille → Gaelle et suppression. Aucun doublon observé et liaison
+  Lumyn / Google cohérente.
+
+- Défaut de focus identifié : après saisie puis changement de calendrier, le
+  focus restait sur le sélecteur. Correctif ajouté via `on_change` et
+  `TextInput.focus()`, avec invalidation de la préparation précédente.
+
+- Après publication du correctif `f244bd0`, récupération et validation sur le
+  poste Windows réel : 137 tests réussis sous Python 3.13 en 3.83 s.
+
 - Validation native Toga WinForms du focus réussie : après saisie puis changement
-  de calendrier, le focus revient automatiquement dans la saisie ; première
+  de calendrier, le focus revient automatiquement dans le champ ; première
   Entrée = nouvelle analyse avec la nouvelle destination, seconde Entrée =
   confirmation.
+
 - Pendant les contrôles de fermeture, le crash
   `Windows fatal exception: access violation` a été reproduit plusieurs fois.
-  La trace reste centrée sur `toga_winforms/libs/proactor.py`,
+  La trace implique notamment `toga_winforms/libs/proactor.py`,
   `pythonnet/__init__.py -> unload()` et `clr_loader/types.py`.
-- Comparaison effectuée avec l'ancien commit `c92aaab` : certaines fermetures sont
-  propres, mais le même crash s'y reproduit aussi. Le défaut existait donc avant
-  le correctif de focus.
-- Test d'isolation supplémentaire : sur `f244bd0`, remplacement complet de
-  `src/lumyn/modules/rendez_vous/ui.py` par la version de `c92aaab` ; le crash
-  persiste. Le correctif de focus n'est donc pas retenu comme cause.
-- Conclusion : crash de fermeture Windows intermittent, à investiguer séparément
-  côté Toga WinForms/pythonnet. Aucun correctif spéculatif appliqué. Aucun impact
-  fonctionnel ou corruption de données observé avant fermeture.
-- Version 0.0.3 conservée ; travail uniquement sur
-  `feature/synapse-rendez-vous`, sans fusion ni changement d'état de PR.
-  Fournisseur externe toujours inactif. La décision de livraison 0.0.4 reste à prendre.
+
+- Le crash a été reproduit sur `f244bd0` et sur l'ancien commit `c92aaab`.
+  Certaines fermetures de `c92aaab` restent néanmoins propres, confirmant le
+  caractère intermittent.
+
+- Test d'isolation supplémentaire : sur `f244bd0`,
+  `src/lumyn/modules/rendez_vous/ui.py` a été entièrement remplacé par la version
+  de `c92aaab`. Le crash s'est encore produit. Le correctif de focus n'est donc
+  pas retenu comme cause.
+
+- Comparaison finale avec la vraie version stable 0.0.3 de `main`, commit
+  `78093a0` : création d'un environnement Briefcase neuf, lancement de Lumyn puis
+  fermeture immédiate sans interaction. Le même
+  `Windows fatal exception: access violation` s'est produit avec la même famille
+  de trace Toga WinForms / pythonnet / clr_loader.
+
+- Le crash de fermeture est donc confirmé comme préexistant à Synapse, au
+  correctif de focus et à la future 0.0.4. Il n'est pas considéré comme une
+  régression introduite par `feature/synapse-rendez-vous`.
+
+- Aucun impact fonctionnel ni corruption de données n'a été observé avant
+  fermeture. La cause exacte reste à investiguer séparément côté
+  Toga WinForms/pythonnet. Aucun correctif spéculatif appliqué.
+
+- Version déclarée conservée à 0.0.3. Aucun merge dans `main` ni changement de
+  version sans décision explicite de l'utilisatrice. La prochaine décision
+  concerne la livraison de la future 0.0.4.

@@ -135,21 +135,28 @@ Environnement confirmé :
 - pythonnet 3.1.0
 - clr_loader 0.3.1
 
-Le problème a été reproduit plusieurs fois sur `f244bd0`, mais également sur
-l'ancien commit `c92aaab`. Il se produit même quand Lumyn est ouvert puis fermé
-immédiatement sans interaction.
+Le problème a été reproduit plusieurs fois sur `f244bd0`, sur l'ancien commit
+`c92aaab`, ainsi que sur la version stable 0.0.3 de `main` au commit `78093a0`.
 
-Le test d'isolation a également remplacé entièrement
+Le test sur `main` a été effectué dans un environnement Briefcase neuf. Lumyn a
+été ouvert puis fermé immédiatement sans interaction ; le même
+`Windows fatal exception: access violation` s'est produit avec la même trace
+Toga WinForms / pythonnet / clr_loader.
+
+Un test d'isolation avait également remplacé entièrement
 `src/lumyn/modules/rendez_vous/ui.py` de `f244bd0` par la version de `c92aaab` :
-le crash s'est encore produit. Le correctif de focus n'est donc pas retenu comme
-cause.
+le crash s'était encore produit.
+
+Ces comparaisons confirment que le défaut préexistait à la branche Synapse et au
+correctif de focus. Il n'est donc pas considéré comme une régression introduite
+par la future 0.0.4.
 
 Certaines fermetures restent propres, ce qui confirme le caractère intermittent.
 Aucune corruption de données ni régression fonctionnelle n'a été observée avant
 la fermeture.
 
+La cause exacte reste à investiguer séparément côté Toga WinForms/pythonnet.
 Aucun correctif spéculatif Toga/pythonnet/asyncio n'est appliqué pour le moment.
-Le défaut reste à surveiller séparément de la validation fonctionnelle de Lumyn.
 
 ### Correctif de focus de ce lot
 

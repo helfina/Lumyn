@@ -24,7 +24,7 @@
 - [x] 132 tests confirmés sous Windows/Python 3.13.
 - [x] Correctif du focus après changement de calendrier ; 137 tests Linux et Windows réussis.
 - [x] Contrôle natif Windows du nouveau correctif de focus.
-- [x] Crash de fermeture Windows intermittent reproduit sur f244bd0 et c92aaab ; indépendant du correctif de focus, à surveiller.
+- [x] Crash de fermeture Windows intermittent reproduit sur f244bd0, c92aaab et main 0.0.3 (78093a0) ; défaut préexistant, non introduit par Synapse ni le correctif de focus.
 - [ ] Décision de livraison, changement de version et fusion autorisée.
 
 ## Au-delà

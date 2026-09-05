@@ -100,13 +100,26 @@ Version actuelle :
 La version 0.0.3 gère les rendez-vous locaux et Google, validés sous Windows avec
 Google réel le 05/09/2026. Sur `feature/synapse-rendez-vous`, la future 0.0.4 ajoute
 le Carnet et Synapse local, validés sous Windows/Google réel le 05/09/2026.
+
 Les 137 tests passent sous Linux et sous Windows/Python 3.13. Le correctif de focus
 après changement de calendrier est également validé nativement sous Windows.
 Le Carnet, Synapse et le CRUD Google réel sont validés.
 
-Un crash de fermeture Windows intermittent lié à Toga WinForms/pythonnet reste
-connu et reproduit indépendamment du correctif de focus. Aucun impact fonctionnel
-ou corruption de données n'a été observé avant fermeture. Android reste à valider.
+Un crash de fermeture Windows intermittent reste connu. Il a été reproduit sur
+`feature/synapse-rendez-vous`, sur l'ancien commit `c92aaab`, ainsi que sur la
+version stable 0.0.3 de `main` au commit `78093a0`.
+
+Sur `main`, le test a été effectué dans un environnement Briefcase neuf, avec
+ouverture puis fermeture immédiate de Lumyn sans interaction. Le même
+`Windows fatal exception: access violation` a été observé dans le chemin
+Toga WinForms / pythonnet / clr_loader.
+
+Le défaut préexistait donc à Synapse et au correctif de focus ; il n'est pas
+considéré comme une régression introduite par la future 0.0.4. La cause exacte
+reste à investiguer séparément. Aucun impact fonctionnel ou corruption de données
+n'a été observé avant fermeture.
+
+Android reste à valider.
 
 ---
 
