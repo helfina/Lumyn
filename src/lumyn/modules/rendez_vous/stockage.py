@@ -1,6 +1,8 @@
 """Stockage local des rendez-vous de Lumyn."""
 
 import json
+import os
+import tempfile
 import uuid
 from datetime import date
 from pathlib import Path
@@ -37,15 +39,24 @@ def ajouter_identifiants_manquants(rendez_vous):
 def sauvegarder_rendez_vous(rendez_vous):
     """Écrit toute la liste des rendez-vous dans le fichier."""
 
+    # Sérialiser avant de toucher au fichier existant.
+    contenu = json.dumps(rendez_vous, ensure_ascii=False, indent=4)
     DOSSIER_DONNEES.mkdir(parents=True, exist_ok=True)
-
-    with FICHIER_RENDEZ_VOUS.open("w", encoding="utf-8") as fichier:
-        json.dump(
-            rendez_vous,
-            fichier,
-            ensure_ascii=False,
-            indent=4,
-        )
+    temporaire = None
+    try:
+        # Même dossier : le remplacement reste atomique sur le même disque.
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=DOSSIER_DONNEES,
+            prefix="rendez_vous-", suffix=".tmp", delete=False,
+        ) as fichier:
+            temporaire = Path(fichier.name)
+            fichier.write(contenu)
+            fichier.flush()
+            os.fsync(fichier.fileno())
+        os.replace(temporaire, FICHIER_RENDEZ_VOUS)
+    finally:
+        if temporaire is not None:
+            temporaire.unlink(missing_ok=True)
 
 
 def charger_rendez_vous():
@@ -58,8 +69,19 @@ def charger_rendez_vous():
         with FICHIER_RENDEZ_VOUS.open("r", encoding="utf-8") as fichier:
             rendez_vous = json.load(fichier)
 
-    except (json.JSONDecodeError, OSError):
-        return []
+    except (json.JSONDecodeError, UnicodeError) as erreur:
+        raise ValueError(
+            "Le fichier des rendez-vous est illisible. "
+            "Il a été conservé ; restaure une sauvegarde avant de réessayer."
+        ) from erreur
+
+    if not isinstance(rendez_vous, list) or not all(
+        isinstance(rdv, dict) for rdv in rendez_vous
+    ):
+        raise ValueError(
+            "Le fichier des rendez-vous doit contenir une liste de rendez-vous. "
+            "Il a été conservé sans modification."
+        )
 
     if ajouter_identifiants_manquants(rendez_vous):
         sauvegarder_rendez_vous(rendez_vous)
