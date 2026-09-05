@@ -39,6 +39,7 @@ from lumyn.modules.rendez_vous.agenda_google import (
 
 NOM_CALENDRIER_DEFAUT = "Famille"
 DUREE_PAR_DEFAUT_MINUTES = 60
+CALENDRIER_LOCAL_ID = "__lumyn_local__"
 
 
 def _date_iso(valeur):
@@ -91,6 +92,7 @@ class InterfaceRendezVous:
 
     def __init__(self):
         self.resultat_courant = None
+        self.saisie_analysee = None
 
         # Contient le rendez-vous LOCAL original complet pendant une modification.
         # On garde ainsi son id Lumyn + google_event_id + google_calendar_id.
@@ -255,7 +257,7 @@ class InterfaceRendezVous:
             }
             for calendrier in self.calendriers_ecriture
             if calendrier.get("id")
-        ]
+        ] + [{"nom": "Sur cet appareil uniquement", "calendar_id": CALENDRIER_LOCAL_ID}]
 
     def _selectionner_calendrier_defaut(self):
         """Sélectionne Famille par défaut, puis le principal en secours."""
@@ -437,9 +439,7 @@ class InterfaceRendezVous:
             toga.Selection(
                 items=self._items_calendriers(),
                 accessor="nom",
-                enabled=bool(
-                    self.calendriers_ecriture
-                ),
+                enabled=True,
                 style=Pack(
                     margin_left=12,
                     margin_right=12,
@@ -461,12 +461,12 @@ class InterfaceRendezVous:
         if self.erreur_calendriers:
             self.statut_calendrier.text = (
                 "Impossible de récupérer les calendriers Google : "
-                f"{self.erreur_calendriers}"
+                f"{self.erreur_calendriers}. Enregistrement local disponible, sans rappel."
             )
 
         elif not self.calendriers_ecriture:
             self.statut_calendrier.text = (
-                "Aucun calendrier Google accessible en écriture."
+                "Enregistrement local disponible, sans rappel sur cet appareil."
             )
 
         else:
@@ -733,17 +733,7 @@ class InterfaceRendezVous:
     ):
         """Préserve les champs que le parseur ne reconstruit pas encore."""
 
-        nouveau = _copie_rendez_vous(
-            nouveau
-        )
-
-        if (
-            not nouveau.get("lieu")
-            and original.get("lieu")
-        ):
-            nouveau["lieu"] = (
-                original.get("lieu")
-            )
+        nouveau = {**original, **nouveau}
 
         nouveau[
             "duree_minutes"
@@ -943,17 +933,11 @@ class InterfaceRendezVous:
 
                 raise
 
-            resultat_local = (
-                modifier_rendez_vous_stockage(
-                    rendez_vous_id,
-                    nouveau,
-                )
-            )
-
-            if (
-                resultat_local is None
-                or resultat_local is False
-            ):
+            try:
+                resultat_local = modifier_rendez_vous_stockage(rendez_vous_id, nouveau)
+                if resultat_local is None or resultat_local is False:
+                    raise RuntimeError("Rendez-vous local introuvable.")
+            except Exception as erreur_locale:
                 # Rollback Google : on restaure autant que possible
                 # l'ancien rendez-vous.
                 try:
@@ -984,7 +968,7 @@ class InterfaceRendezVous:
                 raise RuntimeError(
                     "Lumyn n'a pas réussi à mettre à jour sa copie locale. "
                     "La modification a été annulée autant que possible."
-                )
+                ) from erreur_locale
 
             sauvegarde = (
                 self._rendez_vous_local_par_id(
@@ -1411,7 +1395,7 @@ class InterfaceRendezVous:
             ligne_liaison = toga.Label(
                 (
                     "Ancien rendez-vous non lié à Google. "
-                    "Une modification le liera au calendrier choisi."
+                    "Tu peux le garder local ou choisir un calendrier Google."
                 ),
                 style=Pack(
                     color="#6c757d",
@@ -1526,6 +1510,7 @@ class InterfaceRendezVous:
             f"{titre} "
             f"{date_saisie} "
             f"{heure}"
+            + (f" à {rendez_vous['lieu']}" if rendez_vous.get("lieu") else "")
         ).strip()
 
         calendrier_id = rendez_vous.get(
@@ -1543,7 +1528,7 @@ class InterfaceRendezVous:
                 self._selectionner_calendrier_defaut()
 
         else:
-            self._selectionner_calendrier_defaut()
+            self._selectionner_calendrier_par_id(CALENDRIER_LOCAL_ID)
 
         if (
             rendez_vous.get(
@@ -1560,8 +1545,7 @@ class InterfaceRendezVous:
         else:
             self.resultat_label.text = (
                 "Ancien rendez-vous non lié chargé. "
-                "Après confirmation, Lumyn créera son événement Google "
-                "dans le calendrier sélectionné."
+                "Garde-le sur cet appareil ou sélectionne un calendrier Google."
             )
 
         self.modifier_button.enabled = False
@@ -1590,6 +1574,8 @@ class InterfaceRendezVous:
             ]
         )
 
+        self.saisie_analysee = (self.rdv_input.value, self._calendrier_selectionne()[0])
+
         etat_resultat = (
             self.resultat_courant[
                 "etat"
@@ -1599,15 +1585,11 @@ class InterfaceRendezVous:
         if etat_resultat == "confirmation":
             self.modifier_button.enabled = True
 
-            self.confirmer_button.enabled = bool(
-                self.calendriers_ecriture
-            )
-
-            if not self.calendriers_ecriture:
-                self.resultat_label.text = (
-                    f"{self.resultat_label.text}\n"
-                    "Aucun calendrier Google n'est disponible en écriture."
-                )
+            self.confirmer_button.enabled = True
+            calendrier_id, nom = self._calendrier_selectionne()
+            self.resultat_label.text += f"\nDestination : {nom}."
+            if calendrier_id == CALENDRIER_LOCAL_ID:
+                self.resultat_label.text += "\nAucun rappel automatique en mode local."
 
         elif etat_resultat in (
             "erreur",
@@ -1665,10 +1647,10 @@ class InterfaceRendezVous:
             )
             return
 
-        if not self.calendriers_ecriture:
-            self.resultat_label.text = (
-                "Aucun calendrier Google accessible en écriture."
-            )
+        if self.saisie_analysee != (
+            self.rdv_input.value, self._calendrier_selectionne()[0]
+        ):
+            self.modifier_saisie(widget)
             return
 
         rendez_vous = (
@@ -1684,7 +1666,24 @@ class InterfaceRendezVous:
             return
 
         try:
-            if self.rendez_vous_en_modification:
+            calendrier_id, _ = self._calendrier_selectionne()
+            if calendrier_id == CALENDRIER_LOCAL_ID:
+                original = self.rendez_vous_en_modification
+                if original and original.get("google_event_id"):
+                    raise ValueError(
+                        "Ce rendez-vous est lié à Google. Choisis son calendrier "
+                        "Google pour conserver la synchronisation."
+                    )
+                if original:
+                    rendez_vous_final = modifier_rendez_vous_stockage(
+                        original["id"], self._preparer_nouveau_pour_modification(rendez_vous, original)
+                    )
+                    if rendez_vous_final is None:
+                        raise ValueError("Le rendez-vous local est introuvable.")
+                else:
+                    rendez_vous_final = enregistrer_rendez_vous(rendez_vous)
+                message_action = "Rendez-vous enregistré sur cet appareil ✅"
+            elif self.rendez_vous_en_modification:
                 rendez_vous_final = (
                     self._modifier_rendez_vous_lie(
                         rendez_vous
@@ -1719,7 +1718,7 @@ class InterfaceRendezVous:
             rendez_vous_final.get(
                 "google_calendar_name"
             )
-            or "Google Calendar"
+            or "Sur cet appareil uniquement"
         )
 
         self.resultat_label.text = (
