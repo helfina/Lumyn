@@ -1,35 +1,7 @@
-﻿"""Logique métier du carnet de lieux de Lumyn."""
-
-import re
-import unicodedata
+"""Logique métier du carnet de lieux de Lumyn."""
 
 from lumyn.modules.lieux.stockage import charger_lieux
-
-
-ALIAS_MAISON = {
-    "maison",
-    "domicile",
-    "chez moi",
-}
-
-
-def normaliser_recherche(texte):
-    """Normalise un texte pour faciliter les recherches dans le carnet."""
-
-    if not texte:
-        return ""
-
-    texte = unicodedata.normalize("NFKD", str(texte))
-    texte = "".join(
-        caractere
-        for caractere in texte
-        if not unicodedata.combining(caractere)
-    )
-
-    texte = texte.casefold()
-    texte = re.sub(r"\s+", " ", texte)
-
-    return texte.strip()
+from lumyn.modules.lieux.validation import ALIAS_MAISON, normaliser_recherche, est_fiche_maison
 
 
 def termes_lieu(lieu):
@@ -48,6 +20,8 @@ def termes_lieu(lieu):
         if alias_normalise and alias_normalise not in termes:
             termes.append(alias_normalise)
 
+    if est_fiche_maison(lieu):
+        termes.extend(sorted(ALIAS_MAISON - set(termes)))
     return termes
 
 
@@ -113,14 +87,6 @@ def obtenir_adresse_favorite(lieu):
         return adresses[0]
 
     return None
-
-
-def est_fiche_maison(lieu):
-    """Indique si une fiche représente le domicile de l'utilisateur."""
-
-    termes = set(termes_lieu(lieu))
-
-    return bool(termes & ALIAS_MAISON)
 
 
 def trouver_maison(lieux=None):

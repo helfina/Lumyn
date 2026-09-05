@@ -1,10 +1,11 @@
-﻿"""Interface du carnet de lieux de Lumyn."""
+"""Interface du carnet de lieux de Lumyn."""
 
 import toga
 
 from toga.style.pack import COLUMN, ROW, Pack
 
 from lumyn.modules.lieux.modele import creer_modele_lieu
+from lumyn.modules.lieux.gestion import obtenir_adresse_favorite
 from lumyn.modules.lieux.stockage import (
     charger_lieux,
     enregistrer_lieu,
@@ -611,10 +612,12 @@ class InterfaceLieux:
 
         try:
             if self.lieu_en_modification_id:
-                modifier_lieu(
+                resultat = modifier_lieu(
                     self.lieu_en_modification_id,
                     lieu,
                 )
+                if resultat is None:
+                    raise ValueError("Cette fiche n’existe plus. Recharge le carnet.")
                 message = f"{nom} a été modifié."
 
             else:
@@ -740,7 +743,7 @@ class InterfaceLieux:
         try:
             lieux = charger_lieux()
 
-        except ValueError as erreur:
+        except (OSError, ValueError) as erreur:
             self.liste_lieux.add(
                 toga.Label(
                     f"Impossible de lire le carnet : {erreur}"
@@ -839,22 +842,7 @@ class InterfaceLieux:
                 )
             )
 
-        adresse_favorite = None
-
-        for adresse in lieu.get("adresses") or []:
-            if adresse.get("favorite") and adresse.get("adresse"):
-                adresse_favorite = adresse
-                break
-
-        if adresse_favorite is None:
-            adresses_valides = [
-                adresse
-                for adresse in (lieu.get("adresses") or [])
-                if adresse.get("adresse")
-            ]
-
-            if len(adresses_valides) == 1:
-                adresse_favorite = adresses_valides[0]
+        adresse_favorite = obtenir_adresse_favorite(lieu)
 
         if adresse_favorite:
             carte.add(

@@ -1,9 +1,10 @@
-﻿"""Stockage local du carnet de lieux de Lumyn."""
+"""Stockage local du carnet de lieux de Lumyn."""
 
 import json
 import os
 import tempfile
 import uuid
+from lumyn.modules.lieux.validation import preparer_fiche, verifier_maison_unique
 from pathlib import Path
 
 
@@ -78,6 +79,8 @@ def charger_lieux():
             "Il a été conservé sans modification."
         )
 
+    lieux = [preparer_fiche(lieu, ancienne=True) for lieu in lieux]
+
     if ajouter_identifiants_manquants(lieux):
         sauvegarder_lieux(lieux)
 
@@ -89,9 +92,10 @@ def enregistrer_lieu(lieu):
 
     lieux = charger_lieux()
 
-    nouveau_lieu = lieu.copy()
+    nouveau_lieu = preparer_fiche(lieu)
     nouveau_lieu["id"] = str(uuid.uuid4())
 
+    verifier_maison_unique(lieux + [nouveau_lieu])
     lieux.append(nouveau_lieu)
     sauvegarder_lieux(lieux)
 
@@ -105,9 +109,10 @@ def modifier_lieu(lieu_id, nouvelles_donnees):
 
     for index, lieu in enumerate(lieux):
         if lieu.get("id") == lieu_id:
-            lieu_modifie = nouvelles_donnees.copy()
+            lieu_modifie = preparer_fiche({**lieu, **nouvelles_donnees})
             lieu_modifie["id"] = lieu_id
 
+            verifier_maison_unique(lieux[:index] + [lieu_modifie] + lieux[index + 1:])
             lieux[index] = lieu_modifie
             sauvegarder_lieux(lieux)
 

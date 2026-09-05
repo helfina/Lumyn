@@ -1,4 +1,4 @@
-﻿"""Tests isolés : aucun agenda réel ni fichier personnel n'est utilisé."""
+"""Tests isolés : aucun agenda réel ni fichier personnel n'est utilisé."""
 
 import os
 import sys
@@ -25,6 +25,13 @@ def isoler_donnees_et_reseau(monkeypatch, tmp_path):
         "FICHIER_RENDEZ_VOUS",
         tmp_path / "rendez_vous.json",
     )
+
+    from lumyn.modules.lieux import stockage as stockage_lieux
+    from lumyn.modules.rendez_vous import calendrier_ui
+    monkeypatch.setattr(stockage_lieux, "DOSSIER_DONNEES", tmp_path)
+    monkeypatch.setattr(stockage_lieux, "FICHIER_LIEUX", tmp_path / "lieux.json")
+    monkeypatch.setattr(calendrier_ui, "DOSSIER_LUMYN", tmp_path)
+    monkeypatch.setattr(calendrier_ui, "FICHIER_PREFERENCES_CALENDRIERS", tmp_path / "calendriers.json")
 
     connexion_originale = socket.socket.connect
 
