@@ -112,3 +112,9 @@ Ne jamais enregistrer :
 # Objectif final
 
 Construire progressivement un assistant personnel fiable, simple, évolutif et agréable à maintenir.
+## Vérifications depuis la reprise du 05/09/2026
+
+Installer `requirements-test.txt` dans un environnement de test, puis lancer
+`python -m pytest -q` après chaque modification. Les détails et les limites du
+backend Toga Dummy sont dans `docs/TESTING.md`. Les tests Google doivent rester
+simulés, avec données locales temporaires.

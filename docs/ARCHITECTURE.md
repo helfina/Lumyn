@@ -90,7 +90,8 @@ rendez_vous/
 
 ## ui.py
 
-Contient uniquement l'interface graphique.
+Contient l’interface graphique et, dans le prototype actuel, le contrôleur des
+opérations local/Google.
 
 Responsabilités :
 
@@ -99,7 +100,9 @@ Responsabilités :
 - champs de saisie ;
 - disposition.
 
-Aucune logique métier.
+La validation textuelle reste dans gestion.py ; l’orchestration des créations,
+modifications et tentatives de restauration est actuellement dans ui.py.
+Cette séparation pourra être améliorée après la validation du prototype.
 
 ---
 
@@ -176,3 +179,15 @@ Ainsi, chaque fonctionnalité évolue indépendamment.
 - Le code doit être simple à retrouver.
 - L'architecture ne doit pas être compliquée avant d'être nécessaire.
 - Chaque nouvelle fonctionnalité doit s'intégrer à cette architecture.
+## Fichiers complémentaires présents (05/09/2026)
+
+- modele.py et resultat.py : dictionnaires structurés de rendez-vous et résultat.
+- stockage.py : JSON local, migration des identifiants et écriture atomique.
+- agenda_google.py : OAuth, service partagé, pagination et opérations Google.
+- calendrier_ui.py : HTML du mois, navigation et préférences de filtres.
+- tests/ : analyse, stockage, interface Toga Dummy et appels Google simulés.
+
+Le stockage local se trouve dans `~/.lumyn/rendez_vous.json`. Il ne gère pas
+les écritures concurrentes de plusieurs processus. Google et le fichier local
+ne forment pas une transaction atomique ; les tentatives de restauration
+restent limitées en cas de plusieurs pannes simultanées.

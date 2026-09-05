@@ -2,7 +2,7 @@
 [tool.briefcase]
 project_name = "Lumyn"
 bundle = "fr.helfina"
-version = "0.0.1"
+version = "0.0.3"
 url = "https://github.com/helfina/Lumyn"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -29,6 +29,7 @@ requires = [
 ]
 test_requires = [
     "pytest",
+    "toga-dummy~=0.5.0",
 ]
 
 [tool.briefcase.app.lumyn.macOS]

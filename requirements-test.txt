@@ -1,0 +1,7 @@
+# Tests sans interface native et sans accès à un compte Google.
+pytest==9.1.1
+toga-dummy==0.5.6
+google-api-python-client==2.200.0
+google-auth-httplib2==0.4.2
+google-auth-oauthlib==1.4.1
+tzdata==2026.3

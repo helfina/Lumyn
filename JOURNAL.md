@@ -125,3 +125,11 @@ Créer le premier bouton de Lumyn.
 - Création d'un objet résultat (`etat`, `message`, `rendez_vous`).
 - L'interface utilise désormais cet objet résultat.
 - Ajout d'un bouton Confirmer (préparation de la suite).
+
+# 05/09/2026 — Reprise et stabilisation
+
+- Comparaison du dépôt et de l'archive, puis conservation des ajouts Google.
+- Préservation du mode local, correction des écritures et des confirmations.
+- Saisie du lieu, délais en jours, heures invalides et dates bissextiles.
+- 57 tests isolés réussis après les corrections, avec Google simulé.
+- Documentation actualisée ; prochaine étape : validation native Windows.

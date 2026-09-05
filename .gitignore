@@ -11,7 +11,8 @@ venv/
 .vscode/
 
 # Logs
-*.log# Byte-compiled / optimized / DLL files
+*.log
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -78,3 +79,7 @@ logs/
 .briefcase/
 credentials.json
 token.json
+
+# Environnement de tests
+.venv-tests/
+.pytest_cache/
