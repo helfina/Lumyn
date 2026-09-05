@@ -17,6 +17,12 @@ def preparer_rendez_vous(texte):
 
     rendez_vous = analyser_rendez_vous(texte)
 
+    return valider_rendez_vous(rendez_vous)
+
+
+def valider_rendez_vous(rendez_vous):
+    """Valide une structure analysée, sans accès réseau ni enregistrement."""
+
     if rendez_vous["erreurs"]:
         erreurs = "\n".join(rendez_vous["erreurs"])
 
