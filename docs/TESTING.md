@@ -18,33 +18,55 @@ Ils remplacent les appels Google par des doubles et redirigent les données loca
 vers un répertoire temporaire. Ils ne lisent ni token.json ni credentials.json.
 Le backend Dummy vérifie la construction et les interactions, pas le rendu natif.
 
-## Validation manuelle Windows restante
+## Validation manuelle réelle Windows et Google — 05/09/2026
 
-Depuis l'environnement habituel de développement :
+Essais réels effectués sous Windows et confirmés par l'utilisatrice sur la branche
+`codex/lumyn-fiabilisation-rendez-vous`, avec Google Calendar réel. Ces résultats
+complètent les 57 tests automatiques isolés ; ils ne sont pas issus de Toga Dummy
+ou d'appels Google simulés.
 
-```powershell
-briefcase dev
-```
+| Contrôle effectué | Résultat confirmé |
+| --- | --- |
+| Démarrage avec `briefcase dev` sous Windows | OK |
+| `ResourceWarning` SSL au lancement | Aucun observé |
+| Création d'un rendez-vous Google | OK |
+| Affichage du rendez-vous dans Lumyn et Google Calendar | OK |
+| Modification d'un rendez-vous existant | OK, effet immédiat observé |
+| Suppression d'un rendez-vous | OK, effet immédiat observé |
+| Déplacement d'un calendrier Google vers un autre | OK |
+| Doublons après déplacement | Aucun observé |
+| Liaison Lumyn/Google pendant ces opérations | Cohérente |
 
-1. Vérifier le démarrage, le défilement, les filtres et les boutons de navigation.
-2. Choisir « Sur cet appareil uniquement », saisir « CAF demain 10h à Lorient ».
-3. Vérifier le résumé, confirmer, fermer et relancer : le rendez-vous doit rester.
-4. Modifier son heure et son lieu, analyser puis confirmer ; le même rendez-vous
-   doit être modifié. Le supprimer ensuite.
-5. Analyser un rendez-vous, changer ensuite son heure et confirmer : Lumyn doit
-   demander une nouvelle analyse, sans enregistrer l'ancienne heure.
-6. Saisir « Dentiste demain 14:99 » : aucune confirmation ne doit être possible.
+L'affichage Windows et Google réel sont validés pour ces scénarios. L'effet
+immédiat et l'absence de doublon sont des observations de cette séance, pas une
+garantie de délai ou de cohérence dans toutes les conditions réseau.
 
-## Validation Google restante
+## Relance des tests après documentation
 
-Utiliser un calendrier dédié aux essais et uniquement des rendez-vous fictifs.
-Les fichiers OAuth restent locaux et sont ignorés par Git. Le prototype utilise
-le flux OAuth pour ordinateur ; son adaptation Android n'est pas validée.
+`python -m pytest -q` : **57 tests réussis** après les modifications documentaires.
+Aucun code applicatif, aucune fonctionnalité et aucun test n'a été modifié.
 
-- Créer après confirmation et vérifier heure, lieu, durée d'une heure et rappels.
-- Modifier puis déplacer vers un deuxième calendrier de test : vérifier l'absence
-  de doublon et la conservation de la liaison locale.
-- Supprimer le rendez-vous fictif et vérifier les deux côtés.
-- Couper le réseau : vérifier l'erreur Google et la disponibilité du stockage local.
+## Contrôles complémentaires non confirmés dans ce compte rendu
 
-Ces opérations réelles n'ont pas été effectuées pendant la reprise du 05/09/2026.
+La liste suivante conserve les essais précédemment proposés sans les considérer
+comme réalisés. Elle ne remet pas en attente les opérations validées ci-dessus.
+
+- Défilement, filtres et boutons de navigation, vérifiés individuellement.
+- Cycle local avec « Sur cet appareil uniquement », fermeture et relance pour
+  vérifier la persistance, puis modification de l'heure/du lieu et suppression.
+- Changement de saisie après analyse : demande de nouvelle analyse avant création.
+- Saisie `Dentiste demain 14:99` : confirmation impossible.
+- Vérification explicite du lieu, de la durée d'une heure et des rappels J-1/H-1
+  dans Google ; leur déclenchement n'est pas confirmé par les résultats fournis.
+- Coupure réseau : erreur Google et disponibilité du stockage local.
+- Parcours OAuth initial et renouvellement des jetons testés séparément.
+- Affichage natif Android, adaptation OAuth Android et compilation APK.
+
+Pour de futurs essais Google, utiliser un calendrier dédié et des rendez-vous
+fictifs. Les fichiers OAuth restent locaux et sont ignorés par Git.
+
+## État de la PR
+
+La PR reste en brouillon et non fusionnée. Sa fusion ou sa sortie du mode brouillon
+nécessite l'accord explicite de l'utilisatrice. Aucune étape de développement
+supplémentaire n'est engagée par cette mise à jour.

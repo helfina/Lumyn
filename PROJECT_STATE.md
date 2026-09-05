@@ -3,7 +3,9 @@
 ## Version et phase
 
 0.0.3 — prototype Rendez-vous en cours de stabilisation (05/09/2026).
-Cette version n'est pas encore une livraison Windows/Android validée.
+Le prototype a été validé manuellement sous Windows avec Google Calendar réel
+le 05/09/2026 pour les opérations détaillées ci-dessous. Android et la compilation
+APK restent à valider ; cette validation ne constitue pas une livraison empaquetée.
 
 ## Sources de cette reprise
 
@@ -41,7 +43,7 @@ Cette version n'est pas encore une livraison Windows/Android validée.
   lors d'une modification liée.
 - Un événement d'un autre mois n'est plus affiché au même numéro de jour.
 
-## Vérification effectuée
+## Vérification automatique effectuée
 
 - À l'origine : 1 test purement arithmétique, réussi dans les deux versions.
 - Après les modifications : 57 tests réussis sous Linux / Python 3.12.13,
@@ -50,12 +52,35 @@ Cette version n'est pas encore une livraison Windows/Android validée.
 - Tests : analyse, stockage réel dans un dossier temporaire, pannes d'écriture,
   contrôleur Toga avec backend de test, cycle local, liaison Google simulée,
   pagination, fuseaux horaires, rappels et HTML du calendrier.
-- Accès réseau bloqué pendant les tests. Aucun rendez-vous Google réel modifié.
+- Accès réseau bloqué pendant les tests automatiques ; Google y reste simulé.
 - Syntaxe de tous les fichiers Python vérifiée.
+
+## Validation manuelle réelle — 05/09/2026
+
+Résultats des essais effectués sous Windows et confirmés par l'utilisatrice sur
+la branche `codex/lumyn-fiabilisation-rendez-vous`. Ils complètent les 57 tests
+automatiques ; ils ne proviennent pas d'une simulation Google.
+
+- `briefcase dev` démarre correctement sous Windows.
+- Aucun `ResourceWarning` SSL observé au lancement.
+- Création d'un rendez-vous dans Google Calendar : OK.
+- Affichage du rendez-vous dans Lumyn et Google Calendar : OK.
+- Modification d'un rendez-vous existant : OK, effet immédiat observé.
+- Suppression d'un rendez-vous : OK, effet immédiat observé.
+- Déplacement entre deux calendriers Google : OK.
+- Aucun doublon observé après déplacement.
+- Liaison entre Lumyn et Google cohérente pendant les opérations testées.
+
+L'affichage Windows et l'utilisation de Google réel sont donc validés pour ce
+périmètre. Les détails et les contrôles non confirmés figurent dans docs/TESTING.md.
+Les tests automatiques ont été relancés après cette mise à jour documentaire :
+57 réussis. Aucune fonctionnalité ni aucun test modifié.
 
 ## Limites connues et validations restantes
 
-- Affichage natif Windows et Android, compilation APK et OAuth réel non validés ici.
+- Android, compilation APK et parcours OAuth initial/renouvellement des jetons
+  non confirmés par ce compte rendu. La connexion Google réelle sous Windows
+  a bien été utilisée pour les opérations validées.
 - Les appels Google sont synchrones : une connexion lente peut figer l'interface.
 - Le stockage n'est pas prévu pour plusieurs processus écrivant simultanément.
 - En cas de panne Google ET locale, les tentatives de restauration ne garantissent
@@ -68,8 +93,9 @@ Cette version n'est pas encore une livraison Windows/Android validée.
 
 ## Prochaine étape unique
 
-Valider cette branche sur Windows avec `briefcase dev`, puis un calendrier Google
-  de test, avant d'étendre la synchronisation. Voir `docs/TESTING.md`.
+La validation Windows/Google décrite ci-dessus est terminée. Attendre les
+instructions de l’utilisatrice avant toute nouvelle étape. La PR reste en brouillon
+et ne doit être ni fusionnée ni sortie du brouillon sans son accord explicite.
 
 ## Choix à demander avant une évolution importante
 
