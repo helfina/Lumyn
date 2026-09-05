@@ -153,6 +153,9 @@ class InterfaceRendezVous:
             ),
         )
 
+        # Les widgets sont prêts et le calendrier initial est déjà choisi.
+        self.calendrier_selection.on_change = self.changer_calendrier
+
         return scroll_container
 
     # =========================================================
@@ -1564,6 +1567,18 @@ class InterfaceRendezVous:
     # =========================================================
     # ANALYSE
     # =========================================================
+
+    def changer_calendrier(self, widget=None, **kwargs):
+        """Invalide le résumé et rend la saisie accessible à la touche Entrée."""
+        self.resultat_courant = None
+        self.saisie_analysee = None
+        self.modifier_button.enabled = False
+        self.confirmer_button.enabled = False
+        if self.rdv_input.value.strip():
+            self.resultat_label.text = (
+                "Calendrier changé. Appuie sur Entrée pour vérifier un nouveau résumé."
+            )
+        self.rdv_input.focus()
 
     def valider_depuis_saisie(self, widget=None, **kwargs):
         """Entrée prépare le résumé ; une seconde Entrée confirme ce même résumé."""

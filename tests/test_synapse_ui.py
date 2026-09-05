@@ -82,3 +82,51 @@ def test_carnet_illisible_bloque_sans_ecrire(interface,monkeypatch):
     interface.confirmer_rendez_vous(None)
     creation.assert_not_called()
     assert lieux.FICHIER_LIEUX.read_text()=='{cassé'
+
+
+@pytest.mark.parametrize('destination', ['gaelle', ui.CALENDRIER_LOCAL_ID])
+@pytest.mark.parametrize('preparer_avant', [True, False])
+def test_calendrier_focus_et_double_entree(interface, monkeypatch, destination, preparer_avant):
+    interface.calendrier_selection.items.append({'nom': 'Gaelle', 'calendar_id': 'gaelle'})
+    creation = Mock(return_value={'id': 'g-focus'})
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation)
+    focus = Mock(wraps=interface.rdv_input._impl.focus)
+    monkeypatch.setattr(interface.rdv_input._impl, 'focus', focus)
+    if preparer_avant:
+        interface.rdv_input.value = 'CAF demain 10h'
+        interface.rdv_input.on_confirm()
+        assert interface.confirmer_button.enabled
+    interface._selectionner_calendrier_par_id(destination)
+    focus.assert_called_once()
+    assert interface.resultat_courant is None
+    assert interface.saisie_analysee is None
+    assert not interface.confirmer_button.enabled
+    interface.confirmer_rendez_vous(None)
+    creation.assert_not_called()
+    assert stockage.charger_rendez_vous() == []
+    if not preparer_avant:
+        interface.rdv_input.value = 'CAF demain 10h'
+    interface.rdv_input.on_confirm()
+    assert interface.saisie_analysee == ('CAF demain 10h', destination)
+    assert interface.confirmer_button.enabled
+    creation.assert_not_called()
+    interface.rdv_input.on_confirm()
+    assert len(stockage.charger_rendez_vous()) == 1
+    if destination == ui.CALENDRIER_LOCAL_ID:
+        creation.assert_not_called()
+    else:
+        creation.assert_called_once()
+        assert creation.call_args.args[1] == destination
+
+
+def test_aller_retour_calendrier_ne_restaure_pas_ancienne_preparation(interface, monkeypatch):
+    creation = Mock()
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation)
+    interface.rdv_input.value = 'CAF demain 10h'
+    interface.rdv_input.on_confirm()
+    interface._selectionner_calendrier_par_id(ui.CALENDRIER_LOCAL_ID)
+    interface._selectionner_calendrier_par_id('famille')
+    interface.rdv_input.on_confirm()
+    creation.assert_not_called()
+    assert interface.confirmer_button.enabled
+    assert stockage.charger_rendez_vous() == []
