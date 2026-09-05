@@ -88,7 +88,10 @@ def extraire_heure(texte, rendez_vous):
             rendez_vous["heure"] = f"{heures:02d}h" + (
                 f"{minutes:02d}" if minutes else ""
             )
-    return re.sub(motif, " ", texte, flags=re.IGNORECASE)
+    for resultat in reversed(resultats):
+        avant = re.sub(r"\b[àa]\s*$", "", texte[:resultat.start()], flags=re.IGNORECASE)
+        texte = avant + " " + texte[resultat.end():]
+    return texte
 
 
 def extraire_jour_ecrit(texte):
@@ -253,8 +256,7 @@ def extraire_lieu(texte, rendez_vous):
     """Reconnaît « à Lorient » après retrait de la date et de l'heure."""
     # Les « à » restés seuls étaient associés à l'heure.
     texte = re.sub(r"\b[àa]\s*$", " ", texte, flags=re.IGNORECASE)
-    texte = re.sub(r"^\s*[àa]\s+", "", texte, flags=re.IGNORECASE)
-    resultat = re.search(r"\s+[àa]\s+(\S.*)$", texte, flags=re.IGNORECASE)
+    resultat = re.search(r"(?:^|\s+)[àa]\s+(\S.*)$", texte, flags=re.IGNORECASE)
     if resultat:
         rendez_vous["lieu"] = re.sub(r"\s+", " ", resultat.group(1)).strip(" ,.")
         return texte[:resultat.start()]

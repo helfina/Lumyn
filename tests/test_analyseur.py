@@ -46,3 +46,10 @@ def test_manquants_et_incoherence():
     assert preparer_rendez_vous('Dentiste mardi')['etat'] == 'incomplet'
     assert preparer_rendez_vous('demain 10h')['etat'] == 'incomplet'
     assert preparer_rendez_vous('Dentiste lundi 08/09/2026 10h')['etat'] == 'erreur'
+
+
+def test_lieu_seul_ne_devient_pas_titre():
+    r=preparer_rendez_vous('demain 10h à Lorient')
+    assert r['etat']=='incomplet'
+    assert r['rendez_vous']['lieu']=='Lorient'
+    assert 'le titre' in r['rendez_vous']['manquants']
