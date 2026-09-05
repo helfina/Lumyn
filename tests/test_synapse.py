@@ -127,3 +127,9 @@ def test_qualificatif_inconnu_ne_declenche_pas_favorite(carnet):
 def test_physique_sans_adresse_demande_precision():
     r=preparer('Dentiste demain 10h en présentiel',[])
     assert r['etat']=='incomplet'
+
+
+def test_maison_medicale_ne_devient_pas_domicile():
+    resultat = preparer('Maison médicale demain 10h', [])
+    assert resultat['rendez_vous']['mode'] == 'non_defini'
+    assert resultat['rendez_vous']['titre'] == 'Maison médicale'

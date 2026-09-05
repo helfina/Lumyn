@@ -30,6 +30,7 @@ requires = [
 test_requires = [
     "pytest",
     "toga-dummy~=0.5.0",
+    "Pillow==12.3.0",
 ]
 
 [tool.briefcase.app.lumyn.macOS]

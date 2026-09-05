@@ -8,7 +8,11 @@ MODES = {
     'telephone': r'\b(?:(?:par|au)\s+)?téléphone\b|\b(?:(?:par|au)\s+)?telephone\b',
     'physique': r'\b(?:en\s+présentiel|en\s+presentiel|sur\s+place|physique)\b',
 }
-DOMICILE = r'\b(?:(?:à|a)\s+)?(?:domicile|maison)\b|\bchez\s+moi\b'
+DOMICILE = (
+    r'\b(?:(?:à|a)\s+)?domicile\b|\bchez\s+moi\b|'
+    r'\b(?:(?:à|a)\s+(?:la\s+)?)?maison\b'
+    r'(?=\s*(?:$|[,—–]|\d|(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|aujourd.hui|à|a)\b))'
+)
 
 
 def interpreter_rendez_vous(texte):
