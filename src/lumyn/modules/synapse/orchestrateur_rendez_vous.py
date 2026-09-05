@@ -86,6 +86,24 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
         elif len(candidats) > 1:
             ambiguities.append('Plusieurs professionnels correspondent. Précise un nom unique.')
     else:
+        if not explicite and len(candidats) == 1:
+            candidat = candidats[0]
+            reste = normaliser_recherche(interpretation['titre'])
+            termes = termes_lieu(candidat) + [
+                re.sub(r'^(?:dr\.?|docteur)\s+', '', normaliser_recherche(candidat['nom'])),
+                normaliser_recherche(candidat.get('profession')),
+            ]
+            for terme in sorted(set(termes), key=len, reverse=True):
+                if terme:
+                    reste = re.sub(r'(?<!\w)' + re.escape(terme) + r'(?!\w)', ' ', reste)
+            reste = normaliser_recherche(reste)
+            if reste:
+                if _adresse_explicite(candidat, reste):
+                    explicite = reste
+                    interpretation['lieu_explicite'] = reste
+                else:
+                    ambiguities.append('Précise si « ' + reste + ' » fait partie du titre ou du lieu.')
+                    candidats = []
         if explicite:
             # Un site explicitement nommé prime sur la favorite.
             compatibles = [c for c in candidats if _adresse_explicite(c, explicite)]
@@ -113,6 +131,8 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
                 source = 'carnet'
         if adresse or explicite:
             mode = 'physique'
+    if mode == 'physique' and not rdv.get('lieu'):
+        rdv['manquants'].append('le lieu')
     suffixes = {'visio':'VISIO', 'domicile':'DOMICILE', 'telephone':'TÉLÉPHONE'}
     if mode in suffixes and rdv['titre']:
         rdv['titre'] += ' — ' + suffixes[mode]

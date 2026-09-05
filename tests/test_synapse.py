@@ -109,3 +109,21 @@ def test_donnees_interpretees():
     assert r['professionnel']=='Dr Laporte'
     assert r['profession']=='psychiatre'
     assert r['lieu_explicite']=='Lorient'
+
+
+def test_ville_apres_alias_prioritaire(carnet):
+    carnet[1]['adresses'].append({'adresse':'7 rue Exemple, Vannes','favorite':False})
+    r=preparer('Laporte Vannes jeudi 10h',carnet)
+    assert r['etat']=='confirmation'
+    assert r['rendez_vous']['lieu']=='7 rue Exemple, Vannes'
+
+
+def test_qualificatif_inconnu_ne_declenche_pas_favorite(carnet):
+    r=preparer('Laporte Quimper jeudi 10h',carnet)
+    assert r['etat']=='ambigu'
+    assert r['rendez_vous']['lieu'] is None
+
+
+def test_physique_sans_adresse_demande_precision():
+    r=preparer('Dentiste demain 10h en présentiel',[])
+    assert r['etat']=='incomplet'
