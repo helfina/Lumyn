@@ -173,3 +173,24 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
 - 132 tests réussis après code et documentation, soit 54 cas ajoutés ; Google simulé.
 - Documentation synchronisée ; version conservée à 0.0.3. Prochaine étape : essais
   natifs de cette branche avant décision 0.0.4. Aucun merge effectué par cette séance.
+
+
+# 05/09/2026 — Validation complète Windows/Google et correctif de focus
+
+- Compte rendu utilisateur sur c92aaab : 132 tests réussis en 3.94 s sous
+  Windows/Python 3.13 ; application native WinForms, démarrage et navigation OK.
+- Carnet : CRUD, plusieurs adresses et favorite validés. Synapse : professionnel,
+  favorite, site explicite non favori, VISIO/DOMICILE à Maison et ambiguïtés bloquées.
+- Google réel : créations VISIO/DOMICILE, rappels, aucun lien Meet automatique ;
+  modification du même événement, déplacement Famille → Gaelle et suppression.
+  Aucun doublon, liaison cohérente. Détails dans docs/TESTING.md.
+- Incident de fermeture pythonnet non reproduit dans cette séance complète,
+  fermeture propre ; à surveiller, aucune correction spéculative.
+- Défaut isolé : focus laissé au calendrier après changement. Ajout d'un callback
+  on_change annulant la préparation puis appelant TextInput.focus(), API 0.5.6
+  vérifiée. Première Entrée réanalyse, seconde confirme ; aucune création au changement.
+- Cinq régressions reproduites avant correction, puis 137 tests réussis sous Linux
+  après code et documentation. Appel au focus testé avec Dummy ; effet natif du
+  nouveau correctif à vérifier sous Windows. Aucun autre comportement modifié.
+- Version 0.0.3 conservée ; publication uniquement sur feature/synapse-rendez-vous,
+  sans fusion ni changement d'état de PR, fournisseur externe toujours inactif.

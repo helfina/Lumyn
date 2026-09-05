@@ -20,8 +20,11 @@
 - [x] Parcours clavier préparation puis confirmation ; CRUD Google conservé.
 - [x] Abstraction externe testée, sans fournisseur actif ni sauvegarde silencieuse.
 - [x] 132 tests automatiques isolés réussis après documentation.
-- [ ] Validation Windows/Google des nouveaux scénarios Synapse.
-- [ ] Investigation native du crash de fermeture signalé.
+- [x] Validation native Carnet/Synapse et CRUD Google réel du 05/09/2026 sur c92aaab.
+- [x] 132 tests confirmés sous Windows/Python 3.13.
+- [x] Correctif du focus après changement de calendrier ; 137 tests Linux réussis.
+- [ ] Contrôle natif Windows du nouveau correctif de focus.
+- [x] Crash de fermeture non reproduit pendant la validation complète ; à surveiller.
 - [ ] Décision de livraison, changement de version et fusion autorisée.
 
 ## Au-delà

@@ -218,3 +218,13 @@ optionnelle. Sans fournisseur et autorisation explicite, aucun appel externe.
 La priorité personnelle est contrôlée avant tout appel ; les propositions ne
 modifient ni le rendez-vous ni le carnet. Aucun fournisseur réel n'est implémenté
 ou connecté à l'interface. L'historique de résolution reste une étape ultérieure.
+
+
+## Focus du formulaire — 05/09/2026
+
+Après construction, Selection.on_change est relié à changer_calendrier. Le callback
+annule résultat et instantané analysé, désactive les boutons du résumé puis appelle
+TextInput.focus() (API Toga 0.5.6, native.Focus() sous WinForms). Le prochain
+on_confirm prépare un nouveau résumé ; le suivant confirme. Le parcours Synapse
+et les opérations Google sont inchangés. Toga Dummy vérifie l'appel au backend,
+sans simuler le focus d'une fenêtre Windows.

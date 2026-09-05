@@ -6,7 +6,7 @@ Version déclarée : **0.0.3**, stable et fusionnée dans main avant cette repri
 La version **0.0.4 Carnet de lieux + Synapse Rendez-vous** est en préparation sur
 `feature/synapse-rendez-vous`, reprise au commit `3f0f119` après les trois commits
 Carnet (`81ab732`, `ab3cd5e`, `3f0f119`). Cette séance ne modifie ni ne fusionne main.
-La version dans pyproject.toml reste 0.0.3 en attendant la validation native.
+La version dans pyproject.toml reste 0.0.3 en attendant une décision de livraison.
 
 ## Fonctionnalités présentes
 
@@ -72,15 +72,13 @@ La mise à jour documentaire historique avait été vérifiée avec 57 tests ré
 ## Validation Carnet rapportée par l'utilisatrice — 05/09/2026
 
 Sur la base `3f0f119` : 78 tests réussis sous Windows/Python 3.13, CRUD du carnet
-et navigation entre les deux écrans validés manuellement. Cette validation ne
-couvre pas encore l'intégration Synapse ajoutée pendant cette séance.
+et navigation entre les deux écrans validés manuellement. La validation complète de Synapse sur c92aaab est désormais rapportée ci-dessous.
 
 ## Limites connues
 
-- Un crash de fermeture Windows (access violation, déchargement pythonnet,
-  WinForms/proactor) a été signalé, puis le lancement suivant a réussi.
-  Non reproduisible dans cet environnement Linux ; aucune correction spéculative.
-  Protocole de diagnostic dans docs/TESTING.md.
+- Incident ponctuel de fermeture Windows (pythonnet/WinForms/proactor) : non
+  reproduit lors de la validation complète du 05/09/2026, sortie PowerShell propre.
+  À surveiller ; aucune modification spéculative de fermeture.
 - Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
   concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi
   littéralement n'est pas une adresse vérifiée. Toujours relire le résumé.
@@ -93,7 +91,27 @@ couvre pas encore l'intégration Synapse ajoutée pendant cette séance.
 
 ## Prochaine étape et décisions réservées
 
-Valider cette branche sous Windows avec les scénarios Synapse de docs/TESTING.md,
-puis décider de la livraison 0.0.4. Aucun merge ni changement d'état de PR pendant
-cette reprise. Demander le choix de l'utilisatrice avant un fournisseur externe
-réel, une synchronisation en arrière-plan ou une nouvelle architecture OAuth.
+Vérifier uniquement le nouveau correctif de focus sous Windows, puis décider de
+la livraison 0.0.4. Les scénarios Synapse et le CRUD Google réel sont validés.
+Aucun merge ni changement d'état de PR dans ce lot. Aucun fournisseur externe
+activé. Demander le choix de l'utilisatrice avant une évolution importante.
+
+## Dernière validation et correctif de focus — 05/09/2026
+
+Base c92aaab : **132 tests réussis sous Windows/Python 3.13 en 3.94 s** après
+installation des dépendances. Validation native WinForms : démarrage, navigation,
+CRUD Carnet, multi-adresses et favorite. Synapse : DOMICILE local à Maison,
+professionnel et favorite Lorient, site explicite secondaire Guégon, VISIO à
+Maison, provenance carnet affichée, ambiguïtés bloquées avec Confirmer désactivé.
+Google réel : créations VISIO/DOMICILE, rappels présents, aucun Google Meet/lien
+visio généré ; modification 10h → 11h du même événement, déplacement Famille →
+Gaelle conservant titre/heure/Maison, suppression des deux côtés. Un seul événement
+et liaison cohérente. Tous les résultats détaillés figurent dans docs/TESTING.md.
+
+Le défaut découvert concerne le focus après choix du calendrier. Le callback
+on_change invalide maintenant le résumé et son instantané, désactive Confirmer
+et rend le focus au champ via l'API Toga 0.5.6 focus(). Deux nouvelles Entrées sont
+nécessaires : analyser puis confirmer. Aucun changement de Synapse ou du CRUD.
+**137 tests réussis sous Linux après ce lot**, dont cinq nouveaux cas. Toga Dummy
+vérifie l'appel au focus, pas son effet natif : seul ce correctif reste à contrôler
+manuellement sous Windows. L'UX d'ajout d'adresse au Carnet est conservée.

@@ -79,48 +79,88 @@ copies profondes, alias, Maison/favorite, données anciennes et pannes, exemples
 saisie, priorités/ambiguïtés, clavier, modification liée et fournisseur inactif.
 `conftest.py` isole globalement carnet, rendez-vous et préférences de calendrier.
 Pillow est déclaré explicitement pour Toga Dummy. Ici, l'environnement virtuel
-réutilise Pillow installé dans le runtime ; l'installation Windows propre avec
-requirements-test.txt reste à vérifier sur le poste utilisateur.
+réutilise Pillow installé dans le runtime ; l'installation Windows avec
+requirements-test.txt a depuis été confirmée, avec les 132 tests réussis ci-dessous.
 
-### Validation manuelle à effectuer sur cette branche
+## Validation complète réelle — 05/09/2026, base `c92aaab`
 
-Avec des fiches et rendez-vous de test, préparer Maison avec une adresse, un
-professionnel avec alias/métier et deux sites dont une favorite, puis un ITEP.
-Adapter les villes des fiches aux exemples :
+Résultats rapportés par l'utilisatrice sous Windows/Python 3.13, application Toga
+WinForms et Google Calendar réel. Après installation de requirements-test.txt,
+la suite automatique a donné **132 passed in 3.94s** sous Windows/Python 3.13.
+Ces tests utilisent Toga Dummy ; les essais natifs ci-dessous ont été réalisés
+séparément dans l'application avec `briefcase dev`.
 
-- `mardi 15h dentiste à Lorient` et `dentiste mardi 15h Lorient` : même site attendu.
-- `Dr Laporte psychiatre Lorient jeudi 10h` : professionnel et site du carnet.
-- `mardi 15h dentiste Guégon` : site explicitement indiqué, même non favori.
-- `Laporte jeudi 10h visio` : titre VISIO, adresse Maison, aucun lien récurrent.
-- `infirmière vendredi 9h à domicile` : titre DOMICILE et adresse Maison.
-- `ITEP mardi 14h` : fiche et favorite, sinon demande de précision.
-- Deux correspondances, site inconnu après alias, Maison absente ou plusieurs
-  adresses sans favorite : pas de confirmation tant que le problème reste présent.
-- Entrée affiche le résumé ; seconde Entrée confirme. Changer le texte ou le
-  calendrier oblige à préparer à nouveau. Vérifier aussi les boutons habituels.
-- Créer, modifier, déplacer puis supprimer dans Google : vérifier le même événement,
-  l'adresse, l'absence de doublon et la cohérence dans Lumyn. Tester également le
-  cycle local, les filtres, le CRUD Carnet et la navigation.
+| Scénario réel | Résultat confirmé |
+| --- | --- |
+| Lancement, écrans Rendez-vous/Carnet, navigation | OK |
+| Carnet : création, modification, suppression, plusieurs adresses, favorite | OK |
+| `infirmière vendredi 9h à domicile`, création locale | Infirmière — DOMICILE, adresse Maison, provenance carnet affichée |
+| `Dr Laporte psychiatre jeudi 10h` | Professionnel reconnu, site favori Lorient, provenance carnet affichée |
+| `Dr Laporte psychiatre Guégon jeudi 10h` | Site secondaire Guégon choisi, prioritaire sur Lorient |
+| `Laporte jeudi 10h visio` | Dr Laporte — VISIO, adresse Maison, pas celle du cabinet |
+| Deux fiches avec alias Laporte | Ambiguïté signalée, Confirmer désactivé, aucun choix arbitraire ; fiche de test ensuite supprimée |
+| Création Google VISIO dans Famille | Titre, date/heure, Maison, calendrier et liaison corrects ; un événement ; rappels présents |
+| Lien automatique pour VISIO | Aucun Google Meet ni lien visio créé |
+| Création Google DOMICILE | Titre et adresse Maison corrects, un événement |
+| Modification VISIO de 10h à 11h | Même événement, effet immédiat, aucun doublon |
+| Déplacement Famille → Gaelle | Disparu de Famille, présent dans Gaelle, un événement ; titre, heure et Maison conservés |
+| Suppression depuis Lumyn | Disparu de Lumyn et du calendrier Google Gaelle |
+| Calendrier choisi avant saisie, puis deux Entrées | Résumé puis confirmation : OK sous Windows |
 
-Ces essais Synapse natifs et Google réel restent à faire ; les validations réelles
-0.0.3 et Carnet ci-dessus ne sont pas présentées comme une validation de ce nouveau code.
+Maison disposait d'une adresse favorite et des alias Maison, domicile, chez moi.
+Le CRUD Google avec Synapse, la liaison et l'absence de doublon sont validés pour
+ces essais. Le navigateur Google Agenda a nécessité un rafraîchissement manuel
+pour voir une création déjà effectuée côté Google ; ce constat n'est pas retenu
+comme défaut Lumyn. La présence des rappels est confirmée, pas leur déclenchement.
 
-### Crash de fermeture Windows : protocole de reproduction
+Dans le Carnet, ajouter une adresse nécessite « Ajouter l'adresse », puis
+« Enregistrer la fiche ». Le parcours fonctionne ; son ergonomie reste inchangée.
 
-Un access violation lors du déchargement pythonnet/WinForms/proactor a été signalé ;
-le lancement suivant a réussi. Linux/Toga Dummy ne peut pas reproduire cet arrêt
-natif. Aucun correctif spéculatif d'asyncio ou de fermeture n'a été appliqué.
+### Incident de fermeture
 
-Dans l'environnement Windows utilisé pour Briefcase, relever `python --version`,
-`briefcase --version` et `python -m pip show toga-winforms pythonnet clr-loader`.
-Lancer `briefcase dev`, fermer normalement la fenêtre, puis répéter avec navigation
-Carnet/Rendez-vous et une opération locale. Noter le scénario, l'heure et le code
-retour ; conserver le journal complet localement. Si le crash revient, comparer
-le même scénario sur la base `3f0f119` avant de choisir une correction. Ne pas
-inclure de jetons OAuth ou de données personnelles dans un rapport GitHub.
+L'access violation pythonnet/WinForms/proactor précédemment observé une seule fois
+ne s'est **pas reproduit pendant cette validation complète du 05/09/2026** :
+plusieurs lancements, navigation, CRUD Carnet, Synapse, appels Google et fermeture
+par la croix. La dernière fermeture a rendu normalement l'invite PowerShell.
+Incident ponctuel à surveiller ; aucun correctif spéculatif pythonnet/asyncio/
+WinForms appliqué. Conserver le journal et les versions si l'incident réapparaît.
+
+### Correctif de focus de ce lot
+
+Défaut observé : après saisie puis changement de calendrier, le focus restait
+sur le sélecteur et Entrée n'atteignait plus le champ texte.
+
+`Selection.on_change` appelle maintenant `changer_calendrier` : effacement du
+résultat et de l'instantané analysé, désactivation des boutons liés au résumé,
+puis `rdv_input.focus()`. Le texte est conservé. La prochaine Entrée prépare
+avec le nouveau calendrier ; seule la suivante confirme. Même un aller-retour
+entre calendriers impose une nouvelle analyse. Aucun appel Google au changement.
+Le callback est installé après construction des widgets et sélection initiale.
+
+L'API Toga **0.5.6** a été vérifiée dans le paquet installé et dans ses sources :
+[Widget.focus](https://github.com/beeware/toga/blob/v0.5.6/core/src/toga/widgets/base.py)
+délègue au backend ; [WinForms](https://github.com/beeware/toga/blob/v0.5.6/winforms/src/toga_winforms/widgets/base.py)
+utilise `native.Focus()`. Aucun contournement spécifique asyncio ou temporisateur.
+
+Après ce correctif : **137 tests réussis sous Linux/Python 3.12**, dont cinq cas
+supplémentaires dans test_synapse_ui.py : destinations Google/local, calendrier
+choisi avant saisie ou après préparation, et aller-retour entre calendriers.
+Ils vérifient le callback, l'appel au backend focus, l'invalidation, les deux
+Entrées et l'absence d'écriture accidentelle. Tous les tests ont été relancés
+après les modifications de documentation.
+
+**Limite : Toga Dummy enregistre l'appel, sans prouver le focus natif.** Le retour
+visuel du focus de ce nouveau correctif reste à valider manuellement sous Windows.
+Les 137 tests n'ont pas encore été exécutés sur le poste Windows ; les 132 de
+`c92aaab` l'ont été. Les scénarios Synapse/Google ci-dessus sont déjà validés.
+
+Vérification restante ciblée : saisir, analyser, changer Famille → Gaelle puis
+Google → local ; constater le curseur dans la saisie et Confirmer désactivé.
+Première Entrée : nouveau résumé, aucun événement. Seconde : un enregistrement
+dans la bonne destination. Refaire avec calendrier choisi avant saisie.
 
 ### Branche et livraison
 
 La stabilisation 0.0.3 a été fusionnée avant cette reprise. Le travail courant
 reste sur `feature/synapse-rendez-vous`, sans fusion ni changement d'état de PR.
-La livraison 0.0.4 attend la validation et la décision de l'utilisatrice.
+La livraison 0.0.4 attend le contrôle natif du correctif de focus et la décision de l'utilisatrice.

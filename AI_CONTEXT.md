@@ -13,7 +13,7 @@ BeeWare, Toga et Briefcase. Le poste de développement utilise Python 3.13.
 Lire d'abord PROJECT_STATE.md, ROADMAP.md, DEV_GUIDE.md et docs/TESTING.md.
 Version 0.0.3 : le code contient un module Rendez-vous local et Google, un
 calendrier filtrable. La branche feature/synapse-rendez-vous prépare 0.0.4 avec
-le carnet et Synapse local ; elle dispose de 132 tests. Ne pas repartir de l'ancienne étape
+le carnet et Synapse local ; elle dispose maintenant de 137 tests. Ne pas repartir de l'ancienne étape
 « installer BeeWare » : elle est largement dépassée.
 
 La reprise du 05/09/2026 a intégré trois fichiers de Lumyn.zip plus avancés que
@@ -36,12 +36,19 @@ Ne jamais committer identifiants Google, jetons ou données personnelles.
 Ne pas utiliser le compte Google réel pour des tests automatiques.
 
 
-## Point de reprise courant — 05/09/2026
+## Point de reprise courant — validation complète du 05/09/2026
 
-0.0.3 est déjà fusionnée dans main. Travailler uniquement sur
-`feature/synapse-rendez-vous`, base Carnet `3f0f119`. Les validations Windows/Google
-0.0.3 et Windows Carnet ont été rapportées ; la nouvelle intégration Synapse doit
-encore être validée nativement. Le crash de fermeture pythonnet reste non reproduit
-sous Linux. Aucun fournisseur externe actif et aucun historique de résolution.
-Prochaine étape : validation décrite dans docs/TESTING.md, puis choix de livraison
-0.0.4. Ne pas fusionner ni changer une PR de statut sans instruction explicite.
+Travailler uniquement sur feature/synapse-rendez-vous, reprise de c92aaab.
+0.0.3 est déjà fusionnée dans main ; version déclarée inchangée.
+L'utilisatrice confirme 132 tests sous Windows/Python 3.13 (3.94 s), l'installation
+des dépendances et la validation native WinForms du Carnet et de Synapse.
+Favorite, site explicite non favori, VISIO/DOMICILE à Maison et ambiguïtés bloquées
+sont validés. CRUD Google réel complet, absence de doublon, liaison et rappels
+confirmés ; aucun Meet/lien visio automatique. Voir docs/TESTING.md.
+
+Crash ponctuel pythonnet : non reproduit pendant la séance complète, fermeture
+propre ; à surveiller, aucun correctif spéculatif. Ce lot corrige uniquement le
+focus après changement de calendrier via on_change et focus(), en invalidant le
+résumé avant les deux Entrées. 137 tests réussis sous Linux ; retour visuel du
+focus encore à contrôler sous Windows. Ne pas remettre les scénarios déjà validés
+en attente. Aucune recherche externe active, aucun merge ni changement d'état de PR.
