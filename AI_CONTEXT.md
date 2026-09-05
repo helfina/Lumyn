@@ -38,7 +38,7 @@ Ne pas utiliser le compte Google réel pour des tests automatiques.
 
 ## Point de reprise courant — validation complète du 05/09/2026
 
-Travailler uniquement sur feature/synapse-rendez-vous, reprise de c92aaab.
+Travailler uniquement sur feature/synapse-rendez-vous, reprise de f244bd0.
 0.0.3 est déjà fusionnée dans main ; version déclarée inchangée.
 L'utilisatrice confirme 132 tests sous Windows/Python 3.13 (3.94 s), l'installation
 des dépendances et la validation native WinForms du Carnet et de Synapse.
@@ -46,9 +46,19 @@ Favorite, site explicite non favori, VISIO/DOMICILE à Maison et ambiguïtés bl
 sont validés. CRUD Google réel complet, absence de doublon, liaison et rappels
 confirmés ; aucun Meet/lien visio automatique. Voir docs/TESTING.md.
 
-Crash ponctuel pythonnet : non reproduit pendant la séance complète, fermeture
-propre ; à surveiller, aucun correctif spéculatif. Ce lot corrige uniquement le
-focus après changement de calendrier via on_change et focus(), en invalidant le
-résumé avant les deux Entrées. 137 tests réussis sous Linux ; retour visuel du
-focus encore à contrôler sous Windows. Ne pas remettre les scénarios déjà validés
-en attente. Aucune recherche externe active, aucun merge ni changement d'état de PR.
+Crash de fermeture Windows intermittent : `Windows fatal exception: access violation`
+reproduit plusieurs fois dans `toga_winforms/libs/proactor.py` pendant le
+déchargement `pythonnet` / `clr_loader`. Le même crash a été reproduit sur
+`f244bd0` et sur l'ancien commit `c92aaab`, y compris sans interaction avec
+l'application. Il persiste aussi avec le fichier `rendez_vous/ui.py` de
+`c92aaab`, donc le correctif de focus n'est pas retenu comme cause.
+
+Certaines fermetures restent propres. Aucun impact fonctionnel ou corruption de
+données n'a été observé avant fermeture. Ne pas appliquer de correctif spéculatif
+Toga/pythonnet/asyncio sans investigation dédiée.
+
+Le correctif de focus après changement de calendrier via `on_change` et `focus()`
+est validé. Il invalide le résumé précédent avant les deux Entrées. Les 137 tests
+réussissent sous Linux et sous Windows/Python 3.13 ; validation native WinForms du
+retour de focus réussie le 05/09/2026. Après changement de calendrier, la première
+Entrée réanalyse avec la nouvelle destination et la seconde confirme.

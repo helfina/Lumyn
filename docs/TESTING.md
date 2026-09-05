@@ -118,12 +118,40 @@ Dans le Carnet, ajouter une adresse nécessite « Ajouter l'adresse », puis
 
 ### Incident de fermeture
 
-L'access violation pythonnet/WinForms/proactor précédemment observé une seule fois
-ne s'est **pas reproduit pendant cette validation complète du 05/09/2026** :
-plusieurs lancements, navigation, CRUD Carnet, Synapse, appels Google et fermeture
-par la croix. La dernière fermeture a rendu normalement l'invite PowerShell.
-Incident ponctuel à surveiller ; aucun correctif spéculatif pythonnet/asyncio/
-WinForms appliqué. Conserver le journal et les versions si l'incident réapparaît.
+### Crash de fermeture Windows intermittent
+
+Un crash de fermeture reste observable de manière intermittente sous Windows :
+
+    Windows fatal exception: access violation
+
+La trace observée pointe vers :
+
+    toga_winforms/libs/proactor.py
+    clr_loader/types.py
+    pythonnet/__init__.py -> unload()
+
+Environnement confirmé :
+- Python 3.13.3
+- Briefcase 0.4.4
+- toga-winforms 0.5.6
+- pythonnet 3.1.0
+- clr_loader 0.3.1
+
+Le problème a été reproduit plusieurs fois sur `f244bd0`, mais également sur
+l'ancien commit `c92aaab`. Il se produit même quand Lumyn est ouvert puis fermé
+immédiatement sans interaction.
+
+Le test d'isolation a également remplacé entièrement
+`src/lumyn/modules/rendez_vous/ui.py` de `f244bd0` par la version de `c92aaab` :
+le crash s'est encore produit. Le correctif de focus n'est donc pas retenu comme
+cause.
+
+Certaines fermetures restent propres, ce qui confirme le caractère intermittent.
+Aucune corruption de données ni régression fonctionnelle n'a été observée avant
+la fermeture.
+
+Aucun correctif spéculatif Toga/pythonnet/asyncio n'est appliqué pour le moment.
+Le défaut reste à surveiller séparément de la validation fonctionnelle de Lumyn.
 
 ### Correctif de focus de ce lot
 
@@ -149,18 +177,28 @@ Ils vérifient le callback, l'appel au backend focus, l'invalidation, les deux
 Entrées et l'absence d'écriture accidentelle. Tous les tests ont été relancés
 après les modifications de documentation.
 
-**Limite : Toga Dummy enregistre l'appel, sans prouver le focus natif.** Le retour
-visuel du focus de ce nouveau correctif reste à valider manuellement sous Windows.
-Les 137 tests n'ont pas encore été exécutés sur le poste Windows ; les 132 de
-`c92aaab` l'ont été. Les scénarios Synapse/Google ci-dessus sont déjà validés.
+**Validation Windows du correctif : réussie le 05/09/2026.**
 
-Vérification restante ciblée : saisir, analyser, changer Famille → Gaelle puis
-Google → local ; constater le curseur dans la saisie et Confirmer désactivé.
-Première Entrée : nouveau résumé, aucun événement. Seconde : un enregistrement
-dans la bonne destination. Refaire avec calendrier choisi avant saisie.
+La suite complète a été relancée sous Windows/Python 3.13 après récupération du
+correctif :
+
+    137 passed in 3.83s
+
+Le comportement natif Toga WinForms a ensuite été vérifié manuellement :
+après saisie d'un rendez-vous puis changement de calendrier, le focus revient
+automatiquement dans le champ de saisie sans clic supplémentaire. La préparation
+précédente est invalidée ; la première Entrée effectue une nouvelle analyse avec
+le nouveau calendrier et la seconde Entrée confirme.
+
+Le défaut de focus observé avant le correctif est donc corrigé et validé sous
+Windows. Toga Dummy ne simule toujours pas visuellement le focus natif, mais cette
+limite est désormais couverte par la validation manuelle WinForms.
 
 ### Branche et livraison
 
 La stabilisation 0.0.3 a été fusionnée avant cette reprise. Le travail courant
 reste sur `feature/synapse-rendez-vous`, sans fusion ni changement d'état de PR.
-La livraison 0.0.4 attend le contrôle natif du correctif de focus et la décision de l'utilisatrice.
+Le contrôle natif Windows du correctif de focus est validé. Le crash de fermeture
+Windows reste un défaut intermittent connu, reproduit indépendamment du correctif
+de focus et sans régression fonctionnelle observée. La décision de livraison 0.0.4
+reste à prendre en tenant compte de ce défaut connu.

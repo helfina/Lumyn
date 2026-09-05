@@ -76,9 +76,16 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
 
 ## Limites connues
 
-- Incident ponctuel de fermeture Windows (pythonnet/WinForms/proactor) : non
-  reproduit lors de la validation complète du 05/09/2026, sortie PowerShell propre.
-  À surveiller ; aucune modification spéculative de fermeture.
+- Crash de fermeture Windows intermittent : `Windows fatal exception: access violation`
+  observé dans `toga_winforms/libs/proactor.py` pendant le déchargement de
+  `pythonnet` / `clr_loader`. Le problème a été reproduit plusieurs fois sur
+  `f244bd0`, mais aussi sur l'ancien commit `c92aaab`.
+- Le crash se produit même sans interaction avec Lumyn et a également été reproduit
+  après remplacement complet de `rendez_vous/ui.py` par la version de `c92aaab`.
+  Le correctif de focus n'est donc pas identifié comme cause.
+- Certaines fermetures restent parfaitement propres : le défaut est intermittent.
+  Aucun impact sur les données ou le fonctionnement de Lumyn n'a été observé avant
+  la fermeture. Aucun correctif spéculatif Toga/pythonnet n'est appliqué pour le moment.
 - Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
   concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi
   littéralement n'est pas une adresse vérifiée. Toujours relire le résumé.
@@ -91,10 +98,13 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
 
 ## Prochaine étape et décisions réservées
 
-Vérifier uniquement le nouveau correctif de focus sous Windows, puis décider de
-la livraison 0.0.4. Les scénarios Synapse et le CRUD Google réel sont validés.
-Aucun merge ni changement d'état de PR dans ce lot. Aucun fournisseur externe
-activé. Demander le choix de l'utilisatrice avant une évolution importante.
+Le correctif de focus après changement de calendrier est désormais validé
+nativement sous Windows. Les 137 tests passent également sous Windows/Python 3.13
+en 3.83 s. Les scénarios Synapse et le CRUD Google réel sont validés.
+
+La branche feature/synapse-rendez-vous peut maintenant passer à la décision de
+livraison 0.0.4. Aucun fournisseur externe n'est activé. Ne pas fusionner ni
+changer la version sans décision explicite de l'utilisatrice.
 
 ## Dernière validation et correctif de focus — 05/09/2026
 
@@ -112,6 +122,14 @@ Le défaut découvert concerne le focus après choix du calendrier. Le callback
 on_change invalide maintenant le résumé et son instantané, désactive Confirmer
 et rend le focus au champ via l'API Toga 0.5.6 focus(). Deux nouvelles Entrées sont
 nécessaires : analyser puis confirmer. Aucun changement de Synapse ou du CRUD.
-**137 tests réussis sous Linux après ce lot**, dont cinq nouveaux cas. Toga Dummy
-vérifie l'appel au focus, pas son effet natif : seul ce correctif reste à contrôler
-manuellement sous Windows. L'UX d'ajout d'adresse au Carnet est conservée.
+**137 tests réussis sous Linux et sous Windows/Python 3.13** après ce lot.
+Sous Windows, les 137 tests passent en 3.83 s. Le correctif de focus a également
+été validé manuellement avec Toga WinForms : après saisie puis changement de
+calendrier, le focus revient dans le champ, la première Entrée réanalyse avec la
+nouvelle destination et la seconde Entrée confirme. Le contrôle natif du focus
+est donc validé. L'UX d'ajout d'adresse au Carnet est conservée.
+Le crash de fermeture pythonnet/WinForms reste toutefois présent de façon
+intermittente. Il a été reproduit sur `f244bd0` et sur `c92aaab`, avec la même
+trace `proactor.py` / `pythonnet.unload()` / `clr_loader`. Il a aussi été reproduit
+sur `f244bd0` après remplacement de tout `rendez_vous/ui.py` par celui de
+`c92aaab`. Le correctif de focus n'est donc pas retenu comme cause.

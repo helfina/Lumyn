@@ -100,16 +100,19 @@ Version actuelle :
 La version 0.0.3 gère les rendez-vous locaux et Google, validés sous Windows avec
 Google réel le 05/09/2026. Sur `feature/synapse-rendez-vous`, la future 0.0.4 ajoute
 le Carnet et Synapse local, validés sous Windows/Google réel le 05/09/2026.
-Les 132 tests de c92aaab passent aussi sous Windows/Python 3.13 ; 137 passent sous
-Linux après le correctif de focus. Seul ce nouveau retour de focus attend son
-contrôle natif ; Android reste à valider.
+Les 137 tests passent sous Linux et sous Windows/Python 3.13. Le correctif de focus
+après changement de calendrier est également validé nativement sous Windows.
+Le Carnet, Synapse et le CRUD Google réel sont validés.
+
+Un crash de fermeture Windows intermittent lié à Toga WinForms/pythonnet reste
+connu et reproduit indépendamment du correctif de focus. Aucun impact fonctionnel
+ou corruption de données n'a été observé avant fermeture. Android reste à valider.
 
 ---
 
 # Feuille de route
 
-Voir [ROADMAP.md](ROADMAP.md). Prochaine étape : contrôler le correctif de focus
-sous Windows avant de décider la livraison 0.0.4.
+Voir [ROADMAP.md](ROADMAP.md). Prochaine étape : décider de la livraison 0.0.4.
 
 ---
 
