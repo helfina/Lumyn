@@ -81,6 +81,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
             'personne', 'etablissement', 'profession'))
         candidats_par_ia = _candidats(recherche_ia, lieux) if recherche_ia.strip() else []
         candidats = candidats_par_ia
+    resolution_locale_ambigue = len(candidats) > 1 and bool(indices_locaux)
     if len(candidats) == 1 and indices_locaux.get('ville'):
         ville = normaliser_recherche(indices_locaux['ville'])
         adresses_ville = [a for a in candidats[0].get('adresses', [])
@@ -88,6 +89,14 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
         if len(adresses_ville) == 1:
             explicite = adresses_ville[0]['adresse']
             interpretation['lieu_explicite'] = explicite
+        elif len(adresses_ville) > 1:
+            ambiguities.append(
+                'Plusieurs adresses du Carnet correspondent à '
+                + indices_locaux['ville']
+                + ' pour ' + candidats[0]['nom']
+                + '. Précise laquelle utiliser : '
+                + ' ; '.join(a['adresse'] for a in adresses_ville) + '.'
+            )
     nom_canonique = candidats[0]['nom'] if len(candidats) == 1 else None
     titre_structure = construire_titre_structure(
         indices_locaux, nom_canonique=nom_canonique)
@@ -141,7 +150,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
                 else:
                     ambiguities.append('Précise si « ' + reste + ' » fait partie du titre ou du lieu.')
                     candidats = []
-        if explicite:
+        if explicite and not resolution_locale_ambigue:
             # Un site explicitement nommé prime sur la favorite.
             compatibles = [c for c in candidats if _adresse_explicite(c, explicite)]
             if compatibles:

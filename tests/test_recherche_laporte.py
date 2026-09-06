@@ -67,6 +67,82 @@ def test_ui_lieu_vague_garde_confirmation_desactivee(interface):
     assert not interface.confirmer_button.enabled
 
 
+def test_analyser_utilise_ollama_local_puis_resout_le_carnet_sans_internet(
+        interface):
+    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    public = Mock()
+    web = Mock()
+    carnet.enregistrer_lieu({
+        'nom': 'Dr Laporte', 'alias': ['Laporte'], 'profession': 'psy',
+        'adresses': [{'adresse': '2 rue Exemple, 56100 Lorient',
+                      'favorite': True}],
+    })
+    interface.interpreteur_local = local
+    interface.fournisseur_lieux = public
+    interface.fournisseur_ia = web
+    interface.rdv_input.value = PHRASE
+
+    interface.analyser_rendez_vous(None)
+
+    rdv = interface.resultat_courant['rendez_vous']
+    assert interface.resultat_courant['etat'] == 'confirmation'
+    assert rdv['titre'] == 'Rdv psy Dr Laporte'
+    assert rdv['date'].isoformat() == '2026-09-10'
+    assert rdv['heure'] == '10h'
+    assert rdv['lieu'] == '2 rue Exemple, 56100 Lorient'
+    assert rdv['lieu_source'] == 'carnet'
+    assert interface.confirmer_button.enabled
+    local.interpreter.assert_called_once_with(PHRASE)
+    public.rechercher.assert_not_called()
+    web.rechercher.assert_not_called()
+
+
+def test_analyser_demande_choix_si_deux_adresses_carnet_a_lorient(interface):
+    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    public = Mock()
+    carnet.enregistrer_lieu({
+        'nom': 'Dr Laporte', 'alias': ['Laporte'], 'profession': 'psy',
+        'adresses': [
+            {'adresse': '2 rue Exemple, 56100 Lorient', 'favorite': True},
+            {'adresse': '8 avenue Exemple, 56100 Lorient', 'favorite': False},
+        ],
+    })
+    interface.interpreteur_local = local
+    interface.fournisseur_lieux = public
+    interface.rdv_input.value = PHRASE
+
+    interface.analyser_rendez_vous(None)
+
+    assert interface.resultat_courant['etat'] == 'ambigu'
+    assert 'Plusieurs adresses du Carnet' in interface.resultat_courant['message']
+    assert not interface.confirmer_button.enabled
+    public.rechercher.assert_not_called()
+
+
+def test_analyser_demande_choix_si_deux_fiches_carnet_correspondent(interface):
+    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    public = Mock()
+    for suffixe, adresse in (
+        ('A', '2 rue Exemple, 56100 Lorient'),
+        ('B', '8 avenue Exemple, 56100 Lorient'),
+    ):
+        carnet.enregistrer_lieu({
+            'nom': 'Dr Laporte ' + suffixe, 'alias': ['Laporte'],
+            'profession': 'psy',
+            'adresses': [{'adresse': adresse, 'favorite': True}],
+        })
+    interface.interpreteur_local = local
+    interface.fournisseur_lieux = public
+    interface.rdv_input.value = PHRASE
+
+    interface.analyser_rendez_vous(None)
+
+    assert interface.resultat_courant['etat'] == 'ambigu'
+    assert 'Plusieurs fiches correspondent' in interface.resultat_courant['message']
+    assert not interface.confirmer_button.enabled
+    public.rechercher.assert_not_called()
+
+
 def test_resultats_publics_hors_sujet_sont_tous_rejetes():
     public = Mock(rechercher=Mock(return_value=[
         proposition('La Poste', '1 rue Paris, 75001 Paris', ville='Paris'),

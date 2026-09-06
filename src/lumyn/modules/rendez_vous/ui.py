@@ -1609,9 +1609,21 @@ class InterfaceRendezVous:
         if self.recherche_lieux_ui is not None:
             self.recherche_lieux_ui.invalider()
 
+        indices_locaux = {}
+        if self.interpreteur_local is not None:
+            try:
+                indices_locaux = self.interpreteur_local.interpreter(
+                    self.rdv_input.value
+                )
+            except (OSError, TimeoutError, ValueError):
+                # Ollama local enrichit l'analyse, mais sa panne ne doit pas
+                # empêcher Synapse déterministe de préparer le rendez-vous.
+                indices_locaux = {}
+
         self.resultat_courant = (
             preparer_rendez_vous(
-                self.rdv_input.value
+                self.rdv_input.value,
+                indices_locaux=indices_locaux,
             )
         )
 
