@@ -93,7 +93,10 @@ def _copie_rendez_vous(rendez_vous):
 class InterfaceRendezVous:
     """Contrôleur de l'interface Rendez-vous."""
 
-    def __init__(self):
+    def __init__(self, fournisseur_lieux=None, fournisseur_ia=None):
+        self.fournisseur_lieux = fournisseur_lieux
+        self.fournisseur_ia = fournisseur_ia
+        self.recherche_lieux_ui = None
         self.resultat_courant = None
         self.saisie_analysee = None
 
@@ -544,6 +547,12 @@ class InterfaceRendezVous:
             self.resultat_label,
             actions_creation,
         )
+
+        if self.fournisseur_lieux is not None:
+            from lumyn.modules.synapse.recherche_ui import RechercheLieuxUI
+            self.recherche_lieux_ui = RechercheLieuxUI(
+                self, self.fournisseur_lieux, self.fournisseur_ia)
+            carte_creation.add(self.recherche_lieux_ui.zone)
 
         self.main_box.add(
             carte_creation
@@ -1564,6 +1573,8 @@ class InterfaceRendezVous:
 
     def changer_calendrier(self, widget=None, **kwargs):
         """Invalide le résumé et rend la saisie accessible à la touche Entrée."""
+        if self.recherche_lieux_ui is not None:
+            self.recherche_lieux_ui.invalider()
         self.resultat_courant = None
         self.saisie_analysee = None
         self.modifier_button.enabled = False
@@ -1592,6 +1603,8 @@ class InterfaceRendezVous:
         **kwargs,
     ):
         """Analyse la phrase saisie."""
+        if self.recherche_lieux_ui is not None:
+            self.recherche_lieux_ui.invalider()
 
         self.resultat_courant = (
             preparer_rendez_vous(
@@ -1847,6 +1860,8 @@ class InterfaceRendezVous:
 
     def _reinitialiser_formulaire(self):
         """Réinitialise le formulaire après une opération réussie."""
+        if self.recherche_lieux_ui is not None:
+            self.recherche_lieux_ui.invalider()
 
         self.resultat_courant = None
         self.rendez_vous_en_modification = None
