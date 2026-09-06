@@ -8,7 +8,7 @@ from toga.style.pack import COLUMN, ROW, Pack
 
 from lumyn.modules.lieux.ui import creer_interface_lieux
 from lumyn.modules.rendez_vous.ui import creer_interface_rendez_vous
-from lumyn.modules.synapse.geoapify import fournisseur_geoapify_depuis_environnement
+from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
 
 
 class Lumyn(toga.App):
@@ -21,7 +21,7 @@ class Lumyn(toga.App):
             title=self.formal_name
         )
 
-        fournisseur_lieux = fournisseur_geoapify_depuis_environnement()
+        fournisseur_lieux = RouteurLieuxPublics()
         self.interface_rendez_vous = creer_interface_rendez_vous(fournisseur_lieux)
         self.interface_lieux = creer_interface_lieux(fournisseur_lieux)
 
