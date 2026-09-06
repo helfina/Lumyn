@@ -34,4 +34,3 @@ def test_entreprises_zero_invalide_timeout_et_reseau():
         fournisseur._transport = lambda url, timeout, e=erreur: (_ for _ in ()).throw(e)
         with pytest.raises(type_attendu):
             fournisseur.rechercher("Garage Test")
-

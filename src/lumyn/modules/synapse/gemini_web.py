@@ -115,4 +115,3 @@ def _poster_json(url, corps, timeout, cle_api):
         if getattr(reponse, "status", 200) != 200:
             raise OSError("Réponse Gemini inattendue")
         return json.loads(reponse.read().decode("utf-8"))
-

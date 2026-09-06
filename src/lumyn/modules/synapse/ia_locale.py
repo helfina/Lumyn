@@ -101,4 +101,3 @@ def _poster_json(url, corps, timeout):
         if getattr(reponse, "status", 200) != 200:
             raise OSError("Réponse Ollama inattendue")
         return json.loads(reponse.read().decode("utf-8"))
-

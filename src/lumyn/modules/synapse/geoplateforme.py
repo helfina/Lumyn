@@ -137,4 +137,3 @@ def _convertir_autocompletion(charge, limite):
         if nom and adresse:
             propositions.append(_proposition(nom, adresse, ville))
     return _uniques(propositions, limite)
-
