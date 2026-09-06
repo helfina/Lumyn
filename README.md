@@ -2,14 +2,37 @@
 
 ## Ollama facultatif
 
-Ollama local utilise `llama3.2:1b` par défaut et peut améliorer la requête sans remplacer
-Synapse : aucune adresse IA n'est acceptée, et une panne laisse Lumyn fonctionner
-normalement. Aucun modèle n'est installé automatiquement.
+Le bouton **Analyser** suit uniquement le parcours rapide et local :
+
+`Synapse déterministe → Carnet`
+
+Si le rendez-vous reste non résolu, le bouton de recherche suit ensuite :
+
+`Ollama local facultatif → nouvelle tentative Carnet → services publics → Ollama Web facultatif et explicitement autorisé`
+
+Ollama local utilise `llama3.2:1b` par défaut et peut enrichir la requête sans
+remplacer Synapse. Aucune adresse IA n'est acceptée, et une panne laisse Lumyn
+fonctionner normalement. Aucun modèle n'est installé automatiquement. Le test
+Windows réel a mesuré environ 55 secondes à froid, 25 secondes à chaud et plus de
+90 secondes avec le schéma JSON strict : il n'est donc jamais requis par
+**Analyser**.
 
 Ollama Web Search reste désactivé par défaut. Il est injecté uniquement avec
 `LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` dans la configuration locale ; Lumyn
 n'achète aucun crédit et ne déclenche aucun paiement ni dépassement payant.
 Gemini reste expérimental désactivé ; Geoapify reste optionnel non injecté.
+
+### Configuration locale de développement
+
+Copier `.env.example` vers `.env.local`, puis adapter uniquement la copie locale.
+Lumyn recherche ce fichier à la racine lorsqu'il est lancé depuis le dépôt et le
+charge avant la création des fournisseurs Ollama. Les variables déjà définies
+par Windows ou le processus restent prioritaires.
+
+Le format pris en charge est volontairement simple : `CLE=valeur`, lignes vides
+et commentaires commençant par `#`. `.env.local` et `.env` sont ignorés par Git.
+Ne jamais mettre de vraie clé dans `.env.example`, dans la documentation ou dans
+un commit. `credentials.json` et `token.json` restent séparés pour Google.
 
 ## Recherche locale et services publics français
 

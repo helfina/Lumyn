@@ -68,7 +68,7 @@ def calculer_annee(jour, mois, annee=None):
 def extraire_heure(texte, rendez_vous):
     """Extrait une heure comme 14h30, 14 h 30 ou 14:30."""
 
-    motif = r"\b\d{1,3}\s*(?:h|:)\s*\d*(?!\w)"
+    motif = r"\b\d{1,3}\s*(?:h(?:eures?)?|:)\s*\d*(?!\w)"
     resultats = list(re.finditer(motif, texte, flags=re.IGNORECASE))
     if not resultats:
         return texte
@@ -77,7 +77,7 @@ def extraire_heure(texte, rendez_vous):
     for resultat in resultats:
         valeur = resultat.group(0).strip()
         valide = re.fullmatch(
-            r"([01]?\d|2[0-3])\s*(?:h(?:\s*([0-5]\d))?|:\s*([0-5]\d))",
+            r"([01]?\d|2[0-3])\s*(?:h(?:eures?)?(?:\s*([0-5]\d))?|:\s*([0-5]\d))",
             valeur, flags=re.IGNORECASE,
         )
         if not valide:

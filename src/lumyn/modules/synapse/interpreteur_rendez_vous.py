@@ -2,7 +2,7 @@
 import re
 from lumyn.modules.rendez_vous.analyseur import analyser_rendez_vous
 
-PROFESSIONS = r"dentiste|psychiatre|médecin|medecin|infirmière|infirmiere|infirmier|orthophoniste|psychologue|psy|kinésithérapeute|kinesitherapeute"
+PROFESSIONS = r"dentiste|psychiatre|docteur|médecin|medecin|infirmière|infirmiere|infirmier|orthophoniste|psychologue|psy|kinésithérapeute|kinesitherapeute"
 MODES = {
     'visio': r'\b(?:en\s+)?visio(?:conférence|conference)?\b',
     'telephone': r'\b(?:(?:par|au)\s+)?téléphone\b|\b(?:(?:par|au)\s+)?telephone\b',
@@ -88,7 +88,7 @@ def extraire_indices_deterministes(texte):
     if profession:
         indices['profession'] = profession.group(0)
         personne = re.search(
-            rf"(?:^|(?:avec\s+)?(?:ma|mon|le|la|un|une)\s+)"
+            rf"(?:^|(?:(?:avec|chez)\s+)?(?:ma|mon|le|la|un|une)\s+)"
             rf"(?:{PROFESSIONS})\s+"
             r"([A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*(?:\s+[A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*)?)"
             r"(?=\s+(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
@@ -97,6 +97,15 @@ def extraire_indices_deterministes(texte):
         )
         if personne:
             indices['personne'] = personne.group(1).strip()
+        if 'personne' not in indices:
+            personne_avant = re.search(
+                rf"\b(?:je\s+vois|voir)\s+"
+                r"([A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*(?:\s+[A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*)?)"
+                rf"\s+(?:ma|mon|le|la)\s+(?:{PROFESSIONS})\b",
+                texte,
+            )
+            if personne_avant:
+                indices['personne'] = personne_avant.group(1).strip()
 
     # « son cabinet de Lorient » donne un indice de ville, jamais une adresse.
     ville = re.search(
