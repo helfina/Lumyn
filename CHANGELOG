@@ -1,5 +1,15 @@
 # Lumyn Release Notes
 
+## Non publié — Geoapify
+
+* Geoapify gratuit derrière `FournisseurLieux`, clé par environnement, cinq résultats
+  maximum, timeout et attribution explicite.
+* Recherche et autocomplétion hors thread Toga, debounce, réponses périmées ignorées.
+* IA/web inactive ; sauvegarde Carnet Geoapify bloquée faute de droit clair.
+* 188 tests Linux réussis ; création Android tentée mais bloquée avant
+  génération par l'absence de JDK complet et un téléchargement expiré.
+
+
 ## Non publié — chantier après 0.0.4
 
 * Reprises Google CREATE/DELETE et signalement des restaurations UPDATE/MOVE.

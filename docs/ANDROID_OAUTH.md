@@ -1,5 +1,31 @@
 # Android et OAuth Google — préparation du 06/09/2026
 
+## Tentative automatique réelle — 06/09/2026
+
+Environnement Linux : Python 3.12.13, OpenJDK Runtime 17.0.20, sans `javac`, `adb`
+ni Gradle système. Briefcase 0.4.4 a été installé dans un environnement temporaire.
+
+Commande exécutée :
+
+```text
+python -m briefcase create android --no-input
+```
+
+Premier essai : le proxy SOCKS exigeait `socksio`; ajouté uniquement à
+environnement temporaire. Second essai avec `JAVA_HOME` : Briefcase a confirmé
+que le chemin ne contient pas un JDK (`bin/javac` absent), puis a tenté son propre
+téléchargement Temurin JDK 17. Cette requête a expiré dans le réseau restreint.
+Résultat : **création Android échouée avant génération du projet**. Aucun manifeste,
+applicationId, permission, dépendance Android, APK ou AAB ne peut donc être confirmé
+par un artefact généré. Aucun fichier applicatif n'a été modifié pour masquer cela.
+
+Prochaine étape automatique sur une machine disposant d'un JDK 17 complet et d'un
+accès aux téléchargements Briefcase : reprendre `create`, puis `build`. Les étapes
+Cloud/OAuth, certificat et appareil restent ensuite manuelles comme décrit plus bas.
+Geoapify sur Android ne doit pas dépendre d'une variable d'environnement permanente :
+le mécanisme de configuration secrète mobile reste à concevoir avant distribution.
+
+
 **État : audité et documenté, pas implémenté ni validé sur appareil.** Aucun SDK,
 émulateur, APK/AAB, compte Cloud ou jeton mobile créé pendant cette séance.
 Version Lumyn 0.0.4 inchangée. Les validations Windows ne prouvent pas Android.

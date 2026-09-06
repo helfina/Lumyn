@@ -1,5 +1,20 @@
 # Contexte du projet Lumyn
 
+## Décision Geoapify — 06/09/2026
+
+Sur `feature/google-reprise-recherche-lieux`, Geoapify est le premier fournisseur
+structuré, offre gratuite seulement. Activation par `GEOAPIFY_API_KEY` ou
+`LUMYN_GEOAPIFY=1`; aucune clé dans Git. Recherche volontaire et autocomplétion
+Toga s'exécutent hors thread UI avec délai/timeout, limites et réponses périmées
+ignorées. IA/web reste désactivée.
+
+La conservation durable d'une réponse Geoapify n'est pas assez clairement autorisée
+par les conditions publiques : propositions non persistables, saisie manuelle du
+Carnet conservée. 188 tests Linux passent. `briefcase create android` a
+été tenté réellement mais arrêté avant génération faute de JDK complet et après
+expiration du téléchargement. Voir les deux documents techniques.
+
+
 ## Identité et objectif
 
 Lumyn est un assistant personnel modulaire destiné à réduire la charge mentale.
@@ -238,7 +253,7 @@ Il n'existe pas encore :
 Android/APK/OAuth Android, les rappels locaux, les tâches et les notes restent
 à développer ou à valider.
 
-## État courant — 06/09/2026
+## Étape préparatoire du 06/09/2026
 
 **0.0.4 est fusionnée dans main**, PR #2, commit `0460534`.
 La candidate finale a été validée par l'utilisatrice : **137 tests sous Windows /
@@ -254,10 +269,11 @@ Le travail déjà présent dans le workspace a été conservé et complété.
 - Parcours optionnel de propositions sourcées, choix explicite puis confirmation,
   ajout volontaire au Carnet et choix d'une fiche similaire avant ajout d'adresse.
 - Fournisseur structuré puis repli IA/web autorisé séparément : architecture et
-  interface testées par injection, **aucun fournisseur réel configuré**. Le panneau
-  n'est pas affiché dans l'application par défaut.
-- **175 tests Linux réussis**, dont les 137 existants, avec Toga Dummy et fournisseurs
-  simulés. Validation Windows et Google réelle du nouveau lot encore à effectuer.
+  interface testées par injection. Cette étape précédait le choix Geoapify ; le
+  fournisseur est maintenant optionnel et reste désactivé sans configuration.
+- Cette étape préparatoire comptait **175 tests Linux réussis**. L’intégration
+  Geoapify réalisée ensuite porte la suite courante à **188 tests**. Validation
+  Windows et Google réelle du nouveau lot encore à effectuer.
 - Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
   Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
 - Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de

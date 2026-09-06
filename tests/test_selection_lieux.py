@@ -9,8 +9,8 @@ from lumyn.modules.synapse.selection_lieux import choisir_proposition, enregistr
 from lumyn.modules.synapse.recherche_ui import RechercheLieuxUI
 
 PHRASE = 'Dr Dupont dermatologue Vannes mardi 14h'
-P = PropositionLieu('Dr Dupont','1 rue Exemple, Vannes','https://exemple.invalid/source','dermatologue','Vannes')
-Q = PropositionLieu('Dr Dupont','2 rue Exemple, Vannes','https://exemple.invalid/autre')
+P = PropositionLieu('Dr Dupont','1 rue Exemple, Vannes','https://exemple.invalid/source','dermatologue','Vannes', conservation_autorisee=True)
+Q = PropositionLieu('Dr Dupont','2 rue Exemple, Vannes','https://exemple.invalid/autre', conservation_autorisee=True)
 
 
 @pytest.mark.parametrize('resultats,etat', [([], 'incomplet'), ([P], 'ambigu'), ([P,Q], 'ambigu'), ([None], 'incomplet')])
@@ -150,3 +150,18 @@ def test_ui_reponse_recherche_perimee_ignoree(interface):
     assert interface.resultat_courant is None
     assert not interface.confirmer_button.enabled
     assert panneau.rechercher_button.enabled
+
+
+def test_ui_invalidation_pendant_recherche_reactive_le_bouton(interface):
+    import time
+    fournisseur=Mock(rechercher=Mock(side_effect=lambda texte: (time.sleep(0.03), [P])[1]))
+    panneau=RechercheLieuxUI(interface,fournisseur)
+    interface.rdv_input.value=PHRASE
+    async def scenario():
+        tache=asyncio.create_task(panneau.rechercher())
+        await asyncio.sleep(0.005)
+        panneau.invalider()
+        assert panneau.rechercher_button.enabled
+        await tache
+    asyncio.run(scenario())
+    assert panneau.propositions==[] and interface.resultat_courant is None

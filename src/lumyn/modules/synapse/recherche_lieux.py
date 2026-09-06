@@ -13,7 +13,7 @@ class PropositionLieu:
     profession: str = ""
     ville: str = ""
     identifiant: str = ""
-    conservation_autorisee: bool = True
+    conservation_autorisee: bool = False
 
 
 class FournisseurLieux(Protocol):

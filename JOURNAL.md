@@ -269,3 +269,19 @@ Documentation post-fusion corrigée, comparatif fournisseurs et procédure
 Android/OAuth préparés. Version maintenue à 0.0.4. Crash Windows hors périmètre.
 Arrêt au choix utilisateur des fournisseurs/coûts/gestion des clés ; lot à relire
 en PR brouillon, sans fusion ni nouvelle publication. Validation native à refaire.
+
+## 06/09/2026 — Intégration Geoapify et tentative Android
+
+Reprise propre sur la PR #3. Vérification officielle : Free à 3 000 crédits/jour,
+5 requêtes/s, sans carte, attributions Geoapify et OSM obligatoires. Adaptateur
+HTTP, configuration par environnement, conversion sourcée, timeout et limites.
+Recherche Rendez-vous et autocomplétion Carnet hors thread UI, réponses périmées
+ignorées, aucun fallback IA réel.
+
+L'autorisation de conservation durable n'étant pas démontrée, sauvegarde directe
+dans le Carnet bloquée ; saisie manuelle disponible. 188 tests Linux
+réussis avec services simulés. Sous-lots publiés régulièrement dans la PR #3.
+
+Briefcase 0.4.4 installé temporairement. `create android` tenté puis bloqué avant
+génération : runtime Java sans javac et téléchargement JDK expiré. Aucun succès
+Android revendiqué. Crash Windows, version, Notes/Tâches et OAuth desktop inchangés.

@@ -36,13 +36,17 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] Réservations persistantes CREATE ; reprise DELETE sans recréation.
 - [x] Tests de pannes partielles UPDATE/MOVE et remontée des restaurations incomplètes.
 - [x] Propositions sourcées, sélection explicite, repli IA autorisé, Carnet volontaire.
-- [x] 175 tests Linux réussis avec fournisseurs simulés.
+- [x] Étape préparatoire à 175 tests, puis intégration Geoapify à 188 tests Linux.
 - [x] Comparatif des fournisseurs et audit préparatoire Android/OAuth documentés.
-- [ ] Choix utilisateur du fournisseur structuré et de la politique de données.
-- [ ] Adaptateur réel : délais bornés, exécution hors thread UI, attribution et droits de stockage.
+- [x] Geoapify choisi et intégré en offre gratuite, clé hors dépôt.
+- [x] Recherche et autocomplétion hors thread UI, bornées, sans IA réelle.
+- [ ] Clarification écrite des droits de conservation Geoapify avant sauvegarde Carnet.
+- [x] Adaptateur réel : timeout, cinq résultats, attribution et réponses périmées.
+- [ ] Validation WinForms/Geoapify réelle avec des lieux publics.
 - [ ] Choix éventuel du fournisseur IA/web, du budget et de la gestion des clés.
 - [ ] Validation native Windows/Google du lot courant.
-- [ ] Construction Android puis intégration OAuth native et validation sur appareil.
+- [ ] Construction Android : tentative bloquée avant génération par JDK incomplet/téléchargement expiré.
+- [ ] OAuth natif et validation sur appareil après build réussi.
 
 ## Au-delà
 

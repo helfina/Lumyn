@@ -1,5 +1,18 @@
 # 💡 Lumyn
 
+## Recherche Geoapify expérimentale
+
+Geoapify est intégré comme fournisseur optionnel en offre gratuite. Il n'est activé
+qu'avec une clé dans l'environnement. Maison/Carnet restent prioritaires ; la
+recherche nécessite un clic, toute adresse doit être choisie puis confirmée.
+L'autocomplétion du Carnet attend une pause et laisse toujours la saisie manuelle.
+IA/web est désactivée. Par prudence contractuelle, une proposition Geoapify ne peut
+pas encore être enregistrée directement dans le Carnet.
+
+Configuration Windows et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
+État du test Android réel : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md).
+
+
 > **Votre second cerveau numérique.**
 
 Lumyn est un assistant personnel modulaire conçu pour réduire la charge mentale.
@@ -104,7 +117,7 @@ La branche `feature/google-reprise-recherche-lieux` renforce les reprises
 Google/local et prépare un parcours externe : propositions sourcées, sélection,
 confirmation puis ajout volontaire au Carnet. **Aucun fournisseur externe réel
 n'est activé**, le panneau optionnel reste invisible dans l'application par défaut.
-175 tests Linux réussis ; Windows/Google du nouveau lot restent à valider.
+188 tests Linux réussis ; Windows/Google du nouveau lot restent à valider.
 Version applicative inchangée, Android/OAuth seulement préparé.
 
 Voir le [comparatif et les limites](docs/REPRISE_ET_RECHERCHE.md) et la

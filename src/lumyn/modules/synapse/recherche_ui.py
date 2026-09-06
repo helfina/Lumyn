@@ -35,6 +35,8 @@ class RechercheLieuxUI:
 
     def invalider(self):
         self._requete += 1
+        self._recherche_en_cours = False
+        self.rechercher_button.enabled = True
         self.selection = None
         self.instantane = None
         self.propositions = []

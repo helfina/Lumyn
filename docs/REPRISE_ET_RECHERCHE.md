@@ -1,5 +1,87 @@
 # Reprises Google/local et recherche de lieux — 06/09/2026
 
+## Décision et implémentation Geoapify — 06/09/2026
+
+Geoapify est retenu comme premier fournisseur structuré, offre gratuite uniquement.
+L'offre officielle consultée le 06/09 reste à 3 000 crédits/jour, sans carte
+bancaire, jusqu'à 5 requêtes/s. Un appel simple de géocodage, autocomplétion ou
+Places coûte généralement un crédit. Les conditions permettent un usage commercial
+limité, imposent de surveiller le quota et rendent obligatoires les attributions
+Geoapify et OpenStreetMap. Aucun forfait payant ou mécanisme de dépassement n'est
+configuré par Lumyn.
+
+`FournisseurGeoapify` utilise les endpoints HTTP de géocodage libre et
+d'autocomplétion, convertit au plus cinq résultats en `PropositionLieu`, préfère
+la France par biais (sans exclure le reste du monde), demande le français et
+conserve nom, adresse formatée, ville, catégorie/type, place_id et provenance
+`Geoapify / OpenStreetMap`. Un résultat reste une proposition à choisir. La
+couverture de tous les professionnels n'est ni mesurée ni garantie.
+
+Activation Windows, pour la session PowerShell courante :
+
+```powershell
+$env:LUMYN_GEOAPIFY = "1"
+$env:GEOAPIFY_API_KEY = "COLLER_ICI_LA_CLE_PERSONNELLE"
+briefcase dev
+```
+
+Pour conserver les variables dans les prochaines sessions Windows :
+
+```powershell
+setx LUMYN_GEOAPIFY "1"
+setx GEOAPIFY_API_KEY "COLLER_ICI_LA_CLE_PERSONNELLE"
+```
+
+Fermer et rouvrir PowerShell après `setx`. `LUMYN_GEOAPIFY=off` désactive
+explicitement le fournisseur, même si une clé existe. La clé n'est lue que dans
+l'environnement, jamais écrite par Lumyn. Une activation sans clé affiche une
+erreur claire au moment de la recherche. Les fichiers `.env` locaux sont ignorés
+par Git mais Lumyn ne les charge pas automatiquement.
+
+Pour obtenir la clé : un titulaire **majeur et juridiquement compétent** doit
+ouvrir [Geoapify MyProjects](https://myprojects.geoapify.com/), créer un compte,
+créer un projet, puis copier la clé générée dans « API Keys ». Geoapify indique
+qu'aucune carte bancaire n'est nécessaire pour l'offre gratuite. Ne pas choisir
+`API 10` ou un autre plan payant. Les conditions Geoapify interdisent l'inscription
+aux mineurs ; le compte ne doit donc pas être créé ou contourné par un mineur.
+
+### Réseau, quota et interface
+
+La recherche Rendez-vous part seulement d'un clic après l'analyse locale ; Maison,
+Carnet, VISIO, DOMICILE et Téléphone restent locaux. IA/web est conservée dans le
+contrat mais aucun fournisseur n'est injecté : elle ne peut pas être appelée dans
+la configuration réelle. Le travail HTTP utilise `asyncio.to_thread`, avec timeout
+6 s, sans retry ni polling. Le bouton est désactivé pendant la demande puis rétabli.
+Une réponse dont la phrase ou le calendrier a changé est ignorée.
+
+Dans le Carnet, l'autocomplétion commence à quatre caractères après 650 ms sans
+frappe, donne cinq choix maximum et ne sélectionne rien. Une frappe plus récente
+annule l'attente ou rend la réponse ancienne inutilisable. Une requête identique
+peut réutiliser uniquement le dernier résultat en mémoire de la session ; aucun
+cache durable n'est créé. Le texte manuel reste modifiable après erreur ou timeout.
+
+### Conservation : blocage volontaire
+
+Les conditions publiques obligent l'attribution mais ne disent pas assez clairement
+quelles données de géocodage/POI peuvent être copiées durablement dans un carnet
+personnel. Le résultat des sources sous-jacentes peut aussi porter sa propre licence.
+Lumyn marque donc toute proposition Geoapify `conservation_autorisee=False` : elle
+peut servir au rendez-vous après choix, mais le bouton de sauvegarde est désactivé
+et l'API métier refuse également l'écriture. Le défaut du contrat est désormais
+le refus ; un futur fournisseur devra déclarer positivement un droit vérifié.
+
+Cette protection n'empêche pas l'utilisatrice de saisir elle-même une adresse dans
+le Carnet. Il faut demander à Geoapify une clarification écrite couvrant la copie
+durable de `formatted`, nom, catégorie et provenance dans une application locale,
+puis documenter les obligations ODbL/attribution avant de lever ce verrou. Le
+consentement utilisateur ne suffit pas à donner ce droit contractuel.
+
+Sources officielles : [tarifs](https://www.geoapify.com/pricing/),
+[conditions](https://www.geoapify.com/terms-and-conditions/),
+[géocodage](https://apidocs.geoapify.com/docs/geocoding/forward-geocoding/),
+[autocomplétion](https://apidocs.geoapify.com/docs/geocoding/address-autocomplete/).
+
+
 Base : main 0.0.4, PR #2 fusionnée, 0460534. Branche :
 `feature/google-reprise-recherche-lieux`. Version inchangée. Ce lot améliore les
 pannes et prépare une recherche optionnelle ; aucune API de lieux/IA réelle active.
@@ -149,16 +231,11 @@ réutilisation permanente. Privilégier une source officielle du professionnel,
 refuser les résultats sans preuve exploitable, et demander le choix utilisateur.
 Aucun modèle ne reçoit de pouvoir d'écriture Carnet ou Google.
 
-## Choix demandé et prochaine étape
+## Prochaine décision
 
-Recommandation technique à approuver : commencer par un essai IGN limité aux
-adresses françaises, ou choisir Geoapify si les POI/professionnels sont prioritaires.
-Google Places reste une alternative sous réserve des droits de conservation dans
-le Carnet. Garder IA/web désactivée pendant ce premier essai est possible.
-
-Avant de coder un adaptateur réel : choisir le fournisseur, approuver la requête
-sortante et la conservation ; si clé payante, décider plafond et clé personnelle
-ou serveur (ne jamais embarquer un secret partagé dans l'application). Puis
-implémenter l'adaptateur borné et le traitement UI asynchrone, ajouter ses tests
-simulés, et réaliser une validation manuelle avec des lieux publics choisis.
-Android reste une préparation indépendante, détaillée dans ANDROID_OAUTH.md.
+Geoapify est choisi et l'adaptateur est actif seulement si l'environnement le
+demande. La prochaine décision porte sur le droit de conserver ses résultats :
+obtenir une confirmation écrite de Geoapify, puis choisir les champs et attributions
+à garder. IA/web reste désactivée. Après clarification, valider manuellement la
+qualité sur des lieux publics français et le rendu Windows avant d'autoriser la
+sauvegarde Carnet.

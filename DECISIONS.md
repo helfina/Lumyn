@@ -147,3 +147,19 @@ réel activé avant ce choix. Avant activation : adaptateur borné et travail r�
 hors thread UI. Android/OAuth natif exige une validation séparée sur appareil et
 un choix de configuration Google Cloud ; seule la procédure est préparée.
 Crash Windows exclu, aucune fusion/release/changement final de PR sans accord.
+
+## 06/09/2026 — Geoapify gratuit retenu
+
+Geoapify devient le premier fournisseur structuré. Rester sur Free : aucun paiement,
+retry ou polling. Clé par environnement, France préférée, cinq résultats, timeout
+6 s. Recherche au clic et autocomplétion après 650 ms/quatre caractères ; réseau
+hors thread UI. IA/web demeure non injectée.
+
+Attribution `Geoapify / OpenStreetMap`. Les conditions publiques ne suffisent pas
+à démontrer le droit de copier durablement les résultats dans le Carnet : chaque
+adaptateur doit désormais autoriser explicitement la conservation, Geoapify la
+refuse. Obtenir une clarification écrite avant de changer ce choix.
+
+La tentative Android réelle est arrêtée avant génération : JRE sans javac et JDK
+Briefcase non téléchargeable dans cet environnement. Le flux OAuth desktop reste
+inchangé. Version 0.0.4 et PR #3 brouillon conservées.

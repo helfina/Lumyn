@@ -1,6 +1,20 @@
 # État actuel de Lumyn
 
-## État courant — 06/09/2026
+## Avancement Geoapify — 06/09/2026
+
+Geoapify est choisi en offre gratuite et intégré derrière `FournisseurLieux`.
+Il reste désactivé sans variable d'environnement. Recherche et autocomplétion sont
+hors thread UI, bornées, attribuées et testées sans réseau réel. IA/web reste
+absente de la configuration. La conservation Geoapify dans le Carnet est bloquée
+tant que les conditions ne l'autorisent pas explicitement ; saisie manuelle intacte.
+
+Suite courante : **188 tests Linux réussis**. Android : Briefcase 0.4.4
+installé temporairement, mais `create android` a échoué avant génération faute de
+JDK complet et après timeout du téléchargement. Version toujours 0.0.4, PR #3 en
+brouillon, crash Windows hors périmètre.
+
+
+## Étape préparatoire du 06/09/2026
 
 **0.0.4 est fusionnée dans main**, PR #2, commit `0460534`.
 La candidate finale a été validée par l'utilisatrice : **137 tests sous Windows /
@@ -16,10 +30,11 @@ Le travail déjà présent dans le workspace a été conservé et complété.
 - Parcours optionnel de propositions sourcées, choix explicite puis confirmation,
   ajout volontaire au Carnet et choix d'une fiche similaire avant ajout d'adresse.
 - Fournisseur structuré puis repli IA/web autorisé séparément : architecture et
-  interface testées par injection, **aucun fournisseur réel configuré**. Le panneau
-  n'est pas affiché dans l'application par défaut.
-- **175 tests Linux réussis**, dont les 137 existants, avec Toga Dummy et fournisseurs
-  simulés. Validation Windows et Google réelle du nouveau lot encore à effectuer.
+  interface testées par injection. Cette étape précédait le choix Geoapify ; le
+  fournisseur est maintenant optionnel et reste désactivé sans configuration.
+- Cette étape préparatoire comptait **175 tests Linux réussis**. L’intégration
+  Geoapify réalisée ensuite porte la suite courante à **188 tests**. Validation
+  Windows et Google réelle du nouveau lot encore à effectuer.
 - Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
   Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
 - Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de

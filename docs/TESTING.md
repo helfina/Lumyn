@@ -1,5 +1,26 @@
 # Tester Lumyn
 
+## Validation Geoapify — 06/09/2026
+
+Suite complète après intégration : **188 passed** sous Linux/Python 3.12,
+Toga Dummy. Tous les tests Geoapify utilisent un transport injecté ou des mocks :
+aucune vraie clé, aucun compte et aucun appel au service. Cas ajoutés : configuration
+absente/activation sans clé, conversion zéro/un/plusieurs/invalides, timeout/erreur,
+limite et attribution, refus de conservation, activation des deux écrans, debounce,
+minimum de caractères, dernier résultat mémoire, réponse périmée, saisie manuelle,
+choix explicite et recherche Rendez-vous hors thread UI. Les tests Google/local
+existants restent inchangés et verts.
+
+Validation manuelle restante : clé gratuite créée par un adulte, rendu WinForms,
+requêtes sur lieux publics, débit/quota dans MyProjects, erreurs hors ligne et
+qualité réelle des POI. Ne pas utiliser de données médicales/personnelles pour ce
+premier essai. La sauvegarde Geoapify vers le Carnet doit rester indisponible.
+
+Android réel : `briefcase create android --no-input` a échoué avant génération :
+OpenJDK présent sans `javac`, puis téléchargement du JDK 17 Briefcase expiré.
+Aucun manifeste, package, permission ou APK vérifié. Détails dans ANDROID_OAUTH.md.
+
+
 ## Résultat courant — 06/09/2026
 
 `.venv-tests/bin/python -m pytest -q` : **175 passed in 1.13s** sous Linux,
