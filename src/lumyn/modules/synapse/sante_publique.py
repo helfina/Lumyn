@@ -10,6 +10,7 @@ from lumyn.modules.synapse.entreprises import _convertir_reponse
 
 
 URL_RECHERCHE = "https://recherche-entreprises.api.gouv.fr/search"
+SOURCE_FINESS = "API Recherche d’entreprises / établissements FINESS publics"
 
 
 class FournisseurEtablissementsSante:
@@ -38,7 +39,7 @@ class FournisseurEtablissementsSante:
             raise TimeoutError("La recherche FINESS publique n'a pas répondu à temps.") from erreur
         except (HTTPError, URLError, OSError) as erreur:
             raise OSError("La recherche publique d'établissements de santé est indisponible.") from erreur
-        return _convertir_reponse(charge, self.limite)
+        return _convertir_reponse(charge, self.limite, source=SOURCE_FINESS)
 
 
 def _charger_json(url, timeout):
@@ -47,4 +48,3 @@ def _charger_json(url, timeout):
         if getattr(reponse, "status", 200) != 200:
             raise OSError("Réponse FINESS inattendue")
         return json.loads(reponse.read().decode("utf-8"))
-

@@ -1,13 +1,17 @@
 # 💡 Lumyn
 
-## Recherche Geoapify expérimentale
+## Recherche locale et services publics français
 
-Geoapify est intégré comme fournisseur optionnel en offre gratuite. Il n'est activé
-qu'avec une clé dans l'environnement. Maison/Carnet restent prioritaires ; la
-recherche nécessite un clic, toute adresse doit être choisie puis confirmée.
-L'autocomplétion du Carnet attend une pause et laisse toujours la saisie manuelle.
-IA/web est désactivée. Par prudence contractuelle, une proposition Geoapify ne peut
-pas encore être enregistrée directement dans le Carnet.
+Maison et le Carnet restent prioritaires. Sans compte ni clé, Lumyn utilise la
+Géoplateforme/BAN pour rechercher et autocompléter des adresses françaises, puis
+l'API Recherche d'entreprises pour les établissements et le sous-ensemble FINESS
+public pour la santé. La recherche nécessite une action explicite ; aucune adresse
+n'est choisie, enregistrée ou envoyée à Google avant choix et confirmation.
+
+La saisie manuelle fonctionne hors ligne. Geoapify reste un adaptateur optionnel
+non injecté. Ollama local et Gemini Web sont seulement préparés : Ollama n'est pas
+encore relié à l'interface, et Gemini Web reste bloqué car sa recherche Google
+nécessite actuellement le niveau payant.
 
 Configuration Windows et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
 État du test Android réel : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md).

@@ -1,18 +1,19 @@
 # Contexte du projet Lumyn
 
-## Décision Geoapify — 06/09/2026
+## Décision services publics et IA facultative — 06/09/2026
 
-Sur `feature/google-reprise-recherche-lieux`, Geoapify est le premier fournisseur
-structuré, offre gratuite seulement. Activation par `GEOAPIFY_API_KEY` ou
-`LUMYN_GEOAPIFY=1`; aucune clé dans Git. Recherche volontaire et autocomplétion
-Toga s'exécutent hors thread UI avec délai/timeout, limites et réponses périmées
-ignorées. IA/web reste désactivée.
+Sur `feature/google-reprise-recherche-lieux`, l'ordre est local, services publics
+français sans compte, IA locale facultative, puis éventuel Web. Le fournisseur par
+défaut est `RouteurLieuxPublics` : Géoplateforme/BAN pour l'adresse, API Recherche
+d'entreprises pour les établissements et filtre FINESS pour les établissements de
+santé. Geoapify reste isolé/testé, non injecté. Aucun secret n'est requis.
 
-La conservation durable d'une réponse Geoapify n'est pas assez clairement autorisée
-par les conditions publiques : propositions non persistables, saisie manuelle du
-Carnet conservée. 188 tests Linux passent. `briefcase create android` a
-été tenté réellement mais arrêté avant génération faute de JDK complet et après
-expiration du téléchargement. Voir les deux documents techniques.
+BAN est en Licence Ouverte Etalab 2.0 ; la sauvegarde d'une proposition BAN/SIRENE
+reste volontaire. FHIR Annuaire Santé nécessite en pratique `ESANTE-API-KEY` et
+répond 403 sans clé : RPPS individuel non intégré. Ollama est préparé comme backend
+local strict mais non branché à l'UI. Gemini Web est préparé mais son activation est
+bloquée car Search grounding relève du niveau payant. **212 tests Linux** passent.
+Android et le crash Windows restent dans leur état documenté, hors de ce lot.
 
 
 ## Identité et objectif
@@ -55,7 +56,7 @@ La branche historique `feature/synapse-rendez-vous`, désormais fusionnée, a aj
 - la gestion des ambiguïtés ;
 - le parcours clavier analyse puis confirmation.
 
-La référence 0.0.4 dispose de **137 tests automatisés**. Le lot courant en compte **175**.
+La référence 0.0.4 dispose de **137 tests automatisés**. Le lot courant en compte **212**.
 
 Ne pas repartir de l'ancienne étape « installer BeeWare » : cette étape est
 largement dépassée.

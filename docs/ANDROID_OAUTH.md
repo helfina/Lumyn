@@ -1,5 +1,14 @@
 # Android et OAuth Google — préparation du 06/09/2026
 
+## Mise à jour architecture fournisseurs — 06/09/2026
+
+Aucune nouvelle tentative Android n'a été faite : le diagnostic JDK ci-dessous
+reste le résultat réel. Géoplateforme, Entreprises et FINESS utilisent HTTPS sans
+clé, donc le futur manifeste généré devra toujours confirmer la permission Internet.
+Le mode local et la saisie manuelle ne doivent pas en dépendre. Ollama n'est pas
+supposé disponible sur Android ; l'abstraction permettra un backend mobile distinct.
+Gemini Web reste désactivé et Geoapify n'est plus le fournisseur par défaut.
+
 ## Tentative automatique réelle — 06/09/2026
 
 Environnement Linux : Python 3.12.13, OpenJDK Runtime 17.0.20, sans `javac`, `adb`

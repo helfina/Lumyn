@@ -1,5 +1,16 @@
 # Lumyn Release Notes
 
+## Non publié — services publics et IA facultative
+
+* Géoplateforme/BAN sans compte devient le fournisseur par défaut pour recherche et
+  autocomplétion d'adresses ; Licence Ouverte 2.0 et sauvegarde volontaire.
+* Routeur par intention : adresse vers BAN, entreprise vers l'API Recherche
+  d'entreprises, santé vers les établissements FINESS accessibles sans compte.
+* Geoapify conservé mais non injecté ; aucun service payant indispensable.
+* Adaptateurs Ollama local et Gemini Web testés avec doubles. Ollama non relié à
+  l'UI ; Gemini Web non activable tant que Search grounding exige le niveau payant.
+* 212 tests Linux réussis ; version 0.0.4, Android et crash Windows inchangés.
+
 ## Non publié — Geoapify
 
 * Geoapify gratuit derrière `FournisseurLieux`, clé par environnement, cinq résultats

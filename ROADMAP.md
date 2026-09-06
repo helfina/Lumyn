@@ -42,8 +42,15 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] Recherche et autocomplétion hors thread UI, bornées, sans IA réelle.
 - [ ] Clarification écrite des droits de conservation Geoapify avant sauvegarde Carnet.
 - [x] Adaptateur réel : timeout, cinq résultats, attribution et réponses périmées.
-- [ ] Validation WinForms/Geoapify réelle avec des lieux publics.
-- [ ] Choix éventuel du fournisseur IA/web, du budget et de la gestion des clés.
+- [x] Géoplateforme/BAN par défaut, sans compte ni clé, Licence Ouverte 2.0.
+- [x] API Recherche d'entreprises et établissements FINESS sans authentification.
+- [x] Routeur adresse/entreprise/santé ; BAN jamais utilisée comme annuaire.
+- [x] Geoapify relégué en adaptateur optionnel non injecté.
+- [x] Adaptateur Ollama local strict préparé, sans téléchargement de modèle.
+- [x] Adaptateur Gemini Web préparé mais activation payante explicitement refusée.
+- [ ] Relier l'IA locale au parcours Toga hors thread, après validation Windows.
+- [ ] Source RPPS individuelle sans compte : non disponible via FHIR (clé requise).
+- [ ] Validation WinForms réelle des services publics avec des lieux non sensibles.
 - [ ] Validation native Windows/Google du lot courant.
 - [ ] Construction Android : tentative bloquée avant génération par JDK incomplet/téléchargement expiré.
 - [ ] OAuth natif et validation sur appareil après build réussi.

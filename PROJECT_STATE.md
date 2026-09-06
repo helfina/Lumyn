@@ -1,18 +1,29 @@
 # État actuel de Lumyn
 
-## Avancement Geoapify — 06/09/2026
+## Architecture locale et services publics — 06/09/2026
 
-Geoapify est choisi en offre gratuite et intégré derrière `FournisseurLieux`.
-Il reste désactivé sans variable d'environnement. Recherche et autocomplétion sont
-hors thread UI, bornées, attribuées et testées sans réseau réel. IA/web reste
-absente de la configuration. La conservation Geoapify dans le Carnet est bloquée
-tant que les conditions ne l'autorisent pas explicitement ; la saisie manuelle
-indépendante reste intacte.
+La branche `feature/google-reprise-recherche-lieux` utilise désormais par défaut
+un routeur sans compte : Géoplateforme/BAN pour les adresses et l'autocomplétion,
+API Recherche d'entreprises pour les établissements, et son filtre FINESS pour les
+établissements de santé. Maison/Carnet restent prioritaires. Toute proposition
+externe exige choix puis confirmation ; l'enregistrement BAN/SIRENE dans le Carnet
+reste volontaire et dédoublonné. La saisie manuelle et le fonctionnement local
+restent disponibles hors ligne.
 
-Suite courante : **188 tests Linux réussis**. Android : Briefcase 0.4.4
-installé temporairement, mais `create android` a échoué avant génération faute de
-JDK complet et après timeout du téléchargement. Version toujours 0.0.4, PR #3 en
-brouillon, crash Windows hors périmètre.
+La BAN est diffusée sous Licence Ouverte Etalab 2.0 : les adresses normalisées
+sont persistables avec leur provenance. Geoapify est conservé isolé et testé mais
+n'est plus injecté. L'API FHIR Annuaire Santé répond 403 sans `ESANTE-API-KEY` :
+aucun compte n'a été créé et les praticiens RPPS individuels ne sont pas intégrés.
+
+Un adaptateur Ollama strictement local est préparé et testé, mais pas encore relié
+au parcours Toga. Il ne télécharge aucun modèle et rejette tout champ adresse.
+L'adaptateur Gemini Web est également testé avec doubles, mais son activation est
+refusée : Google Search grounding n'est pas disponible au Free Tier et son niveau
+payant exige une facturation/prépaiement. Aucun service payant n'est nécessaire.
+
+Suite courante : **212 tests Linux réussis**. Version toujours 0.0.4, PR #3 en
+brouillon. Android reste au diagnostic antérieur (échec avant génération faute de
+JDK complet) ; aucune nouvelle tentative. Crash Windows hors périmètre.
 
 
 ## Étape préparatoire du 06/09/2026

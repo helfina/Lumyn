@@ -1,5 +1,26 @@
 # Tester Lumyn
 
+## Services publics et adaptateurs IA — 06/09/2026
+
+Suite complète : **212 passed in 1.41s** sous Linux/Python 3.12, Toga Dummy.
+Compilation Python et `git diff --check` réussis. Les sockets externes restent
+bloquées dans les tests ; Géoplateforme, Entreprises, FINESS, Ollama et Gemini sont
+entièrement simulés par transports injectés.
+
+Les cas nouveaux couvrent recherche/autocomplétion BAN, zéro/plusieurs/invalides,
+timeouts et erreurs, limite de débit interne, Licence Ouverte et sauvegarde
+volontaire ; Entreprises/FINESS sans clé ; routage exclusif ; absence d'IA locale,
+JSON strict, champ adresse halluciné refusé et timeout ; Gemini absent, activation
+payante refusée, citations obligatoires, borne et non-persistance. Les tests Toga
+existants couvrent déjà debounce, réponse périmée, choix explicite, saisie manuelle
+et absence de création Google avant confirmation.
+
+À refaire sous Windows : suite complète, rendu WinForms, autocomplétion BAN réelle,
+recherche d'un établissement Entreprises/FINESS, panne réseau, choix/sauvegarde et
+réutilisation locale, puis non-régression Google CREATE/UPDATE/MOVE/DELETE. Ne pas
+installer Ollama avant que son raccordement UI soit développé. Gemini et Geoapify
+ne doivent produire aucun appel dans la configuration normale.
+
 ## Validation Geoapify — 06/09/2026
 
 Suite complète après intégration : **188 passed** sous Linux/Python 3.12,

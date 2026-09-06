@@ -15,6 +15,7 @@ def test_recherche_sante_limitee_aux_etablissements_finess_sans_cle():
         }]})
     propositions = fournisseur.rechercher("Centre hospitalier Vannes")
     assert len(propositions) == 1
+    assert "FINESS" in propositions[0].source
     params = parse_qs(urlsplit(appels[0]).query)
     assert params["est_finess"] == ["true"]
     assert params["etat_administratif"] == ["A"]

@@ -285,3 +285,21 @@ réussis avec services simulés. Sous-lots publiés régulièrement dans la PR #
 Briefcase 0.4.4 installé temporairement. `create android` tenté puis bloqué avant
 génération : runtime Java sans javac et téléchargement JDK expiré. Aucun succès
 Android revendiqué. Crash Windows, version, Notes/Tâches et OAuth desktop inchangés.
+
+## 06/09/2026 — Services publics, IA locale préparée et Gemini verrouillé
+
+Reprise propre au commit 63b42d1, branche et origin synchronisés. Géoplateforme/BAN
+est devenue la source d'adresse et d'autocomplétion par défaut, sans compte ni clé,
+avec Licence Ouverte 2.0, timeout, borne et limite de débit. API Recherche
+d'entreprises et filtre FINESS intégrés derrière un routeur par intention. Geoapify
+reste présent mais non injecté.
+
+L'API FHIR Annuaire Santé exige une clé et répond 403 sans elle : aucun compte créé,
+pas de RPPS individuel ni de gros dataset téléchargé. Adaptateur Ollama local strict
+préparé sans modèle ni raccordement UI. Adaptateur Gemini Web simulé et sourcé, mais
+activation refusée car Google Search grounding relève du niveau payant avec
+facturation/prépaiement. Aucun service payant requis.
+
+Suite portée de 188 à **212 tests réussis** sous Linux ; compilation, diff et
+recherche de secrets vérifiés. Android non retenté, crash Windows hors périmètre,
+version 0.0.4 et PR #3 brouillon conservées. Validation native Windows à refaire.

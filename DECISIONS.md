@@ -2,6 +2,24 @@
 
 ---
 
+## 06/09/2026 — Local puis services publics
+
+- Le parcours normal ne dépend d'aucun abonnement, carte ou compte supplémentaire.
+- Ordre : Synapse déterministe, Maison/Carnet, source publique adaptée, choix,
+  confirmation, puis seulement Google Calendar.
+- Géoplateforme/BAN devient la source d'adresse par défaut, sans clé. La Licence
+  Ouverte 2.0 autorise la réutilisation durable avec provenance.
+- API Recherche d'entreprises couvre les établissements ; le filtre FINESS couvre
+  les établissements de santé. BAN n'est jamais présentée comme annuaire.
+- Geoapify est conservé mais non injecté. Son verrou de conservation demeure.
+- L'API FHIR Annuaire Santé exige une clé malgré son accès dit libre : aucun compte
+  n'est créé, RPPS individuel reste hors intégration.
+- Ollama est le backend local préparé, facultatif et strict ; aucun modèle téléchargé.
+- Gemini Web reste désactivé : Google Search grounding n'est pas dans le Free Tier.
+  Son adaptateur ne peut ni écrire le Carnet ni créer un rendez-vous.
+
+---
+
 # 21/07/2026
 
 ## Nom du projet

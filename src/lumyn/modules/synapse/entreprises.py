@@ -48,7 +48,7 @@ def _charger_json(url, timeout):
         return json.loads(reponse.read().decode("utf-8"))
 
 
-def _convertir_reponse(charge, limite):
+def _convertir_reponse(charge, limite, *, source=SOURCE_ENTREPRISES):
     if not isinstance(charge, dict) or not isinstance(charge.get("results"), list):
         raise ValueError("Réponse API Recherche d'entreprises invalide.")
     propositions = []
@@ -74,7 +74,7 @@ def _convertir_reponse(charge, limite):
             propositions.append(PropositionLieu(
                 nom=nom,
                 adresse=adresse,
-                source=SOURCE_ENTREPRISES,
+                source=source,
                 profession=str(etablissement.get("activite_principale") or "").strip(),
                 ville=ville,
                 identifiant=siret,
@@ -83,4 +83,3 @@ def _convertir_reponse(charge, limite):
             if len(propositions) >= limite:
                 return propositions
     return propositions
-

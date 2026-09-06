@@ -1,5 +1,51 @@
 # Reprises Google/local et recherche de lieux — 06/09/2026
 
+## Architecture gratuite par défaut — décision finale du 06/09/2026
+
+Le parcours normal est désormais `Maison/Carnet → source publique adaptée → choix
+explicite → confirmation`. `RouteurLieuxPublics` envoie uniquement le texte minimal
+nécessaire : une adresse partielle à Géoplateforme, un nom/ville à l'API Recherche
+d'entreprises, ou la même requête avec filtre `est_finess=true` pour un établissement
+de santé. Aucun calendrier, Carnet complet, note privée ou identité de patient n'est
+envoyé. Google n'est appelé qu'après la confirmation existante.
+
+Adresses : endpoints officiels actuels `https://data.geopf.fr/geocodage/search` et
+`/completion/`, sans clé. Recherche limitée à cinq réponses, timeout 6 s, aucun
+retry/polling et débit interne plafonné à quatre appels/s, très inférieur aux
+limites officielles (50/s géocodage, 10/s autocomplétion). L'UI conserve quatre
+caractères minimum, debounce 650 ms, dernier résultat mémoire et réponses périmées
+ignorées. BAN est le référentiel officiel, sous [Licence Ouverte Etalab 2.0](https://adresse.data.gouv.fr/decouvrir-la-BAN) :
+adresse normalisée, identifiant BAN utile et provenance peuvent être conservés
+volontairement. Aucun choix automatique, Maison jamais écrasée.
+
+Établissements : `https://recherche-entreprises.api.gouv.fr/search`, accès ouvert
+sans clé, cinq résultats. Nom public, adresse d'établissement, commune, activité,
+SIRET et provenance sont proposés ; le filtre FINESS fournit les établissements de
+santé actifs. Cette source ne remplace pas un annuaire de praticiens. L'adresse
+Entreprise/FINESS n'est pas encore renormalisée par un second appel BAN : elle reste
+une proposition externe que l'utilisatrice doit vérifier avant confirmation.
+
+L'[API FHIR Annuaire Santé](https://github.com/ansforge/annuaire-sante-fhir-documentation)
+publie Practitioner/PractitionerRole/Organization, mais sa documentation exige
+`ESANTE-API-KEY` et l'appel sans clé a répondu 403 le 06/09/2026. Aucun compte, clé
+ou téléchargement massif n'a été créé ; la recherche RPPS individuelle reste donc
+non disponible dans le parcours sans compte.
+
+Ollama : `InterpreteurOllama` est un adaptateur local préparé, URL loopback imposée,
+modèle configurable, timeout, JSON validé et tout champ adresse/inconnu rejeté. Il
+n'est pas encore appelé par Toga : Synapse déterministe reste seul actif et aucune
+installation n'est requise à ce stade.
+
+Gemini : l'adaptateur Interactions/Google Search exige des citations URL et reste
+non persistable. La [tarification officielle](https://ai.google.dev/gemini-api/docs/pricing)
+indique que Search grounding n'est pas disponible au Free Tier ; les 5 000 requêtes
+incluses appartiennent au Paid Tier, dont l'activation lie un compte de facturation
+et demande un prépaiement minimal. La factory refuse donc toute activation, même
+avec `GEMINI_API_KEY`. Aucune donnée n'est envoyée à Gemini.
+
+Geoapify reste isolé et testé pour préserver le travail historique, mais il n'est
+plus injecté au démarrage et aucune clé n'est demandée dans le parcours normal.
+
 ## Décision et implémentation Geoapify — 06/09/2026
 
 Geoapify est retenu comme premier fournisseur structuré, offre gratuite uniquement.
