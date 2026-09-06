@@ -8,7 +8,25 @@ from lumyn.modules.lieux.gestion import (
 )
 from lumyn.modules.rendez_vous.gestion import valider_rendez_vous
 from lumyn.modules.rendez_vous.resultat import creer_resultat
-from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    construire_titre_structure,
+    interpreter_rendez_vous,
+)
+
+
+MOTS_VOIE = (
+    r"rue|avenue|boulevard|route|impasse|all[eé]e|place|chemin|quai|cours|"
+    r"lotissement|passage|square|voie"
+)
+
+
+def _adresse_manuelle_suffisante(texte):
+    """Une ville ou un « cabinet » seul ne constitue pas une adresse."""
+    valeur = normaliser_recherche(texte)
+    return bool(
+        re.search(rf"\b\d{{1,5}}\s+(?:{MOTS_VOIE})\b", valeur)
+        and (re.search(r"\b\d{5}\b", valeur) or ',' in str(texte or ''))
+    )
 
 
 def _contient(texte, terme):
@@ -70,6 +88,11 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
         if len(adresses_ville) == 1:
             explicite = adresses_ville[0]['adresse']
             interpretation['lieu_explicite'] = explicite
+    nom_canonique = candidats[0]['nom'] if len(candidats) == 1 else None
+    titre_structure = construire_titre_structure(
+        indices_locaux, nom_canonique=nom_canonique)
+    if titre_structure:
+        rdv['titre'] = titre_structure
     fiche = None
     adresse = None
     source = 'saisie' if explicite else None
@@ -140,13 +163,21 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
                 else:
                     rdv['manquants'].append("l'adresse de " + fiche['nom'])
             else:
-                rdv['titre'] = fiche['nom']
+                rdv['titre'] = construire_titre_structure(
+                    indices_locaux, nom_canonique=fiche['nom']) or fiche['nom']
                 rdv['lieu'] = adresse['adresse']
                 source = 'carnet'
         if adresse or explicite:
             mode = 'physique'
     if mode == 'physique' and not rdv.get('lieu'):
         rdv['manquants'].append('le lieu')
+    if (mode not in ('visio', 'domicile', 'telephone')
+            and source == 'saisie' and rdv.get('lieu')
+            and not _adresse_manuelle_suffisante(rdv['lieu'])):
+        rdv['lieu'] = None
+        source = None
+        if 'le lieu' not in rdv['manquants']:
+            rdv['manquants'].append('le lieu')
     suffixes = {'visio':'VISIO', 'domicile':'DOMICILE', 'telephone':'TÉLÉPHONE'}
     if mode in suffixes and rdv['titre']:
         rdv['titre'] += ' — ' + suffixes[mode]

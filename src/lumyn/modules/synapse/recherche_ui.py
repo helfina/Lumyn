@@ -17,6 +17,7 @@ class RechercheLieuxUI:
         self.propositions = []
         self.selection = None
         self.instantane = None
+        self.resultat_recherche = None
         self._requete = 0
         self._recherche_en_cours = False
         self.zone = toga.Box(style=Pack(direction=COLUMN, gap=6))
@@ -41,6 +42,7 @@ class RechercheLieuxUI:
         self.rechercher_button.enabled = True
         self.selection = None
         self.instantane = None
+        self.resultat_recherche = None
         self.propositions = []
         self.enregistrer_button.enabled = False
         self.resultats.clear()
@@ -82,6 +84,7 @@ class RechercheLieuxUI:
         if requete != self._requete or self.instantane != self._saisie():
             return
         self.propositions = resultat.get('propositions_externes', [])
+        self.resultat_recherche = resultat
         self.statut.text = resultat['message']
         if not self.propositions:
             f.resultat_courant = resultat
@@ -108,7 +111,9 @@ class RechercheLieuxUI:
         f.saisie_analysee = None
         f.confirmer_button.enabled = False
         try:
-            resultat = choisir_proposition(self.instantane[0], proposition, self.propositions)
+            resultat = choisir_proposition(
+                self.instantane[0], proposition, self.propositions,
+                resultat_prepare=self.resultat_recherche)
         except (ValueError, OSError) as erreur:
             self.statut.text = str(erreur)
             return

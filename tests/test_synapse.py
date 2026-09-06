@@ -77,7 +77,8 @@ def test_plusieurs_candidats_et_nom_precis(carnet):
 
 def test_intention_explicite_prime_favorite(carnet):
     r=preparer('dentiste mardi 10h à Pontivy',carnet)
-    assert r['rendez_vous']['lieu']=='Pontivy'
+    assert r['rendez_vous']['lieu'] is None
+    assert r['etat'] == 'incomplet'
     assert '3 rue' not in r['message']
 
 

@@ -1,5 +1,7 @@
 """Contrat pour un futur fournisseur ; aucune API ni recherche active par défaut."""
 from dataclasses import dataclass
+import re
+import unicodedata
 from typing import Protocol, Sequence
 from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse
@@ -68,6 +70,64 @@ def _enrichir_requete_locale(requete, indices):
     return " ".join(morceaux)
 
 
+MOTS_FAIBLES = {
+    'adresse', 'cabinet', 'centre', 'rdv', 'rendez', 'vous', 'avec', 'chez',
+    'son', 'de', 'du', 'des', 'la', 'le', 'les', 'a', 'au', 'aux', 'en',
+}
+
+
+def _mots(texte):
+    texte = unicodedata.normalize('NFKD', str(texte or '').casefold())
+    texte = ''.join(c for c in texte if not unicodedata.combining(c))
+    return {m for m in re.findall(r"[a-z0-9]+", texte)
+            if len(m) > 1 and m not in MOTS_FAIBLES}
+
+
+def _pertinence(proposition, interpretation, indices):
+    """Score explicable : identité, métier et ville, jamais code d'activité."""
+    personne = indices.get('personne') or interpretation.get('professionnel')
+    etablissement = indices.get('etablissement')
+    profession = indices.get('profession') or interpretation.get('profession')
+    ville = indices.get('ville') or interpretation.get('lieu_explicite')
+    nom = _mots(proposition.nom)
+    metier = _mots(proposition.profession)
+    localisation = _mots(proposition.ville) | _mots(proposition.adresse)
+    score = 0
+    signaux = 0
+    identite_ou_metier = False
+    for valeur, cible, poids in (
+        (personne, nom, 6), (etablissement, nom, 6),
+        (profession, nom | metier, 4), (ville, localisation, 3),
+    ):
+        attendus = _mots(valeur)
+        if attendus and attendus <= cible:
+            score += poids
+            signaux += 1
+            if poids > 3:
+                identite_ou_metier = True
+    # Sans données locales, le titre analysé fournit encore des mots d'identité.
+    identite_requete = _mots(interpretation.get('titre'))
+    communs = identite_requete & (nom | metier)
+    if communs:
+        score += min(4, len(communs) * 2)
+        signaux += 1
+        identite_ou_metier = True
+    return score, signaux, identite_ou_metier
+
+
+def filtrer_propositions_pertinentes(propositions, texte, indices=None):
+    """Retire les propositions sans rapport réel avant affichage ou fallback."""
+    interpretation = interpreter_rendez_vous(texte)
+    indices = indices or {}
+    retenues = []
+    for proposition in propositions:
+        score, signaux, identite_ou_metier = _pertinence(
+            proposition, interpretation, indices)
+        if signaux and identite_ou_metier and score >= 3:
+            retenues.append(proposition)
+    return retenues
+
+
 def proposer_recherche_externe(texte, fournisseur=None, *, autoriser=False, lieux=None,
                                fournisseur_ia=None, autoriser_ia=False,
                                interpreteur_local=None):
@@ -101,6 +161,8 @@ def proposer_recherche_externe(texte, fournisseur=None, *, autoriser=False, lieu
             propositions = list(moteur.rechercher(requete))
             if not all(proposition_valide(p) for p in propositions):
                 raise ValueError('Propositions invalides ou non sourcées')
+            propositions = filtrer_propositions_pertinentes(
+                propositions, texte, indices_locaux)
         except (OSError, ValueError) as erreur:
             problemes.append(type(erreur).__name__)
             propositions = []

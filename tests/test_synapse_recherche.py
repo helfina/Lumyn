@@ -20,16 +20,20 @@ def test_pas_de_reseau_par_defaut():
 
 def test_proposition_unique_jamais_appliquee_ni_enregistree():
     fournisseur=Mock()
-    fournisseur.rechercher.return_value=[PropositionLieu('Cabinet','Adresse externe fictive','Source test')]
+    fournisseur.rechercher.return_value=[PropositionLieu(
+        'Cabinet dentaire','12 rue Test, Lorient','Source test',
+        profession='dentiste', ville='Lorient')]
     r=proposer_recherche_externe('Dentiste mardi 14h à Lorient',fournisseur,autoriser=True)
     assert r['etat']=='ambigu'
-    assert r['rendez_vous']['lieu']=='Lorient'
+    assert r['rendez_vous']['lieu'] is None
     assert not stockage.FICHIER_LIEUX.exists()
 
 
 def test_propositions_multiples_exigent_choix():
     fournisseur=Mock()
-    fournisseur.rechercher.return_value=[PropositionLieu('A','Adresse A','Test'),PropositionLieu('B','Adresse B','Test')]
+    fournisseur.rechercher.return_value=[
+        PropositionLieu('Cabinet dentaire A','Adresse A','Test',profession='dentiste'),
+        PropositionLieu('Cabinet dentaire B','Adresse B','Test',profession='dentiste')]
     r=proposer_recherche_externe('Dentiste mardi 14h',fournisseur,autoriser=True)
     assert r['etat']=='ambigu'
     assert r['rendez_vous']['lieu'] is None

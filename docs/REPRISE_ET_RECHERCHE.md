@@ -1,5 +1,33 @@
 # Reprises Google/local et recherche de lieux — 06/09/2026
 
+## Correctif du parcours Laporte — test Windows réel
+
+Le test Windows réel avec « j'ai rendez-vous avec ma psy Laporte jeudi vers 10h
+à son cabinet de Lorient » a montré qu'une phrase résiduelle devenait le titre,
+qu'un lieu vague permettait la confirmation et que des réponses Entreprises/FINESS
+hors sujet empêchaient le dernier recours Web.
+
+Le titre est désormais reconstruit depuis les champs locaux personne/profession :
+`Rdv psy Laporte`, ou `Rdv psy Dr Laporte` quand le Carnet fournit ce nom
+canonique. Une civilité absente des données fiables n'est jamais ajoutée. Une
+ville, « son cabinet » ou « cabinet de Lorient » ne vaut plus adresse manuelle :
+le rendez-vous physique reste incomplet, sauf résolution exacte par le Carnet ou
+choix explicite d'une proposition.
+
+Avant affichage, les propositions sont filtrées par un score déterministe : nom
+de personne ou d'établissement (6), profession (4), ville (3), avec rejet si
+aucun signal d'identité ou de métier n'est présent. La ville seule ne suffit donc
+pas. La Poste, EDF, Elior et Ville de Paris sont rejetés pour `Laporte psy
+Lorient`, y compris une La Poste située à Lorient. Une liste publique entièrement
+rejetée équivaut à zéro résultat fiable et autorise alors Ollama Web, seulement
+s'il est configuré et autorisé pour la recherche. Un résultat public pertinent
+empêche l'appel Web.
+
+Le choix utilisateur reste obligatoire. Le titre structuré survit au choix ; BAN
+normalise ou marque l'adresse non vérifiée sans prouver l'existence du
+professionnel. Aucun choix, enregistrement Carnet ou appel Google automatique
+n'est ajouté. Validation locale : **236 tests réussis**, réseau entièrement simulé.
+
 ## Ollama local et Web Search — décision ciblée du 06/09/2026
 
 Ollama local est chargé uniquement lorsque `LUMYN_IA_LOCALE=ollama` ; le modèle par

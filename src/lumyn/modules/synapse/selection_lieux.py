@@ -4,19 +4,34 @@ from lumyn.modules.lieux.gestion import normaliser_recherche, est_fiche_maison
 from lumyn.modules.lieux.stockage import charger_lieux, enregistrer_lieu, modifier_lieu
 from lumyn.modules.rendez_vous.gestion import valider_rendez_vous
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    construire_titre_structure,
+    interpreter_rendez_vous,
+)
 from lumyn.modules.synapse.recherche_lieux import proposition_valide
 
 
-def choisir_proposition(texte, proposition, propositions):
+def choisir_proposition(texte, proposition, propositions, *, resultat_prepare=None):
     if not proposition_valide(proposition) or proposition not in propositions:
         raise ValueError('Choisis une proposition de cette recherche.')
-    resultat = preparer_rendez_vous_synapse(texte)
+    resultat = resultat_prepare or preparer_rendez_vous_synapse(texte)
     rdv = deepcopy(resultat.get('rendez_vous') or {})
-    if resultat['etat'] not in ('confirmation', 'incomplet') or rdv.get('erreurs'):
+    choix_en_attente = (
+        resultat.get('etat') == 'ambigu'
+        and proposition in resultat.get('propositions_externes', [])
+    )
+    if (resultat['etat'] not in ('confirmation', 'incomplet')
+            and not choix_en_attente) or rdv.get('erreurs'):
         return resultat
     if rdv.get('lieu_source') in ('carnet', 'maison') or rdv.get('mode') in ('visio','domicile','telephone'):
         return resultat
-    rdv.update(titre=proposition.nom, lieu=proposition.adresse, mode='physique',
+    if not str(rdv.get('titre') or '').startswith('Rdv '):
+        interpretation = interpreter_rendez_vous(texte)
+        rdv['titre'] = construire_titre_structure({
+            'personne': interpretation.get('professionnel'),
+            'profession': interpretation.get('profession'),
+        }) or rdv.get('titre')
+    rdv.update(lieu=proposition.adresse, mode='physique',
                lieu_source='externe', lieu_explicite=proposition.adresse,
                lieu_provenance=proposition.source, lieu_id=None)
     rdv['manquants'] = [label for cle, label in

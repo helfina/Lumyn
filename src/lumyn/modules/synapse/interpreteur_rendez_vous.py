@@ -63,3 +63,16 @@ def interpreter_rendez_vous(texte):
         'ambiguities': ambiguities,
         'rendez_vous': rdv,
     }
+
+
+def construire_titre_structure(indices, *, nom_canonique=None):
+    """Construit un titre de rendez-vous sans recycler la phrase naturelle."""
+    indices = indices or {}
+    profession = str(indices.get('profession') or '').strip()
+    personne = str(nom_canonique or indices.get('personne') or '').strip()
+    morceaux = ['Rdv']
+    if profession:
+        morceaux.append(profession)
+    if personne and personne.casefold() not in ' '.join(morceaux).casefold():
+        morceaux.append(personne)
+    return ' '.join(morceaux) if len(morceaux) > 1 else None

@@ -127,7 +127,8 @@ def test_timeout_et_erreur_web_restent_propres(erreur, type_attendu):
 
 def test_web_dernier_recours_uniquement_et_aucune_ecriture():
     proposition = PropositionLieu(
-        "Cabinet", "12 rue Test 56000 Vannes", "Ollama Web Search — source",
+        "Cabinet Dr Laporte", "12 rue Test 56100 Lorient", "Ollama Web Search — source",
+        profession="psychiatre", ville="Lorient",
         adresse_verifiee=False,
     )
     public = Mock(rechercher=Mock(return_value=[]))
@@ -138,7 +139,9 @@ def test_web_dernier_recours_uniquement_et_aucune_ecriture():
     web.rechercher.assert_called_once()
     assert not carnet.FICHIER_LIEUX.exists()
 
-    public.rechercher.return_value = [BAN]
+    public.rechercher.return_value = [PropositionLieu(
+        "Cabinet Dr Laporte", "8 rue Test 56100 Lorient", "FINESS",
+        profession="psychiatre", ville="Lorient")]
     web.reset_mock()
     proposer_recherche_externe(
         PHRASE, public, autoriser=True, fournisseur_ia=web, autoriser_ia=True)

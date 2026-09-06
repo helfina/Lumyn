@@ -130,7 +130,7 @@ def test_ui_panne_recherche_saisie_manuelle_disponible(interface,panneau):
     interface.rdv_input.value = PHRASE
     asyncio.run(panneau.rechercher())
     assert not interface.confirmer_button.enabled
-    interface.rdv_input.value='CAF demain 10h à Vannes'
+    interface.rdv_input.value='CAF demain 10h à 12 rue Test, Vannes'
     interface.analyser_rendez_vous(None)
     assert interface.confirmer_button.enabled
 

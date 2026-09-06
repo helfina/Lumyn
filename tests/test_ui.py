@@ -21,14 +21,14 @@ def interface(monkeypatch, tmp_path):
 def test_creation_google_apres_confirmation(interface, monkeypatch):
     creation=Mock(return_value={'id':'google-1'})
     monkeypatch.setattr(ui,'creer_evenement_google',creation)
-    interface.rdv_input.value='CAF demain 10h à Lorient'
+    interface.rdv_input.value='CAF demain 10h à 12 rue Test, Lorient'
     interface.analyser_rendez_vous(None)
     creation.assert_not_called()
     interface.confirmer_rendez_vous(None)
     creation.assert_called_once()
     rdv=stockage.charger_rendez_vous()[0]
     assert rdv['google_event_id']=='google-1'
-    assert rdv['lieu']=='Lorient'
+    assert rdv['lieu']=='12 rue Test, Lorient'
     interface.confirmer_rendez_vous(None)
     creation.assert_called_once()
 
@@ -89,13 +89,13 @@ def test_mode_local_sans_google_et_cycle_complet(interface, monkeypatch):
     interface._charger_calendriers_google()
     interface.calendrier_selection.items=interface._items_calendriers()
     interface._selectionner_calendrier_defaut()
-    interface.rdv_input.value='CAF demain 10h à Lorient'
+    interface.rdv_input.value='CAF demain 10h à 12 rue Test, Lorient'
     interface.analyser_rendez_vous(None)
     assert interface.confirmer_button.enabled
     interface.confirmer_rendez_vous(None)
     original=stockage.charger_rendez_vous()[0]
     interface.charger_modification(None,original)
-    interface.rdv_input.value=interface.rdv_input.value.replace('10h','11h').replace(' à Lorient','')
+    interface.rdv_input.value=interface.rdv_input.value.replace('10h','11h').replace(' à 12 rue Test, Lorient','')
     interface.analyser_rendez_vous(None)
     interface.confirmer_rendez_vous(None)
     nouveau=stockage.charger_rendez_vous()[0]
