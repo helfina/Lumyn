@@ -17,6 +17,9 @@ def isoler_donnees_et_reseau(monkeypatch, tmp_path):
 
     import socket
 
+    from lumyn.modules.rendez_vous import reprise_google
+    monkeypatch.setattr(reprise_google, "FICHIER_REPRISE", tmp_path / "creations_google.json")
+
     from lumyn.modules.rendez_vous import stockage
 
     monkeypatch.setattr(stockage, "DOSSIER_DONNEES", tmp_path)

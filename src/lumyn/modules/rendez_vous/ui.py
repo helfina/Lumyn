@@ -12,6 +12,7 @@ les lie à partir de ce moment.
 """
 
 import toga
+from lumyn.modules.rendez_vous.reprise_google import terminer_creation
 
 from toga.style.pack import COLUMN, ROW, Pack
 
@@ -779,6 +780,9 @@ class InterfaceRendezVous:
             DUREE_PAR_DEFAUT_MINUTES,
         )
 
+        # Refuser avant Google si le fichier local ne peut pas être relu.
+        existants = charger_rendez_vous()
+
         evenement_google = (
             creer_evenement_google(
                 rendez_vous,
@@ -798,6 +802,21 @@ class InterfaceRendezVous:
         google_event_id = rendez_vous[
             "google_event_id"
         ]
+
+        # Une écriture réussie peut avoir été suivie d'une erreur de nettoyage
+        # du journal. Ne pas ajouter une seconde copie lors de la reprise.
+        from lumyn.modules.rendez_vous.stockage import convertir_pour_json
+        lies = [r for r in existants if r.get("google_event_id") == google_event_id
+                and r.get("google_calendar_id") == calendrier_id]
+        if lies:
+            attendu = convertir_pour_json(rendez_vous)
+            if len(lies) != 1 or {k: v for k, v in lies[0].items() if k != "id"} != {
+                k: v for k, v in attendu.items() if k != "id"
+            }:
+                raise RuntimeError("La liaison locale existe avec un contenu différent. "
+                                   "Recharge le rendez-vous avant de continuer.")
+            terminer_creation(calendrier_id, google_event_id)
+            return lies[0]
 
         try:
             enregistrer_rendez_vous(
@@ -827,11 +846,38 @@ class InterfaceRendezVous:
 
             raise
 
+        terminer_creation(calendrier_id, google_event_id)
         return rendez_vous
 
     # =========================================================
     # UPDATE LIÉ
     # =========================================================
+
+    def _restaurer_apres_modification(self, original, calendrier_courant, event_id):
+        """Tente contenu et retour indépendamment ; ne masque pas une double panne."""
+        erreurs = []
+        try:
+            modifier_evenement_google(original, calendrier_courant, event_id)
+        except Exception as erreur:
+            erreurs.append(erreur)
+        if calendrier_courant != original['google_calendar_id']:
+            try:
+                retour = deplacer_evenement_google(
+                    calendrier_courant, original['google_calendar_id'], event_id)
+                identifiant = (retour or {}).get('id', event_id)
+                if identifiant != original['google_event_id']:
+                    restaure = dict(original, google_event_id=identifiant)
+                    if not modifier_rendez_vous_stockage(original['id'], restaure):
+                        raise RuntimeError("Liaison locale introuvable après retour Google.")
+                    self.rendez_vous_en_modification = restaure
+            except Exception as erreur:
+                erreurs.append(erreur)
+        if erreurs:
+            raise RuntimeError(
+                "Restauration incomplète : vérifie l'événement dans les deux calendriers "
+                "et sa liaison locale avant de répéter l'opération. Aucun nouvel événement "
+                "n'a été créé pour compenser cette modification."
+            ) from erreurs[0]
 
     def _modifier_rendez_vous_lie(
         self,
@@ -925,52 +971,24 @@ class InterfaceRendezVous:
                     )
                 )
 
-            except Exception:
-                # Si le déplacement a réussi mais que la modification a échoué,
-                # on essaie de remettre l'événement dans son calendrier d'origine.
+            except Exception as erreur_google:
                 if deplace:
-                    try:
-                        deplacer_evenement_google(
-                            calendrier_destination_id,
-                            ancien_calendrier_id,
-                            event_id_courant,
-                        )
-                    except Exception:
-                        pass
-
-                raise
+                    self._restaurer_apres_modification(
+                        original, calendrier_destination_id, event_id_courant)
+                raise RuntimeError(
+                    "La réponse Google n'a pas permis de terminer la modification. "
+                    "Vérifie le calendrier avant de répéter un déplacement : "
+                    "une réponse perdue ne prouve pas l'échec de Google."
+                ) from erreur_google
 
             try:
                 resultat_local = modifier_rendez_vous_stockage(rendez_vous_id, nouveau)
                 if resultat_local is None or resultat_local is False:
                     raise RuntimeError("Rendez-vous local introuvable.")
             except Exception as erreur_locale:
-                # Rollback Google : on restaure autant que possible
-                # l'ancien rendez-vous.
-                try:
-                    modifier_evenement_google(
-                        original,
-                        calendrier_destination_id,
-                        nouveau.get(
-                            "google_event_id",
-                            event_id_courant,
-                        ),
-                    )
-
-                    if (
-                        calendrier_destination_id
-                        != ancien_calendrier_id
-                    ):
-                        deplacer_evenement_google(
-                            calendrier_destination_id,
-                            ancien_calendrier_id,
-                            nouveau.get(
-                                "google_event_id",
-                                event_id_courant,
-                            ),
-                        )
-                except Exception:
-                    pass
+                self._restaurer_apres_modification(
+                    original, calendrier_destination_id,
+                    nouveau.get('google_event_id', event_id_courant))
 
                 raise RuntimeError(
                     "Lumyn n'a pas réussi à mettre à jour sa copie locale. "
@@ -1120,6 +1138,7 @@ class InterfaceRendezVous:
 
             raise
 
+        terminer_creation(calendrier_destination_id, nouvel_event_id)
         return nouveau
 
     # =========================================================
@@ -1174,38 +1193,13 @@ class InterfaceRendezVous:
             )
 
         except Exception as erreur_locale:
-            # Si Google a été supprimé mais que le fichier local n'a pas pu
-            # être écrit, on essaie de recréer Google pour restaurer la liaison.
             if google_supprime:
-                try:
-                    evenement_recree = (
-                        creer_evenement_google(
-                            rendez_vous,
-                            google_calendar_id,
-                        )
-                    )
-
-                    restauration = (
-                        _copie_rendez_vous(
-                            rendez_vous
-                        )
-                    )
-
-                    restauration[
-                        "google_event_id"
-                    ] = evenement_recree.get(
-                        "id"
-                    )
-
-                    modifier_rendez_vous_stockage(
-                        rendez_vous_id,
-                        restauration,
-                    )
-
-                except Exception:
-                    pass
-
-            raise erreur_locale
+                raise RuntimeError(
+                    "Google a supprimé le rendez-vous, mais la copie locale reste à supprimer. "
+                    "Rétablis l'accès au fichier puis clique à nouveau sur Supprimer. "
+                    "Aucun événement Google n'a été recréé."
+                ) from erreur_locale
+            raise
 
         return {
             "local_supprime": bool(
