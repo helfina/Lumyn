@@ -1,5 +1,23 @@
 # Contexte du projet Lumyn
 
+## Décision Ollama local et Web verrouillé — 06/09/2026
+
+Ollama local est maintenant raccordé comme enrichissement facultatif de la requête
+de recherche. Il ne remplace ni l'analyse déterministe, ni ses dates/heures, ne
+produit aucune adresse et toute panne est ignorée au profit du parcours normal.
+Activation locale seulement par `LUMYN_IA_LOCALE=ollama` avec un modèle configuré ;
+aucun modèle n'est téléchargé automatiquement.
+
+L'adaptateur Ollama Web Search est préparé et testé avec doubles, mais sa factory
+refuse toute activation réelle. La documentation officielle exige un compte gratuit
+et `OLLAMA_API_KEY`, ne chiffre pas le quota Web, et les conditions du service
+réservent son utilisation aux 18 ans et plus. Le code sait préserver les URL,
+garder plusieurs adresses contradictoires et vérifier une adresse avec BAN. Une
+proposition Web reste non persistable. **225 tests Linux** passent pour ce lot.
+
+Gemini reste expérimental désactivé. Geoapify reste optionnel non injecté. Version
+0.0.4 et PR #3 brouillon inchangées ; Android et crash Windows hors périmètre.
+
 ## Décision services publics et IA facultative — 06/09/2026
 
 Sur `feature/google-reprise-recherche-lieux`, l'ordre est local, services publics
@@ -11,8 +29,8 @@ santé. Geoapify reste isolé/testé, non injecté. Aucun secret n'est requis.
 BAN est en Licence Ouverte Etalab 2.0 ; la sauvegarde d'une proposition BAN/SIRENE
 reste volontaire. FHIR Annuaire Santé nécessite en pratique `ESANTE-API-KEY` et
 répond 403 sans clé : RPPS individuel non intégré. Ollama est préparé comme backend
-local strict mais non branché à l'UI. Gemini Web est préparé mais son activation est
-bloquée car Search grounding relève du niveau payant. **212 tests Linux** passent.
+local strict, depuis branché facultativement à l'UI. Gemini Web est préparé mais son activation est
+bloquée car Search grounding relève du niveau payant. Cette étape comptait **212 tests Linux**.
 Android et le crash Windows restent dans leur état documenté, hors de ce lot.
 
 

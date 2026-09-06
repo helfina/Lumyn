@@ -46,9 +46,11 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] API Recherche d'entreprises et établissements FINESS sans authentification.
 - [x] Routeur adresse/entreprise/santé ; BAN jamais utilisée comme annuaire.
 - [x] Geoapify relégué en adaptateur optionnel non injecté.
-- [x] Adaptateur Ollama local strict préparé, sans téléchargement de modèle.
+- [x] Adaptateur Ollama local strict relié facultativement, sans téléchargement de modèle.
 - [x] Adaptateur Gemini Web préparé mais activation payante explicitement refusée.
-- [ ] Relier l'IA locale au parcours Toga hors thread, après validation Windows.
+- [x] IA locale hors thread : enrichissement du Carnet puis de la requête publique ; Synapse reste déterministe.
+- [x] Adaptateur Ollama Web sourcé et vérification BAN testés avec doubles.
+- [ ] Ollama Web réel : bloqué (compte 18+, clé et quota gratuit non chiffré).
 - [ ] Source RPPS individuelle sans compte : non disponible via FHIR (clé requise).
 - [ ] Validation WinForms réelle des services publics avec des lieux non sensibles.
 - [ ] Validation native Windows/Google du lot courant.

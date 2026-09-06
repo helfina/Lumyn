@@ -1,5 +1,15 @@
 # 💡 Lumyn
 
+## Ollama facultatif
+
+Ollama local peut désormais améliorer la requête de recherche sans remplacer
+Synapse : aucune adresse IA n'est acceptée, et une panne laisse Lumyn fonctionner
+normalement. Aucun modèle n'est installé automatiquement.
+
+Ollama Web Search est préparé mais désactivé. Le service exige un compte et une clé,
+ne publie pas de quota Web gratuit chiffré et ses conditions exigent 18 ans minimum.
+Gemini reste expérimental désactivé ; Geoapify reste optionnel non injecté.
+
 ## Recherche locale et services publics français
 
 Maison et le Carnet restent prioritaires. Sans compte ni clé, Lumyn utilise la
@@ -9,9 +19,9 @@ public pour la santé. La recherche nécessite une action explicite ; aucune adr
 n'est choisie, enregistrée ou envoyée à Google avant choix et confirmation.
 
 La saisie manuelle fonctionne hors ligne. Geoapify reste un adaptateur optionnel
-non injecté. Ollama local et Gemini Web sont seulement préparés : Ollama n'est pas
-encore relié à l'interface, et Gemini Web reste bloqué car sa recherche Google
-nécessite actuellement le niveau payant.
+non injecté. Ollama local est relié facultativement à la recherche ; Gemini Web
+reste expérimental et bloqué car sa recherche Google nécessite actuellement le
+niveau payant.
 
 Configuration Windows et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
 État du test Android réel : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md).

@@ -1,5 +1,44 @@
 # Reprises Google/local et recherche de lieux — 06/09/2026
 
+## Ollama local et Web Search — décision ciblée du 06/09/2026
+
+Ollama local est chargé uniquement lorsque `LUMYN_IA_LOCALE=ollama` et qu'un modèle
+est configuré. Il intervient après l'analyse déterministe, pendant une recherche
+explicitement déclenchée. Sa sortie JSON est limitée à personne, établissement,
+profession, ville, mode, date, heure et indices ; tout champ adresse ou inconnu est
+refusé. Seuls personne/profession/établissement/ville enrichissent la requête vers
+les sources publiques. Les date, heure, mode et validations du rendez-vous ne sont
+jamais remplacés par le modèle. L'URL Ollama doit rester en loopback.
+
+La [documentation Web Search officielle](https://docs.ollama.com/capabilities/web-search)
+décrit `POST https://ollama.com/api/web_search`, un compte gratuit et une clé
+`OLLAMA_API_KEY`. La réponse contient `title`, `url` et `content`, avec dix résultats
+maximum côté service ; Lumyn se limite à trois. Le [plan Free](https://ollama.com/pricing)
+est affiché à 0 $, fournit des crédits de démarrage et une requête concurrente,
+mais aucun quota chiffré spécifique à Web Search n'est publié. Les pages consultées
+n'indiquent pas de carte obligatoire pour Free ; cela ne garantit ni un volume
+gratuit précis, ni un accès illimité.
+
+Point bloquant : les [conditions Ollama](https://ollama.com/terms), mises à jour en
+mai 2026, exigent 18 ans minimum pour utiliser le service. La factory refuse donc
+l'activation réelle de Web Search dans ce lot, même avec une clé. Aucun compte n'est
+créé et aucune requête réelle n'est envoyée. L'adaptateur reste prêt pour une future
+utilisation par une personne éligible après nouvelle vérification des conditions.
+
+Avec un transport simulé, l'adaptateur envoie seulement la requête minimale suivie
+de « adresse professionnelle ». Il refuse un résultat sans URL ou sans adresse
+française exploitable, conserve le domaine et l'URL, et ne tranche pas des adresses
+contradictoires. Chaque adresse est soumise à Géoplateforme/BAN : numéro identique,
+code postal compatible et rapprochement lexical minimal. Si le rapprochement passe,
+l'adresse BAN remplace la forme Web et les deux provenances restent visibles. Sinon,
+la proposition demeure explicitement non vérifiée et exige toujours un choix.
+
+Les conditions donnent à l'utilisateur ses sorties mais rappellent que les services
+tiers gardent leurs propres règles. La licence BAN couvre l'adresse normalisée, pas
+automatiquement le titre, l'association au professionnel ou l'extrait Web. Le modèle
+actuel du Carnet ne sait pas sauvegarder seulement le sous-ensemble BAN : toute
+proposition issue du Web reste donc `conservation_autorisee=False`, même vérifiée.
+
 ## Architecture gratuite par défaut — décision finale du 06/09/2026
 
 Le parcours normal est désormais `Maison/Carnet → source publique adaptée → choix
@@ -31,10 +70,10 @@ publie Practitioner/PractitionerRole/Organization, mais sa documentation exige
 ou téléchargement massif n'a été créé ; la recherche RPPS individuelle reste donc
 non disponible dans le parcours sans compte.
 
-Ollama : `InterpreteurOllama` est un adaptateur local préparé, URL loopback imposée,
-modèle configurable, timeout, JSON validé et tout champ adresse/inconnu rejeté. Il
-n'est pas encore appelé par Toga : Synapse déterministe reste seul actif et aucune
-installation n'est requise à ce stade.
+Ollama : `InterpreteurOllama` est un adaptateur local, URL loopback imposée, modèle
+configurable, timeout, JSON validé et tout champ adresse/inconnu rejeté. Il est
+maintenant facultativement appelé par Toga pour enrichir la requête publique ;
+Synapse déterministe reste la source de vérité.
 
 Gemini : l'adaptateur Interactions/Google Search exige des citations URL et reste
 non persistable. La [tarification officielle](https://ai.google.dev/gemini-api/docs/pricing)

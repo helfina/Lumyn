@@ -93,9 +93,11 @@ def _copie_rendez_vous(rendez_vous):
 class InterfaceRendezVous:
     """Contrôleur de l'interface Rendez-vous."""
 
-    def __init__(self, fournisseur_lieux=None, fournisseur_ia=None):
+    def __init__(self, fournisseur_lieux=None, fournisseur_ia=None,
+                 interpreteur_local=None):
         self.fournisseur_lieux = fournisseur_lieux
         self.fournisseur_ia = fournisseur_ia
+        self.interpreteur_local = interpreteur_local
         self.recherche_lieux_ui = None
         self.resultat_courant = None
         self.saisie_analysee = None
@@ -551,7 +553,8 @@ class InterfaceRendezVous:
         if self.fournisseur_lieux is not None:
             from lumyn.modules.synapse.recherche_ui import RechercheLieuxUI
             self.recherche_lieux_ui = RechercheLieuxUI(
-                self, self.fournisseur_lieux, self.fournisseur_ia)
+                self, self.fournisseur_lieux, self.fournisseur_ia,
+                self.interpreteur_local)
             carte_creation.add(self.recherche_lieux_ui.zone)
 
         self.main_box.add(
@@ -1874,9 +1877,11 @@ class InterfaceRendezVous:
         self._selectionner_calendrier_defaut()
 
 
-def creer_interface_rendez_vous(fournisseur_lieux=None, fournisseur_ia=None):
+def creer_interface_rendez_vous(fournisseur_lieux=None, fournisseur_ia=None,
+                                interpreteur_local=None):
     """Point d'entrée utilisé par app.py."""
 
-    interface = InterfaceRendezVous(fournisseur_lieux, fournisseur_ia)
+    interface = InterfaceRendezVous(
+        fournisseur_lieux, fournisseur_ia, interpreteur_local)
 
     return interface.construire()

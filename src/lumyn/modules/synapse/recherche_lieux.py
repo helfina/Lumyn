@@ -14,6 +14,7 @@ class PropositionLieu:
     ville: str = ""
     identifiant: str = ""
     conservation_autorisee: bool = False
+    adresse_verifiee: bool = False
 
 
 class FournisseurLieux(Protocol):
@@ -32,6 +33,7 @@ def proposition_valide(p):
         and all(isinstance(v, str) and v.strip() for v in (p.nom, p.adresse, p.source))
         and all(isinstance(v, str) for v in (p.profession, p.ville, p.identifiant))
         and isinstance(p.conservation_autorisee, bool)
+        and isinstance(p.adresse_verifiee, bool)
     )
 
 
@@ -45,14 +47,39 @@ def requete_minimale(texte):
     return ' '.join(morceaux)
 
 
+def _obtenir_indices_locaux(texte, interpreteur_local):
+    if interpreteur_local is None:
+        return {}, None
+    try:
+        return interpreteur_local.interpreter(texte), None
+    except (OSError, TimeoutError, ValueError) as erreur:
+        return {}, type(erreur).__name__
+
+
+def _enrichir_requete_locale(requete, indices):
+    """Ajoute seulement des indices non sensibles à la requête externe."""
+    morceaux = [requete]
+    courant = requete.casefold()
+    for cle in ("personne", "profession", "etablissement", "ville"):
+        valeur = indices.get(cle)
+        if valeur and valeur.casefold() not in courant:
+            morceaux.append(valeur)
+            courant += " " + valeur.casefold()
+    return " ".join(morceaux)
+
+
 def proposer_recherche_externe(texte, fournisseur=None, *, autoriser=False, lieux=None,
-                               fournisseur_ia=None, autoriser_ia=False):
+                               fournisseur_ia=None, autoriser_ia=False,
+                               interpreteur_local=None):
     """Carnet d'abord, puis structuré, puis IA autorisée si aucun résultat valable.
 
     Fournisseurs concrets non configurés par défaut. Leur adaptateur doit borner
     les délais réseau. Une erreur n'écrit rien et laisse la saisie locale disponible.
     """
-    resultat = preparer_rendez_vous_synapse(texte, lieux)
+    indices_locaux, probleme_local = _obtenir_indices_locaux(
+        texte, interpreteur_local) if autoriser else ({}, None)
+    resultat = preparer_rendez_vous_synapse(
+        texte, lieux, indices_locaux=indices_locaux)
     rdv = resultat.get('rendez_vous') or {}
     if (not autoriser or fournisseur is None
         or rdv.get('lieu_source') in ('carnet', 'maison')
@@ -63,10 +90,11 @@ def proposer_recherche_externe(texte, fournisseur=None, *, autoriser=False, lieu
     requete = requete_minimale(texte)
     if not requete:
         return resultat
+    requete = _enrichir_requete_locale(requete, indices_locaux)
     fournisseurs = [('structure', fournisseur)]
     if autoriser_ia and fournisseur_ia is not None:
         fournisseurs.append(('ia_web', fournisseur_ia))
-    problemes = []
+    problemes = [probleme_local] if probleme_local else []
     propositions = []
     for origine, moteur in fournisseurs:
         try:

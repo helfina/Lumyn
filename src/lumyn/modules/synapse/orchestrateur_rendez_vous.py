@@ -39,7 +39,7 @@ def _adresse_explicite(lieu, explicite):
             or _contient(normaliser_recherche(a.get('libelle')), cle)]
 
 
-def preparer_rendez_vous_synapse(texte, lieux=None):
+def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
     """Prépare un résumé validable ; n'écrit rien et ne contacte pas Google."""
     if not texte.strip():
         return creer_resultat('vide', "Écris d'abord un rendez-vous.")
@@ -56,6 +56,20 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
     mode = interpretation['mode']
     explicite = interpretation['lieu_explicite']
     candidats = _candidats(interpretation['titre'], lieux)
+    indices_locaux = indices_locaux or {}
+    candidats_par_ia = []
+    if not candidats:
+        recherche_ia = ' '.join(str(indices_locaux.get(c) or '') for c in (
+            'personne', 'etablissement', 'profession'))
+        candidats_par_ia = _candidats(recherche_ia, lieux) if recherche_ia.strip() else []
+        candidats = candidats_par_ia
+    if len(candidats) == 1 and indices_locaux.get('ville'):
+        ville = normaliser_recherche(indices_locaux['ville'])
+        adresses_ville = [a for a in candidats[0].get('adresses', [])
+                          if _contient(normaliser_recherche(a.get('adresse')), ville)]
+        if len(adresses_ville) == 1:
+            explicite = adresses_ville[0]['adresse']
+            interpretation['lieu_explicite'] = explicite
     fiche = None
     adresse = None
     source = 'saisie' if explicite else None
@@ -86,7 +100,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
         elif len(candidats) > 1:
             ambiguities.append('Plusieurs professionnels correspondent. Précise un nom unique.')
     else:
-        if not explicite and len(candidats) == 1:
+        if not explicite and len(candidats) == 1 and not candidats_par_ia:
             candidat = candidats[0]
             reste = normaliser_recherche(interpretation['titre'])
             termes = termes_lieu(candidat) + [

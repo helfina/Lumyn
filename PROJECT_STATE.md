@@ -1,5 +1,26 @@
 # État actuel de Lumyn
 
+## Ollama local raccordé, Web préparé mais fermé — 06/09/2026
+
+L'interpréteur Ollama local est injecté au démarrage seulement si sa configuration
+est présente. Lors d'une recherche explicite, il peut ajouter personne, profession,
+établissement et ville à la requête publique. Les champs date/heure/mode restent
+gérés par Synapse déterministe ; toute adresse ou champ inconnu est rejeté. Absence
+du logiciel, du modèle, timeout ou réponse invalide laissent le parcours public et
+la saisie manuelle fonctionner.
+
+Ollama Web Search est implémenté derrière `FournisseurIAWeb`, avec requête minimale,
+trois résultats maximum, URL obligatoire, extraction prudente et rapprochement BAN.
+Une divergence BAN ne supprime pas la proposition mais la marque non vérifiée ;
+plusieurs adresses restent plusieurs choix. Le service n'est toutefois pas injecté
+et son activation par environnement est bloquée : compte gratuit et clé requis,
+quota Web non chiffré, conditions officielles réservées aux 18 ans et plus.
+
+Les réponses Web et leurs métadonnées tierces ne bénéficient pas automatiquement
+de la licence BAN. Même normalisée, une proposition Web reste donc non persistable ;
+une adresse provenant directement de BAN conserve le mécanisme volontaire actuel.
+Suite courante : **225 tests Linux réussis**. Windows réel reste à valider.
+
 ## Architecture locale et services publics — 06/09/2026
 
 La branche `feature/google-reprise-recherche-lieux` utilise désormais par défaut
@@ -15,7 +36,7 @@ sont persistables avec leur provenance. Geoapify est conservé isolé et testé 
 n'est plus injecté. L'API FHIR Annuaire Santé répond 403 sans `ESANTE-API-KEY` :
 aucun compte n'a été créé et les praticiens RPPS individuels ne sont pas intégrés.
 
-Un adaptateur Ollama strictement local est préparé et testé, mais pas encore relié
+Un adaptateur Ollama strictement local est préparé, testé et relié facultativement
 au parcours Toga. Il ne télécharge aucun modèle et rejette tout champ adresse.
 L'adaptateur Gemini Web est également testé avec doubles, mais son activation est
 refusée : Google Search grounding n'est pas disponible au Free Tier et son niveau

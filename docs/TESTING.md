@@ -1,8 +1,24 @@
 # Tester Lumyn
 
+## Ollama local/Web et vérification BAN — 06/09/2026
+
+Suite complète : **225 tests réussis** sous Linux/Python 3.12. Les nouveaux tests utilisent exclusivement des
+transports injectés : aucun appel à Ollama local, Ollama Cloud, au Web ou à BAN.
+Ils couvrent enrichissement local facultatif, indisponibilité/timeout/JSON invalide,
+absence de clé Web, activation réelle verrouillée, zéro résultat, URL obligatoire,
+adresses contradictoires, timeout/erreur, normalisation BAN et maintien d'une
+proposition non vérifiée en cas d'échec. Les tests existants conservent la priorité
+Carnet/public, les réponses périmées, le choix explicite, l'absence d'écriture
+automatique et l'absence de Google avant confirmation.
+
+À valider sous Windows : démarrage sans Ollama ; démarrage avec configuration locale
+éligible ; arrêt du service ou modèle absent ; qualité française de l'enrichissement ;
+parcours public/BAN et saisie manuelle. Web Search doit rester absent de l'interface
+et ne produire aucun trafic. Aucun essai Android demandé dans ce lot.
+
 ## Services publics et adaptateurs IA — 06/09/2026
 
-Suite complète : **212 passed in 1.41s** sous Linux/Python 3.12, Toga Dummy.
+Suite complète de cette étape : **212 passed in 1.41s** sous Linux/Python 3.12, Toga Dummy.
 Compilation Python et `git diff --check` réussis. Les sockets externes restent
 bloquées dans les tests ; Géoplateforme, Entreprises, FINESS, Ollama et Gemini sont
 entièrement simulés par transports injectés.

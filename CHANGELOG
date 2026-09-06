@@ -1,5 +1,13 @@
 # Lumyn Release Notes
 
+## Non publié — Ollama local facultatif et Web Search préparé
+
+* Ollama local peut enrichir les requêtes publiques sans remplacer Synapse.
+* Adaptateur Ollama Web sourcé, dernier recours et vérification BAN testés avec doubles.
+* Activation Web refusée : compte 18+ et clé requis, quota gratuit non chiffré.
+* Propositions Web non persistables ; Gemini/Geoapify/Android/version inchangés.
+* 225 tests Linux réussis ; validation Windows encore nécessaire.
+
 ## Non publié — services publics et IA facultative
 
 * Géoplateforme/BAN sans compte devient le fournisseur par défaut pour recherche et

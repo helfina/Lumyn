@@ -87,6 +87,7 @@ def _proposition(nom, adresse, ville, identifiant=""):
         ville=ville,
         identifiant=identifiant,
         conservation_autorisee=True,
+        adresse_verifiee=True,
     )
 
 

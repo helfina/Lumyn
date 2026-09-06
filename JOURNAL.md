@@ -303,3 +303,21 @@ facturation/prépaiement. Aucun service payant requis.
 Suite portée de 188 à **212 tests réussis** sous Linux ; compilation, diff et
 recherche de secrets vérifiés. Android non retenté, crash Windows hors périmètre,
 version 0.0.4 et PR #3 brouillon conservées. Validation native Windows à refaire.
+
+## 06/09/2026 — Ollama local raccordé, Web Search préparé et verrouillé
+
+Reprise propre au commit 01ae798, synchronisée avec la PR #3. L'interpréteur Ollama
+local existant est raccordé au parcours de recherche comme enrichissement facultatif
+de personne/profession/établissement/ville. Il ne modifie jamais date, heure, mode,
+adresse ou confirmation ; toutes ses erreurs retombent sur Synapse et les services
+publics. Aucun modèle téléchargé.
+
+Audit officiel ciblé d'Ollama Web Search : compte gratuit et clé obligatoires,
+réponses title/url/content, plan Free à 0 $ avec crédits de démarrage mais quota Web
+non chiffré. Les conditions exigent 18 ans minimum. L'adaptateur Web est donc testé
+avec doubles mais son activation réelle reste bloquée. Il conserve l'URL, garde les
+contradictions et normalise prudemment via BAN sans prétendre certifier un praticien.
+Toute proposition Web reste non persistable, même si son adresse est rapprochée BAN.
+
+Suite portée à **225 tests réussis sous Linux**. Android, Gemini, Geoapify, opérations Google,
+version 0.0.4 et statut brouillon restent inchangés. Validation Windows à effectuer.

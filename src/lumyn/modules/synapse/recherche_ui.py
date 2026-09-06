@@ -8,10 +8,12 @@ from lumyn.modules.synapse.selection_lieux import choisir_proposition, enregistr
 
 
 class RechercheLieuxUI:
-    def __init__(self, formulaire, fournisseur, fournisseur_ia=None):
+    def __init__(self, formulaire, fournisseur, fournisseur_ia=None,
+                 interpreteur_local=None):
         self.formulaire = formulaire
         self.fournisseur = fournisseur
         self.fournisseur_ia = fournisseur_ia
+        self.interpreteur_local = interpreteur_local
         self.propositions = []
         self.selection = None
         self.instantane = None
@@ -56,7 +58,7 @@ class RechercheLieuxUI:
         self.instantane = self._saisie()
         self._recherche_en_cours = True
         self.rechercher_button.enabled = False
-        self.statut.text = 'Recherche Geoapify en cours…'
+        self.statut.text = 'Recherche locale et publique en cours…'
         try:
             resultat = await asyncio.to_thread(
                 proposer_recherche_externe,
@@ -65,6 +67,7 @@ class RechercheLieuxUI:
                 autoriser=True,
                 fournisseur_ia=self.fournisseur_ia,
                 autoriser_ia=self.ia_switch.value,
+                interpreteur_local=self.interpreteur_local,
             )
         except (OSError, ValueError, TimeoutError) as erreur:
             if requete == self._requete:
@@ -89,7 +92,9 @@ class RechercheLieuxUI:
         for proposition in self.propositions:
             self.resultats.add(toga.Label(
                 f'{proposition.nom} — {proposition.profession}\n{proposition.adresse}\n'
-                f'{proposition.ville}\nSource : {proposition.source}'))
+                f'{proposition.ville}\nSource : {proposition.source}\n'
+                + ('Adresse vérifiée par BAN' if proposition.adresse_verifiee
+                   else 'Adresse non vérifiée par BAN')))
             self.resultats.add(toga.Button('Choisir cette adresse',
                 on_press=lambda widget, p=proposition, **kw: self.choisir(p)))
 
@@ -117,8 +122,8 @@ class RechercheLieuxUI:
         )
         self.statut.text = 'Adresse sélectionnée. Relis le résumé puis confirme le rendez-vous.'
         if self.selection is not None and not self.selection.conservation_autorisee:
-            self.statut.text += (' Conservation Geoapify désactivée : '
-                                 'les conditions doivent être clarifiées.')
+            self.statut.text += (' Cette proposition externe ne peut pas être '
+                                 'enregistrée automatiquement dans le Carnet.')
 
     def enregistrer(self, widget=None, *, fiche_id=None, **kwargs):
         if self.selection is None or self.instantane != self._saisie():
