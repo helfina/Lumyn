@@ -13,6 +13,7 @@ class PropositionLieu:
     profession: str = ""
     ville: str = ""
     identifiant: str = ""
+    conservation_autorisee: bool = True
 
 
 class FournisseurLieux(Protocol):
@@ -26,9 +27,12 @@ class FournisseurIAWeb(FournisseurLieux, Protocol):
 
 
 def proposition_valide(p):
-    return isinstance(p, PropositionLieu) and all(
-        isinstance(v, str) and v.strip() for v in (p.nom, p.adresse, p.source)
-    ) and all(isinstance(v, str) for v in (p.profession, p.ville, p.identifiant))
+    return (
+        isinstance(p, PropositionLieu)
+        and all(isinstance(v, str) and v.strip() for v in (p.nom, p.adresse, p.source))
+        and all(isinstance(v, str) for v in (p.profession, p.ville, p.identifiant))
+        and isinstance(p.conservation_autorisee, bool)
+    )
 
 
 def requete_minimale(texte):

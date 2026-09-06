@@ -31,6 +31,11 @@ def enregistrer_proposition(proposition, *, autoriser=False, fiche_id=None):
         raise ValueError("L'enregistrement dans le Carnet demande un accord distinct.")
     if not proposition_valide(proposition):
         raise ValueError('Proposition invalide.')
+    if not proposition.conservation_autorisee:
+        raise ValueError(
+            "La conservation durable des résultats Geoapify n’est pas encore autorisée. "
+            "Recopie l’adresse manuellement dans le Carnet si tu souhaites la conserver."
+        )
     lieux = charger_lieux()
     nom = normaliser_recherche(proposition.nom)
     adresse = normaliser_recherche(proposition.adresse)
