@@ -190,6 +190,12 @@ Voir [docs/TESTING.md](docs/TESTING.md) pour les commandes PowerShell et les
 vérifications manuelles restantes. Les tests automatiques n'utilisent pas de
 compte Google réel.
 
+La CI GitHub Actions exécute la suite complète, la compilation Python et le
+contrôle des fichiers sensibles suivis sur Ubuntu/Python 3.12 et
+Windows/Python 3.13. Elle utilise `toga-dummy`, sans interface WinForms,
+packaging, compte externe, `.env.local`, `credentials.json`, `token.json` ni
+clé API réelle.
+
 
 ## Historique de livraison 0.0.4
 

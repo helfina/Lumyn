@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature/google-reprise-recherche-lieux
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.13"
+    env:
+      TOGA_BACKEND: toga_dummy
+      LUMYN_IA_LOCALE: ""
+      LUMYN_OLLAMA_WEB: "0"
+      OLLAMA_API_KEY: ""
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-test.txt
+
+      - name: Installer les dépendances de test
+        run: python -m pip install -r requirements-test.txt
+
+      - name: Exécuter les tests
+        run: python -m pytest -q
+
+      - name: Compiler les sources Python
+        run: python -m compileall -q src tests tools
+
+      - name: Vérifier les fichiers suivis
+        run: python tools/verifier_depot.py

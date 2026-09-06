@@ -135,6 +135,20 @@ def test_ui_panne_recherche_saisie_manuelle_disponible(interface,panneau):
     assert interface.confirmer_button.enabled
 
 
+def test_panne_externe_necrit_rien_et_ne_declenche_pas_google(
+        interface, monkeypatch):
+    creation_google = Mock()
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation_google)
+    fournisseur = Mock(rechercher=Mock(side_effect=OSError('indisponible')))
+    panneau = RechercheLieuxUI(interface, fournisseur)
+    interface.rdv_input.value = PHRASE
+    asyncio.run(panneau.rechercher())
+    assert stockage.charger_rendez_vous() == []
+    assert not carnet.FICHIER_LIEUX.exists()
+    assert not interface.confirmer_button.enabled
+    creation_google.assert_not_called()
+
+
 def test_ui_reponse_recherche_perimee_ignoree(interface):
     import time
     fournisseur=Mock(rechercher=Mock(side_effect=lambda texte: (time.sleep(0.03), [P])[1]))

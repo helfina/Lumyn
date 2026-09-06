@@ -58,18 +58,27 @@ class FournisseurOllamaWeb:
         if not isinstance(charge, dict) or not isinstance(charge.get("results"), list):
             raise ValueError("Réponse Ollama Web Search invalide.")
         propositions = []
+        vus = set()
         for resultat in charge["results"]:
             if not isinstance(resultat, dict):
                 continue
             titre = str(resultat.get("title") or "").strip()
             url = str(resultat.get("url") or "").strip()
             contenu = str(resultat.get("content") or "")
-            if not titre or not url.startswith(("https://", "http://")):
+            url_analysee = urlsplit(url)
+            if (not titre or url_analysee.scheme not in {"https", "http"}
+                    or not url_analysee.hostname
+                    or url_analysee.username is not None
+                    or url_analysee.password is not None):
                 continue
             correspondance = MOTIF_ADRESSE.search(contenu)
             if not correspondance:
                 continue
             adresse_web = " ".join(correspondance.group(1).split())
+            cle = (url.casefold(), adresse_web.casefold())
+            if cle in vus:
+                continue
+            vus.add(cle)
             propositions.append(self._verifier(titre, adresse_web, url))
             if len(propositions) >= self.limite:
                 break
@@ -102,7 +111,15 @@ def _adresses_compatibles(adresse_web, adresse_ban):
         normalise = str(valeur).casefold().replace("’", "'")
         numero = re.search(r"\b\d{1,4}\b", normalise)
         code = re.search(r"\b\d{5}\b", normalise)
-        mots = set(re.findall(r"[a-zà-ÿ]{3,}", normalise))
+        mots_faibles = {
+            "rue", "avenue", "boulevard", "route", "impasse", "allee",
+            "allée", "place", "chemin", "quai", "cours", "des", "les",
+            "une", "sur", "sous",
+        }
+        mots = {
+            mot for mot in re.findall(r"[a-zà-ÿ]{3,}", normalise)
+            if mot not in mots_faibles
+        }
         return numero.group(0) if numero else "", code.group(0) if code else "", mots
 
     numero_web, code_web, mots_web = elements(adresse_web)

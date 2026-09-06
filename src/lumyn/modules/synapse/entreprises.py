@@ -57,7 +57,8 @@ def _convertir_reponse(charge, limite, *, source=SOURCE_ENTREPRISES):
         if not isinstance(entreprise, dict):
             continue
         nom = str(entreprise.get("nom_complet") or entreprise.get("nom_raison_sociale") or "").strip()
-        etablissements = list(entreprise.get("matching_etablissements") or [])
+        correspondances = entreprise.get("matching_etablissements")
+        etablissements = list(correspondances) if isinstance(correspondances, list) else []
         siege = entreprise.get("siege")
         if isinstance(siege, dict):
             etablissements.append(siege)

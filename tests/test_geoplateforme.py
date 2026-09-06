@@ -1,4 +1,5 @@
 from urllib.parse import parse_qs, urlsplit
+from urllib.error import HTTPError
 
 import pytest
 
@@ -80,3 +81,13 @@ def test_limiteur_de_debit_reste_sous_quota_officiel():
     fournisseur.rechercher("12 rue Test")
     fournisseur.rechercher("13 rue Test")
     assert pauses == [pytest.approx(0.15)]
+
+
+@pytest.mark.parametrize("code", [401, 403, 429, 500, 503])
+def test_codes_http_geoplateforme_sont_des_erreurs_propres(code):
+    fournisseur = FournisseurGeoplateforme(
+        intervalle_minimum=0,
+        transport=lambda *args: (_ for _ in ()).throw(
+            HTTPError("https://example.invalid", code, "erreur", {}, None)))
+    with pytest.raises(OSError, match="indisponible"):
+        fournisseur.rechercher("12 rue Test")

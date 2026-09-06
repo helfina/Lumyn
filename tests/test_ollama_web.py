@@ -1,4 +1,5 @@
 from unittest.mock import Mock
+from urllib.error import HTTPError
 
 import pytest
 
@@ -51,6 +52,29 @@ def test_activation_web_exige_ban_et_valeur_connue():
             ban=Mock())
 
 
+@pytest.mark.parametrize("activation", [None, "", "0", "false", "off"])
+def test_cle_seule_ou_web_desactive_ne_cree_aucun_trafic(activation):
+    environnement = {"OLLAMA_API_KEY": "secret-fictif"}
+    if activation is not None:
+        environnement["LUMYN_OLLAMA_WEB"] = activation
+    transport = Mock()
+    assert fournisseur_ollama_web_depuis_environnement(
+        environnement, ban=Mock()) is None
+    transport.assert_not_called()
+
+
+@pytest.mark.parametrize("code", [401, 403, 429, 500, 503])
+def test_secret_absent_des_exceptions_reseau(code):
+    secret = "cle-super-secrete-fictive"
+    moteur = FournisseurOllamaWeb(
+        secret, ban=Mock(),
+        transport=lambda *args: (_ for _ in ()).throw(
+            HTTPError("https://ollama.com", code, secret, {}, None)))
+    with pytest.raises(OSError) as capture:
+        moteur.rechercher("Laporte Lorient")
+    assert secret not in str(capture.value)
+
+
 def test_resultat_source_verifie_et_normalise_par_ban():
     appels = []
     ban = Mock(rechercher=Mock(return_value=[BAN]))
@@ -89,6 +113,43 @@ def test_zero_resultat_et_resultat_sans_source_ou_adresse_sont_insuffisants():
     moteur = FournisseurOllamaWeb(
         "fictive", ban=Mock(), transport=lambda *args: {"results": []})
     assert moteur.rechercher("Laporte Lorient") == []
+
+
+def test_url_invalide_doublons_et_limite_web():
+    invalides = [
+        dict(WEB, url="http://"),
+        dict(WEB, url="ftp://cabinet.example/contact"),
+        dict(WEB, url="pas-une-url"),
+        dict(WEB, url="https://utilisateur:secret@cabinet.example/contact"),
+    ]
+    valides = [dict(WEB), dict(WEB)] + [
+        dict(WEB, title=f"Cabinet {i}", url=f"https://cabinet{i}.example/contact",
+             content=f"Adresse : {i} rue Test, 56000 Vannes.")
+        for i in range(1, 6)
+    ]
+    moteur = FournisseurOllamaWeb(
+        "fictive", ban=Mock(rechercher=Mock(return_value=[])), limite=3,
+        transport=lambda *args: {"results": invalides + valides})
+    propositions = moteur.rechercher("Laporte Lorient")
+    assert len(propositions) == 3
+    assert len({(p.identifiant, p.adresse) for p in propositions}) == 3
+    assert all(p.identifiant.startswith("https://") for p in propositions)
+    assert all(not p.conservation_autorisee for p in propositions)
+
+
+def test_ban_ne_verifie_pas_deux_rues_differentes_aux_mots_generiques_communs():
+    faux = PropositionLieu(
+        "12 rue des Lilas", "12 rue des Lilas 56000 Vannes", "BAN",
+        ville="Vannes", adresse_verifiee=True)
+    ban = Mock(rechercher=Mock(return_value=[faux]))
+    web = dict(WEB, content="Adresse : 12 rue des Fleurs, 56000 Vannes.")
+    moteur = FournisseurOllamaWeb(
+        "fictive", ban=ban, transport=lambda *args: {"results": [web]})
+    proposition = moteur.rechercher("Laporte Lorient")[0]
+    assert proposition.adresse == "12 rue des Fleurs, 56000 Vannes"
+    assert not proposition.adresse_verifiee
+    assert not proposition.conservation_autorisee
+    assert WEB["url"] in proposition.source
     moteur._transport = lambda *args: {"unexpected": []}
     with pytest.raises(ValueError, match="invalide"):
         moteur.rechercher("Laporte Lorient")

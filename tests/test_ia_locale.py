@@ -16,6 +16,13 @@ def test_absence_ia_laisse_synapse_fonctionner():
     assert resultat["date"] and resultat["heure"] == "14h"
 
 
+def test_activation_ollama_absente_ne_cree_ni_nappelle_transport():
+    transport = Mock()
+    assert interpreteur_local_depuis_environnement(
+        {}, transport=transport) is None
+    transport.assert_not_called()
+
+
 def test_ollama_sortie_valide_et_requete_locale_minimale():
     appels = []
     moteur = InterpreteurOllama("qwen-test", transport=lambda url, corps, timeout:

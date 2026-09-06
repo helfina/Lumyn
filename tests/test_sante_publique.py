@@ -1,4 +1,5 @@
 from urllib.parse import parse_qs, urlsplit
+from urllib.error import HTTPError
 
 import pytest
 
@@ -30,3 +31,12 @@ def test_sante_reponse_invalide_et_erreurs_propres():
         fournisseur._transport = lambda url, timeout, e=erreur: (_ for _ in ()).throw(e)
         with pytest.raises(attendu):
             fournisseur.rechercher("Clinique Test")
+
+
+@pytest.mark.parametrize("code", [401, 403, 429, 500, 503])
+def test_codes_http_finess_sont_des_erreurs_propres(code):
+    fournisseur = FournisseurEtablissementsSante(
+        transport=lambda *args: (_ for _ in ()).throw(
+            HTTPError("https://example.invalid", code, "erreur", {}, None)))
+    with pytest.raises(OSError, match="indisponible"):
+        fournisseur.rechercher("Clinique Test")

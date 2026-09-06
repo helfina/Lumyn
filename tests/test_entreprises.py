@@ -1,4 +1,5 @@
 from urllib.parse import parse_qs, urlsplit
+from urllib.error import HTTPError
 
 import pytest
 
@@ -34,3 +35,16 @@ def test_entreprises_zero_invalide_timeout_et_reseau():
         fournisseur._transport = lambda url, timeout, e=erreur: (_ for _ in ()).throw(e)
         with pytest.raises(type_attendu):
             fournisseur.rechercher("Garage Test")
+
+
+def test_entreprises_reponse_partielle_et_codes_http_sont_maitrises():
+    fournisseur = FournisseurEntreprises(transport=lambda *args: {"results": [{
+        "nom_complet": "TEST", "matching_etablissements": 42,
+        "siege": None,
+    }]})
+    assert fournisseur.rechercher("Entreprise Test") == []
+    for code in (401, 403, 429, 500, 503):
+        fournisseur._transport = lambda *args, c=code: (_ for _ in ()).throw(
+            HTTPError("https://example.invalid", c, "erreur", {}, None))
+        with pytest.raises(OSError, match="indisponible"):
+            fournisseur.rechercher("Entreprise Test")
