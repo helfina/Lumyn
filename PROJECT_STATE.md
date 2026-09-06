@@ -1,5 +1,37 @@
 # État actuel de Lumyn
 
+## État courant — 06/09/2026
+
+**0.0.4 est fusionnée dans main**, PR #2, commit `0460534`.
+La candidate finale a été validée par l'utilisatrice : **137 tests sous Windows /
+Python 3.13 en 4.44 s**, Carnet, Synapse, focus WinForms et Google Calendar réel.
+Ces validations concernent la 0.0.4 ; elles ne valent pas validation native du lot suivant.
+
+Travail courant : `feature/google-reprise-recherche-lieux`, issue de ce merge.
+Version applicative conservée à **0.0.4**, aucune nouvelle release préparée.
+Le travail déjà présent dans le workspace a été conservé et complété.
+
+- Reprise de CREATE Google par identifiant réservé sur disque ; DELETE partiel
+  réessayable sans recréer l'événement ; restaurations UPDATE/MOVE mieux signalées.
+- Parcours optionnel de propositions sourcées, choix explicite puis confirmation,
+  ajout volontaire au Carnet et choix d'une fiche similaire avant ajout d'adresse.
+- Fournisseur structuré puis repli IA/web autorisé séparément : architecture et
+  interface testées par injection, **aucun fournisseur réel configuré**. Le panneau
+  n'est pas affiché dans l'application par défaut.
+- **175 tests Linux réussis**, dont les 137 existants, avec Toga Dummy et fournisseurs
+  simulés. Validation Windows et Google réelle du nouveau lot encore à effectuer.
+- Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
+  Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
+- Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de
+  données. Nouvelle PR à conserver en brouillon. Aucune fusion ni publication.
+- Crash Windows préexistant : hors périmètre, aucun changement de runtime.
+
+## Historique avant fusion de 0.0.4
+
+Les sections datées ci-dessous décrivent les étapes antérieures ; leurs mentions
+de candidate et de fusion en attente ne décrivent plus la situation courante.
+
+
 ## Version et branche — 05/09/2026
 
 Version déclarée sur cette branche : **0.0.4**, candidate préparée après audit.

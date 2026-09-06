@@ -118,3 +118,13 @@ Installer `requirements-test.txt` dans un environnement de test, puis lancer
 `python -m pytest -q` après chaque modification. Les détails et les limites du
 backend Toga Dummy sont dans `docs/TESTING.md`. Les tests Google doivent rester
 simulés, avec données locales temporaires.
+
+
+## Chantier après 0.0.4
+
+Branche feature/google-reprise-recherche-lieux depuis 0460534 ; ne pas développer
+sur main. Les contrats de recherche et limites de reprise sont détaillés dans
+[docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md). Aucun fournisseur
+concret n'est configuré. Les procédures Android non exécutées sont dans
+[docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md). Avant push : suite entière,
+syntaxe Python, diff et absence de secrets ; conserver la PR en brouillon.

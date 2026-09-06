@@ -1,6 +1,16 @@
 # Lumyn Release Notes
 
-## 0.0.4 — candidate préparée le 05/09/2026 (non publiée)
+## Non publié — chantier après 0.0.4
+
+* Reprises Google CREATE/DELETE et signalement des restaurations UPDATE/MOVE.
+* Propositions sourcées, repli IA autorisé et Carnet volontaire testés par injection.
+* Aucun fournisseur réel activé ; comparatif et préparation Android/OAuth.
+* 175 tests Linux réussis ; nouvelle validation native encore attendue.
+* Version applicative conservée à 0.0.4 ; aucune nouvelle release.
+
+## 0.0.4 — fusionnée dans main, PR #2, commit 0460534
+
+Candidate préparée le 05/09/2026, validation Windows finale : 137 tests en 4.44 s.
 
 Depuis main 0.0.3 :
 
@@ -17,7 +27,7 @@ Depuis main 0.0.3 :
 Défaut connu : access violation intermittent à la fermeture Windows, déjà présent
 sur main 0.0.3 (78093a0). Cause précise non démontrée, aucun contournement livré.
 Voir docs/AUDIT_0.0.4.md. Android et installateurs 0.0.4 non validés dans cet audit.
-La fusion, le statut final de PR et la publication restent soumis à autorisation.
+La PR #2 a depuis été fusionnée. Aucun tag ni installateur publié par le lot suivant.
 
 ## 0.0.1 (21 Jul 2026)
 

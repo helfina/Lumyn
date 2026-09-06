@@ -1,7 +1,7 @@
 # Feuille de route de Lumyn
 
-État au 05/09/2026. Version déclarée sur la branche : 0.0.4 candidate ; travail courant exclusivement sur
-`feature/synapse-rendez-vous`.
+État au 06/09/2026. 0.0.4 fusionnée dans main (PR #2, `0460534`).
+Travail courant : `feature/google-reprise-recherche-lieux`, version conservée à 0.0.4.
 
 ## 0.0.3 — Rendez-vous stable
 
@@ -28,10 +28,23 @@
 - [x] Audit de e030674 face à main 78093a0 ; aucun nouveau défaut bloquant identifié.
 - [x] Investigation du crash documentée ; aucune correction sûre démontrée.
 - [x] Version 0.0.4 et CHANGELOG préparés, 137 tests Linux relancés.
-- [ ] Autorisation de fusion et décision de publication (défaut de fermeture connu).
+- [x] PR #2 fusionnée dans main, commit 0460534 ; candidate finale Windows : 137 tests en 4.44 s.
+- [ ] Publication/installateurs : décision distincte, aucune publication effectuée dans ce lot.
+
+## Lot courant après 0.0.4
+
+- [x] Réservations persistantes CREATE ; reprise DELETE sans recréation.
+- [x] Tests de pannes partielles UPDATE/MOVE et remontée des restaurations incomplètes.
+- [x] Propositions sourcées, sélection explicite, repli IA autorisé, Carnet volontaire.
+- [x] 175 tests Linux réussis avec fournisseurs simulés.
+- [x] Comparatif des fournisseurs et audit préparatoire Android/OAuth documentés.
+- [ ] Choix utilisateur du fournisseur structuré et de la politique de données.
+- [ ] Adaptateur réel : délais bornés, exécution hors thread UI, attribution et droits de stockage.
+- [ ] Choix éventuel du fournisseur IA/web, du budget et de la gestion des clés.
+- [ ] Validation native Windows/Google du lot courant.
+- [ ] Construction Android puis intégration OAuth native et validation sur appareil.
 
 ## Au-delà
 
-Historique de résolution et fournisseur externe réel nécessitent une définition
-et un choix explicite. Restent également : reprise après pannes Google/local,
-Android/APK/OAuth, puis notes et tâches selon les priorités de l'utilisatrice.
+Historique de résolution, Notes et Tâches restent différés. Le crash Windows fait
+l'objet d'un chantier natif séparé. Aucun de ces sujets n'est développé ici.

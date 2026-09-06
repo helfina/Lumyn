@@ -1,5 +1,41 @@
 # Tester Lumyn
 
+## Résultat courant — 06/09/2026
+
+`.venv-tests/bin/python -m pytest -q` : **175 passed in 1.13s** sous Linux,
+Python 3.12, Toga Dummy. Les 137 tests existants restent réussis ; 38 nouveaux cas.
+Les résultats chronologiques ci-dessous ne doivent pas être confondus avec ce lot.
+La candidate finale 0.0.4 a été validée sous Windows/Python 3.13 : **137 passed in
+4.44s**, puis fusionnée (PR #2, `0460534`). Les validations natives sont conservées.
+
+Nouveaux tests : `test_reprise_google.py` (22 cas) et `test_selection_lieux.py`
+(16 cas). Ils couvrent perte de réponse CREATE, conflit 409 vérifié, journal
+illisible/écriture impossible, double panne locale/Google, nettoyage tardif,
+DELETE répété après suppression distante, erreurs HTTP non assimilées à un succès,
+MOVE partiel et restauration échouée. Recherche : zéro/un/plusieurs/invalides,
+erreur/timeout, priorités locales, IA absente ou inutile, choix/changement, aucune
+écriture automatique, Carnet volontaire sans doublon exact et réutilisation locale.
+
+Aucun fournisseur réseau réel appelé dans ces scénarios. Les adaptateurs sont
+simulés ; les données de reprise sont également redirigées vers un dossier temporaire.
+Le blocage socket des tests est une protection supplémentaire, pas un pare-feu système.
+
+### Validation manuelle restante pour ce lot
+
+1. Sous Windows : relancer toute la suite avec les commandes ci-dessous.
+2. Avec un agenda de test choisi par l'utilisatrice : CREATE, UPDATE, MOVE, DELETE,
+   vérifier un seul événement et les identifiants locaux ; refaire après redémarrage.
+3. Les pannes d'écriture/compensation restent simulées automatiquement ; ne pas
+   provoquer volontairement de corruption sur les données personnelles réelles.
+4. Le panneau externe nécessite un fournisseur injecté : aucun bouton nouveau
+   visible par défaut. Après choix et intégration du fournisseur, valider rendu
+   WinForms, navigation clavier, délai réseau, changement de proposition et Carnet.
+5. Android : suivre [ANDROID_OAUTH.md](ANDROID_OAUTH.md). Aucun APK ni OAuth Android
+   n'a été construit ou validé pendant cette séance.
+
+Ne pas considérer les validations natives de 0.0.4 comme celles des 175 tests.
+
+
 ## Tests automatiques isolés
 
 Depuis la racine du dépôt, dans un environnement de test distinct de Briefcase :

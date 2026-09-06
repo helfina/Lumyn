@@ -125,3 +125,25 @@ préexistant reste connu ; aucune correction native sûre n'est démontrée.
 Ne pas remplacer l'absence de diagnostic par un contournement de shutdown.
 Recommandation de fusion avec défaut documenté ; décision finale de fusion,
 statut de PR et publication réservés à l'utilisatrice.
+
+
+## 06/09/2026 — Après fusion, reprises et recherche optionnelle
+
+La PR #2 est fusionnée (0460534). Les consignes de branche/candidate du 05/09 sont
+historiques. Développement sur feature/google-reprise-recherche-lieux uniquement.
+
+Conserver 0.0.4 et le socle local. Réserver l'identifiant CREATE avant l'appel
+Google et vérifier tout conflit ; une suppression Google suivie d'une panne
+locale ne recrée plus un événement. Le modèle reste à un seul écrivain et ne
+prétend pas assurer une transaction distribuée ni toutes les doubles pannes.
+
+Priorité Maison/Carnet ; recherche structurée explicitement déclenchée ; repli
+IA/web séparément autorisé. Sélection et confirmation distinctes, sauvegarde
+Carnet volontaire, rapprochement de fiches confirmé. Aucune clé ou donnée réelle.
+
+Décisions en attente : fournisseur, conditions de conservation Carnet, budget,
+clés personnelles ou serveur ; voir docs/REPRISE_ET_RECHERCHE.md. Aucun service
+réel activé avant ce choix. Avant activation : adaptateur borné et travail réseau
+hors thread UI. Android/OAuth natif exige une validation séparée sur appareil et
+un choix de configuration Google Cloud ; seule la procédure est préparée.
+Crash Windows exclu, aucune fusion/release/changement final de PR sans accord.

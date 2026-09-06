@@ -23,14 +23,15 @@ Lire d'abord :
 - `DEV_GUIDE.md`
 - `docs/TESTING.md`
 
-La version stable actuelle est **0.0.3**, déjà fusionnée dans `main`.
+La version stable actuelle est **0.0.4**, fusionnée dans `main` par la PR #2
+au commit `0460534`. Le socle 0.0.3 décrit ci-dessous reste présent.
 
 Elle contient notamment :
 - les rendez-vous locaux ;
 - l'intégration Google Calendar ;
 - le calendrier filtrable.
 
-La branche `feature/synapse-rendez-vous` déclare maintenant la candidate 0.0.4 avec :
+La branche historique `feature/synapse-rendez-vous`, désormais fusionnée, a ajouté :
 - le Carnet ;
 - Synapse local ;
 - l'interprétation des rendez-vous ;
@@ -39,7 +40,7 @@ La branche `feature/synapse-rendez-vous` déclare maintenant la candidate 0.0.4 
 - la gestion des ambiguïtés ;
 - le parcours clavier analyse puis confirmation.
 
-La branche dispose de **137 tests automatisés**.
+La référence 0.0.4 dispose de **137 tests automatisés**. Le lot courant en compte **175**.
 
 Ne pas repartir de l'ancienne étape « installer BeeWare » : cette étape est
 largement dépassée.
@@ -224,8 +225,8 @@ toujours relire le résumé avant confirmation.
 L'historique de résolution et un fournisseur externe réel ne sont pas encore
 développés.
 
-Les ambiguïtés sont actuellement résolues par correction de la saisie ou du
-Carnet, sans sélecteur de propositions dédié.
+Les ambiguïtés locales sont résolues par correction de la saisie ou du Carnet.
+Un sélecteur externe optionnel est maintenant testé ; il reste inactif par défaut.
 
 Les appels Google restent synchrones.
 
@@ -237,26 +238,28 @@ Il n'existe pas encore :
 Android/APK/OAuth Android, les rappels locaux, les tâches et les notes restent
 à développer ou à valider.
 
-## Point de reprise courant
+## État courant — 06/09/2026
 
-Travailler uniquement sur :
+**0.0.4 est fusionnée dans main**, PR #2, commit `0460534`.
+La candidate finale a été validée par l'utilisatrice : **137 tests sous Windows /
+Python 3.13 en 4.44 s**, Carnet, Synapse, focus WinForms et Google Calendar réel.
+Ces validations concernent la 0.0.4 ; elles ne valent pas validation native du lot suivant.
 
-    feature/synapse-rendez-vous
+Travail courant : `feature/google-reprise-recherche-lieux`, issue de ce merge.
+Version applicative conservée à **0.0.4**, aucune nouvelle release préparée.
+Le travail déjà présent dans le workspace a été conservé et complété.
 
-La candidate **0.0.4** est déclarée dans pyproject.toml après l'audit autorisé
-par l'utilisatrice depuis e030674, comparé à main 78093a0. main reste en 0.0.3.
-
-Le Carnet, Synapse, les 137 tests, le correctif de focus natif Windows et le CRUD
-Google réel sont validés. L'audit n'a pas identifié de nouveau défaut bloquant
-dans ce périmètre ; code applicatif et tests inchangés. 137 tests Linux relancés
-après la version et les documents, syntaxe Python/TOML/diff vérifiés.
-
-Le crash de fermeture reste préexistant et non corrigé. La lecture des sources
-Toga/pythonnet n'établit pas de correction sûre pour le cas utilisateur ; aucune
-modification de boucle, de runtime ou d'allocateur appliquée. Voir
-`docs/AUDIT_0.0.4.md` pour les preuves, hypothèses et diagnostic natif restant.
-
-Recommandation : **prête à fusionner avec défaut connu**. La PR est préparée en
-brouillon. Ne pas fusionner dans main, changer l'état final de PR, créer un tag
-ou publier une release sans autorisation explicite. Aucun installateur 0.0.4
-construit ou testé pendant cet audit. Prochaine étape : décision utilisateur.
+- Reprise de CREATE Google par identifiant réservé sur disque ; DELETE partiel
+  réessayable sans recréer l'événement ; restaurations UPDATE/MOVE mieux signalées.
+- Parcours optionnel de propositions sourcées, choix explicite puis confirmation,
+  ajout volontaire au Carnet et choix d'une fiche similaire avant ajout d'adresse.
+- Fournisseur structuré puis repli IA/web autorisé séparément : architecture et
+  interface testées par injection, **aucun fournisseur réel configuré**. Le panneau
+  n'est pas affiché dans l'application par défaut.
+- **175 tests Linux réussis**, dont les 137 existants, avec Toga Dummy et fournisseurs
+  simulés. Validation Windows et Google réelle du nouveau lot encore à effectuer.
+- Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
+  Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
+- Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de
+  données. Nouvelle PR à conserver en brouillon. Aucune fusion ni publication.
+- Crash Windows préexistant : hors périmètre, aucun changement de runtime.

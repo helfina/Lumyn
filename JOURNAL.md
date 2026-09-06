@@ -250,3 +250,22 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
   audit ; CHANGELOG et documents synchronisés. Rapport docs/AUDIT_0.0.4.md ajouté.
 - Recommandation : prête à fusionner avec le défaut de fermeture connu. Préparation
   d'une PR en brouillon ; aucune fusion, sortie de brouillon, release ou tag créé.
+
+
+## 06/09/2026 — Reprise après fusion de 0.0.4
+
+PR #2 fusionnée au commit 0460534. Validation finale rapportée : 137 tests
+Windows/Python 3.13 en 4.44 s, contrôles Carnet/Synapse/focus et Google réels acquis.
+Création de feature/google-reprise-recherche-lieux depuis main. Au retour de quota,
+état Git contrôlé et modifications utiles conservées, sans repartir de zéro.
+
+Réservations de création Google persistantes et reprise de suppression sans
+recréation ; restaurations de modifications/déplacements mieux signalées.
+Parcours de recherche optionnel, structuré puis IA consentie, sélection sourcée
+et Carnet volontaire. Aucun fournisseur réel choisi ni activé. 175 tests Linux
+réussis (137 existants + 38 nouveaux), sans compte Google réel.
+
+Documentation post-fusion corrigée, comparatif fournisseurs et procédure
+Android/OAuth préparés. Version maintenue à 0.0.4. Crash Windows hors périmètre.
+Arrêt au choix utilisateur des fournisseurs/coûts/gestion des clés ; lot à relire
+en PR brouillon, sans fusion ni nouvelle publication. Validation native à refaire.
