@@ -1874,9 +1874,9 @@ class InterfaceRendezVous:
         self._selectionner_calendrier_defaut()
 
 
-def creer_interface_rendez_vous():
+def creer_interface_rendez_vous(fournisseur_lieux=None, fournisseur_ia=None):
     """Point d'entrée utilisé par app.py."""
 
-    interface = InterfaceRendezVous()
+    interface = InterfaceRendezVous(fournisseur_lieux, fournisseur_ia)
 
     return interface.construire()

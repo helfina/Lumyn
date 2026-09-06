@@ -1,4 +1,6 @@
 """Parcours de propositions optionnel ; aucun fournisseur concret par défaut."""
+import asyncio
+
 import toga
 from toga.style.pack import COLUMN, Pack
 from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe
@@ -13,6 +15,8 @@ class RechercheLieuxUI:
         self.propositions = []
         self.selection = None
         self.instantane = None
+        self._requete = 0
+        self._recherche_en_cours = False
         self.zone = toga.Box(style=Pack(direction=COLUMN, gap=6))
         self.resultats = toga.Box(style=Pack(direction=COLUMN, gap=6))
         self.statut = toga.Label('')
@@ -30,6 +34,7 @@ class RechercheLieuxUI:
         return f.rdv_input.value, f._calendrier_selectionne()[0]
 
     def invalider(self):
+        self._requete += 1
         self.selection = None
         self.instantane = None
         self.propositions = []
@@ -37,23 +42,42 @@ class RechercheLieuxUI:
         self.resultats.clear()
         self.statut.text = ''
 
-    def rechercher(self, widget=None, **kwargs):
+    async def rechercher(self, widget=None, **kwargs):
+        """Exécute le fournisseur hors du thread UI et rejette toute réponse périmée."""
         self.invalider()
+        self._requete += 1
+        requete = self._requete
         f = self.formulaire
         f.resultat_courant = None
         f.saisie_analysee = None
         f.confirmer_button.enabled = False
         self.instantane = self._saisie()
+        self._recherche_en_cours = True
+        self.rechercher_button.enabled = False
+        self.statut.text = 'Recherche Geoapify en cours…'
         try:
-            resultat = proposer_recherche_externe(self.instantane[0], self.fournisseur,
-                autoriser=True, fournisseur_ia=self.fournisseur_ia,
-                autoriser_ia=self.ia_switch.value)
-        except (OSError, ValueError):
-            self.statut.text = 'Recherche indisponible. La saisie manuelle reste disponible.'
+            resultat = await asyncio.to_thread(
+                proposer_recherche_externe,
+                self.instantane[0],
+                self.fournisseur,
+                autoriser=True,
+                fournisseur_ia=self.fournisseur_ia,
+                autoriser_ia=self.ia_switch.value,
+            )
+        except (OSError, ValueError, TimeoutError) as erreur:
+            if requete == self._requete:
+                self.statut.text = str(erreur) or (
+                    'Recherche indisponible. La saisie manuelle reste disponible.'
+                )
+            return
+        finally:
+            if requete == self._requete:
+                self._recherche_en_cours = False
+                self.rechercher_button.enabled = True
+        if requete != self._requete or self.instantane != self._saisie():
             return
         self.propositions = resultat.get('propositions_externes', [])
         self.statut.text = resultat['message']
-        # Un résultat du Carnet reste confirmable via son parcours habituel.
         if not self.propositions:
             f.resultat_courant = resultat
             f.resultat_label.text = resultat['message']
@@ -86,8 +110,13 @@ class RechercheLieuxUI:
         f.saisie_analysee = self.instantane
         f.confirmer_button.enabled = resultat['etat'] == 'confirmation'
         self.selection = proposition if resultat.get('rendez_vous', {}).get('lieu_source') == 'externe' else None
-        self.enregistrer_button.enabled = self.selection is not None
+        self.enregistrer_button.enabled = bool(
+            self.selection is not None and self.selection.conservation_autorisee
+        )
         self.statut.text = 'Adresse sélectionnée. Relis le résumé puis confirme le rendez-vous.'
+        if self.selection is not None and not self.selection.conservation_autorisee:
+            self.statut.text += (' Conservation Geoapify désactivée : '
+                                 'les conditions doivent être clarifiées.')
 
     def enregistrer(self, widget=None, *, fiche_id=None, **kwargs):
         if self.selection is None or self.instantane != self._saisie():

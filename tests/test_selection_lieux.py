@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import Mock
 import pytest
 from tests.test_ui import interface
@@ -97,7 +98,7 @@ def test_ui_choix_changement_et_confirmation(interface,panneau,monkeypatch):
     creation = Mock(return_value={'id':'g1'})
     monkeypatch.setattr(ui,'creer_evenement_google',creation)
     interface.rdv_input.value = PHRASE
-    panneau.rechercher()
+    asyncio.run(panneau.rechercher())
     assert not interface.confirmer_button.enabled
     panneau.choisir(P)
     panneau.choisir(Q)
@@ -113,7 +114,7 @@ def test_ui_choix_changement_et_confirmation(interface,panneau,monkeypatch):
 
 def test_ui_enregistrement_volontaire_et_ancienne_recherche(interface,panneau):
     interface.rdv_input.value = PHRASE
-    panneau.rechercher()
+    asyncio.run(panneau.rechercher())
     panneau.choisir(P)
     panneau.enregistrer()
     assert len(carnet.charger_lieux()) == 1
@@ -127,8 +128,25 @@ def test_ui_enregistrement_volontaire_et_ancienne_recherche(interface,panneau):
 def test_ui_panne_recherche_saisie_manuelle_disponible(interface,panneau):
     panneau.fournisseur.rechercher.side_effect = TimeoutError('Délai')
     interface.rdv_input.value = PHRASE
-    panneau.rechercher()
+    asyncio.run(panneau.rechercher())
     assert not interface.confirmer_button.enabled
     interface.rdv_input.value='CAF demain 10h à Vannes'
     interface.analyser_rendez_vous(None)
     assert interface.confirmer_button.enabled
+
+
+def test_ui_reponse_recherche_perimee_ignoree(interface):
+    import time
+    fournisseur=Mock(rechercher=Mock(side_effect=lambda texte: (time.sleep(0.03), [P])[1]))
+    panneau=RechercheLieuxUI(interface,fournisseur)
+    interface.rdv_input.value=PHRASE
+    async def scenario():
+        tache=asyncio.create_task(panneau.rechercher())
+        await asyncio.sleep(0.005)
+        interface.rdv_input.value='Garage Renault Josselin vendredi 9h'
+        await tache
+    asyncio.run(scenario())
+    assert panneau.propositions==[]
+    assert interface.resultat_courant is None
+    assert not interface.confirmer_button.enabled
+    assert panneau.rechercher_button.enabled

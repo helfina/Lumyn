@@ -41,7 +41,9 @@ def _extraire_alias(texte):
 class InterfaceLieux:
     """Contrôleur de l'interface du carnet de lieux."""
 
-    def __init__(self):
+    def __init__(self, fournisseur_adresses=None):
+        self.fournisseur_adresses = fournisseur_adresses
+        self.autocompletion_adresse = None
         self.main_box = None
 
         self.nom_input = None
@@ -313,6 +315,11 @@ class InterfaceLieux:
                 margin_right=12,
             ),
         )
+        if self.fournisseur_adresses is not None:
+            from lumyn.modules.synapse.autocompletion_ui import AutocompletionAdresseUI
+            self.autocompletion_adresse = AutocompletionAdresseUI(
+                self.adresse_input, self.fournisseur_adresses
+            )
 
         self.favorite_switch = toga.Switch(
             "Adresse favorite",
@@ -347,6 +354,10 @@ class InterfaceLieux:
             aide,
             self.libelle_adresse_input,
             self.adresse_input,
+        )
+        if self.autocompletion_adresse is not None:
+            carte.add(self.autocompletion_adresse.zone)
+        carte.add(
             self.favorite_switch,
             self.ajouter_adresse_button,
             self.liste_adresses,
@@ -933,7 +944,7 @@ class InterfaceLieux:
         )
 
 
-def creer_interface_lieux():
+def creer_interface_lieux(fournisseur_adresses=None):
     """Crée l'interface complète du carnet de lieux."""
 
-    return InterfaceLieux().construire()
+    return InterfaceLieux(fournisseur_adresses).construire()
