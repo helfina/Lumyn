@@ -3,7 +3,10 @@ from dataclasses import dataclass
 import re
 import unicodedata
 from typing import Protocol, Sequence
-from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    extraire_indices_deterministes,
+    interpreter_rendez_vous,
+)
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse
 
 
@@ -136,11 +139,25 @@ def proposer_recherche_externe(texte, fournisseur=None, *, autoriser=False, lieu
     Fournisseurs concrets non configurés par défaut. Leur adaptateur doit borner
     les délais réseau. Une erreur n'écrit rien et laisse la saisie locale disponible.
     """
-    indices_locaux, probleme_local = _obtenir_indices_locaux(
-        texte, interpreteur_local) if autoriser else ({}, None)
-    resultat = preparer_rendez_vous_synapse(
-        texte, lieux, indices_locaux=indices_locaux)
+    indices_locaux = extraire_indices_deterministes(texte)
+    probleme_local = None
+    resultat = preparer_rendez_vous_synapse(texte, lieux)
     rdv = resultat.get('rendez_vous') or {}
+    resolu_localement = (
+        rdv.get('lieu_source') in ('carnet', 'maison')
+        or rdv.get('mode') in ('visio', 'domicile', 'telephone')
+        or resultat['etat'] not in ('confirmation', 'incomplet')
+    )
+    if autoriser and interpreteur_local is not None and not resolu_localement:
+        indices_ollama, probleme_local = _obtenir_indices_locaux(
+            texte, interpreteur_local)
+        for cle, valeur in indices_ollama.items():
+            if valeur:
+                indices_locaux[cle] = valeur
+        if indices_ollama:
+            resultat = preparer_rendez_vous_synapse(
+                texte, lieux, indices_locaux=indices_locaux)
+            rdv = resultat.get('rendez_vous') or {}
     if (not autoriser or fournisseur is None
         or rdv.get('lieu_source') in ('carnet', 'maison')
         or rdv.get('mode') in ('visio', 'domicile', 'telephone')

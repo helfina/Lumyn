@@ -10,6 +10,7 @@ from lumyn.modules.rendez_vous.gestion import valider_rendez_vous
 from lumyn.modules.rendez_vous.resultat import creer_resultat
 from lumyn.modules.synapse.interpreteur_rendez_vous import (
     construire_titre_structure,
+    extraire_indices_deterministes,
     interpreter_rendez_vous,
 )
 
@@ -62,6 +63,12 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
     if not texte.strip():
         return creer_resultat('vide', "Écris d'abord un rendez-vous.")
     interpretation = interpreter_rendez_vous(texte)
+    indices_deterministes = extraire_indices_deterministes(texte)
+    indices_enrichis = dict(indices_deterministes)
+    for cle, valeur in (indices_locaux or {}).items():
+        if valeur:
+            indices_enrichis[cle] = valeur
+    indices_locaux = indices_enrichis
     rdv = deepcopy(interpretation['rendez_vous'])
     ambiguities = list(interpretation['ambiguities'])
     # Les erreurs de date/heure restent bloquantes avant toute résolution.
@@ -74,7 +81,6 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
     mode = interpretation['mode']
     explicite = interpretation['lieu_explicite']
     candidats = _candidats(interpretation['titre'], lieux)
-    indices_locaux = indices_locaux or {}
     candidats_par_ia = []
     if not candidats:
         recherche_ia = ' '.join(str(indices_locaux.get(c) or '') for c in (
@@ -100,7 +106,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
     nom_canonique = candidats[0]['nom'] if len(candidats) == 1 else None
     titre_structure = construire_titre_structure(
         indices_locaux, nom_canonique=nom_canonique)
-    if titre_structure:
+    if titre_structure and mode not in ('visio', 'domicile', 'telephone'):
         rdv['titre'] = titre_structure
     fiche = None
     adresse = None

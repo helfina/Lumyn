@@ -5,6 +5,7 @@ from lumyn.modules.lieux import stockage as carnet
 from lumyn.modules.rendez_vous import stockage as rendez_vous
 from lumyn.modules.rendez_vous import ui
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse
+from lumyn.modules.synapse.interpreteur_rendez_vous import extraire_indices_deterministes
 from lumyn.modules.synapse.recherche_lieux import PropositionLieu, proposer_recherche_externe
 from lumyn.modules.synapse.recherche_ui import RechercheLieuxUI
 from lumyn.modules.synapse.selection_lieux import choisir_proposition
@@ -19,6 +20,13 @@ class InterpreteurLocal:
     def interpreter(self, texte):
         assert texte == PHRASE
         return dict(INDICES)
+
+
+def test_indices_laporte_extraits_sans_ollama_et_cabinet_reste_un_indice():
+    assert extraire_indices_deterministes(PHRASE) == INDICES
+    resultat = preparer_rendez_vous_synapse(PHRASE, [])
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['rendez_vous']['lieu_explicite'] == 'son cabinet de Lorient'
 
 
 def proposition(nom, adresse, profession='', ville=''):
@@ -47,7 +55,8 @@ def test_nom_canonique_du_carnet_prime_et_adresse_unique_est_resolue():
 
 def test_titre_profession_seule_ninvente_pas_de_civilite():
     indices = {'profession': 'psy', 'ville': 'Lorient'}
-    resultat = preparer_rendez_vous_synapse(PHRASE, [], indices_locaux=indices)
+    resultat = preparer_rendez_vous_synapse(
+        'rendez-vous psy jeudi 10h à Lorient', [], indices_locaux=indices)
     assert resultat['rendez_vous']['titre'] == 'Rdv psy'
     assert 'Dr' not in resultat['rendez_vous']['titre']
 
@@ -67,9 +76,9 @@ def test_ui_lieu_vague_garde_confirmation_desactivee(interface):
     assert not interface.confirmer_button.enabled
 
 
-def test_analyser_utilise_ollama_local_puis_resout_le_carnet_sans_internet(
+def test_analyser_resout_deterministe_avant_ollama_et_sans_internet(
         interface):
-    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    local = Mock(interpreter=Mock(side_effect=TimeoutError('Ollama trop lent')))
     public = Mock()
     web = Mock()
     carnet.enregistrer_lieu({
@@ -92,13 +101,13 @@ def test_analyser_utilise_ollama_local_puis_resout_le_carnet_sans_internet(
     assert rdv['lieu'] == '2 rue Exemple, 56100 Lorient'
     assert rdv['lieu_source'] == 'carnet'
     assert interface.confirmer_button.enabled
-    local.interpreter.assert_called_once_with(PHRASE)
+    local.interpreter.assert_not_called()
     public.rechercher.assert_not_called()
     web.rechercher.assert_not_called()
 
 
 def test_analyser_demande_choix_si_deux_adresses_carnet_a_lorient(interface):
-    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    local = Mock(interpreter=Mock(side_effect=TimeoutError('Ollama trop lent')))
     public = Mock()
     carnet.enregistrer_lieu({
         'nom': 'Dr Laporte', 'alias': ['Laporte'], 'profession': 'psy',
@@ -116,11 +125,12 @@ def test_analyser_demande_choix_si_deux_adresses_carnet_a_lorient(interface):
     assert interface.resultat_courant['etat'] == 'ambigu'
     assert 'Plusieurs adresses du Carnet' in interface.resultat_courant['message']
     assert not interface.confirmer_button.enabled
+    local.interpreter.assert_not_called()
     public.rechercher.assert_not_called()
 
 
 def test_analyser_demande_choix_si_deux_fiches_carnet_correspondent(interface):
-    local = Mock(interpreter=Mock(return_value=dict(INDICES)))
+    local = Mock(interpreter=Mock(side_effect=TimeoutError('Ollama trop lent')))
     public = Mock()
     for suffixe, adresse in (
         ('A', '2 rue Exemple, 56100 Lorient'),
@@ -140,6 +150,7 @@ def test_analyser_demande_choix_si_deux_fiches_carnet_correspondent(interface):
     assert interface.resultat_courant['etat'] == 'ambigu'
     assert 'Plusieurs fiches correspondent' in interface.resultat_courant['message']
     assert not interface.confirmer_button.enabled
+    local.interpreter.assert_not_called()
     public.rechercher.assert_not_called()
 
 
