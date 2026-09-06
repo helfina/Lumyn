@@ -1,9 +1,9 @@
 # État actuel de Lumyn
 
-## Ollama local raccordé, Web préparé mais fermé — 06/09/2026
+## Ollama local raccordé, Web activable localement — 06/09/2026
 
 L'interpréteur Ollama local est injecté au démarrage seulement si sa configuration
-est présente. Lors d'une recherche explicite, il peut ajouter personne, profession,
+est présente ; `llama3.2:1b` est le modèle par défaut. Lors d'une recherche explicite, il peut ajouter personne, profession,
 établissement et ville à la requête publique. Les champs date/heure/mode restent
 gérés par Synapse déterministe ; toute adresse ou champ inconnu est rejeté. Absence
 du logiciel, du modèle, timeout ou réponse invalide laissent le parcours public et
@@ -12,14 +12,16 @@ la saisie manuelle fonctionner.
 Ollama Web Search est implémenté derrière `FournisseurIAWeb`, avec requête minimale,
 trois résultats maximum, URL obligatoire, extraction prudente et rapprochement BAN.
 Une divergence BAN ne supprime pas la proposition mais la marque non vérifiée ;
-plusieurs adresses restent plusieurs choix. Le service n'est toutefois pas injecté
-et son activation par environnement est bloquée : compte gratuit et clé requis,
-quota Web non chiffré, conditions officielles réservées aux 18 ans et plus.
+plusieurs adresses restent plusieurs choix. Le service est injecté uniquement avec
+`LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` dans l'environnement local. Le compte
+utilisateur indique une utilisation incluse gratuite, 0 % utilisé et une remise à
+zéro mensuelle, sans crédit payant ; Lumyn n'effectue aucun achat.
 
 Les réponses Web et leurs métadonnées tierces ne bénéficient pas automatiquement
 de la licence BAN. Même normalisée, une proposition Web reste donc non persistable ;
 une adresse provenant directement de BAN conserve le mécanisme volontaire actuel.
-Suite courante : **225 tests Linux réussis**. Windows réel reste à valider.
+Suite courante : **226 tests Linux réussis**. Ollama local réel est validé sous
+Windows avec `llama3.2:1b`, extraction correcte et aucune adresse inventée.
 
 ## Architecture locale et services publics — 06/09/2026
 

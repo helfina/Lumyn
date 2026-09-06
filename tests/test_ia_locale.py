@@ -45,8 +45,8 @@ def test_timeout_et_configuration_stricte():
         (_ for _ in ()).throw(TimeoutError()))
     with pytest.raises(TimeoutError):
         moteur.interpreter("demande")
-    with pytest.raises(ErreurConfigurationIALocale, match="MODEL"):
-        interpreteur_local_depuis_environnement({"LUMYN_IA_LOCALE": "ollama"})
+    configure = interpreteur_local_depuis_environnement({"LUMYN_IA_LOCALE": "ollama"})
+    assert configure.modele == "llama3.2:1b"
     with pytest.raises(ErreurConfigurationIALocale, match="local"):
         InterpreteurOllama("test", url="https://serveur.example")
 

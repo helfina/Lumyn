@@ -21,7 +21,7 @@ MOTIF_ADRESSE = re.compile(
 
 
 class ErreurConfigurationOllamaWeb(ValueError):
-    """Le service Web ne peut pas être activé par défaut dans ce lot."""
+    """Configuration Web absente ou incomplète."""
 
 
 class FournisseurOllamaWeb:
@@ -116,14 +116,20 @@ def _adresses_compatibles(adresse_web, adresse_ban):
 
 
 def fournisseur_ollama_web_depuis_environnement(environ=None, *, ban=None):
-    """Garde le service fermé : l'API requiert un compte soumis à une limite d'âge."""
+    """Active explicitement le Web avec une clé locale ; sinon aucun trafic."""
     environ = os.environ if environ is None else environ
     activation = str(environ.get("LUMYN_OLLAMA_WEB", "")).strip().casefold()
     if activation in {"", "0", "false", "non", "off"}:
         return None
-    raise ErreurConfigurationOllamaWeb(
-        "Ollama Web Search reste désactivé : compte 18+ et clé API obligatoires."
-    )
+    if activation not in {"1", "true", "oui", "on", "ollama"}:
+        raise ErreurConfigurationOllamaWeb(
+            "LUMYN_OLLAMA_WEB doit valoir '1' ou rester vide."
+        )
+    if ban is None:
+        raise ErreurConfigurationOllamaWeb(
+            "La vérification BAN est requise pour activer Ollama Web Search."
+        )
+    return FournisseurOllamaWeb(environ.get("OLLAMA_API_KEY"), ban=ban)
 
 
 def _poster_json(url, corps, timeout, cle_api):

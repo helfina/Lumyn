@@ -50,7 +50,7 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] Adaptateur Gemini Web préparé mais activation payante explicitement refusée.
 - [x] IA locale hors thread : enrichissement du Carnet puis de la requête publique ; Synapse reste déterministe.
 - [x] Adaptateur Ollama Web sourcé et vérification BAN testés avec doubles.
-- [ ] Ollama Web réel : bloqué (compte 18+, clé et quota gratuit non chiffré).
+- [x] Ollama Web raccordé, désactivé par défaut, clé et activation locales obligatoires.
 - [ ] Source RPPS individuelle sans compte : non disponible via FHIR (clé requise).
 - [ ] Validation WinForms réelle des services publics avec des lieux non sensibles.
 - [ ] Validation native Windows/Google du lot courant.

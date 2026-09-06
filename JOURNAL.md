@@ -321,3 +321,14 @@ Toute proposition Web reste non persistable, même si son adresse est rapproché
 
 Suite portée à **225 tests réussis sous Linux**. Android, Gemini, Geoapify, opérations Google,
 version 0.0.4 et statut brouillon restent inchangés. Validation Windows à effectuer.
+
+## 06/09/2026 — Finalisation du lot Ollama
+
+`llama3.2:1b` devient le modèle local par défaut quand `LUMYN_IA_LOCALE=ollama`.
+La validation Windows réelle fournie confirme l'extraction Laporte / psy / Lorient /
+jeudi / 10h sans adresse inventée. Ollama Web est raccordé à l'interface uniquement
+avec `LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` locales ; il reste dernier recours et
+chaque recherche exige l'autorisation du bouton dédié. Aucun paiement n'est géré.
+
+Suite finale : **226 tests réussis sous Linux**. Gemini, Geoapify, Android, crash
+Windows, version 0.0.4 et statut brouillon restent inchangés.

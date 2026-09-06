@@ -2,8 +2,8 @@
 
 ## Ollama local et Web Search — décision ciblée du 06/09/2026
 
-Ollama local est chargé uniquement lorsque `LUMYN_IA_LOCALE=ollama` et qu'un modèle
-est configuré. Il intervient après l'analyse déterministe, pendant une recherche
+Ollama local est chargé uniquement lorsque `LUMYN_IA_LOCALE=ollama` ; le modèle par
+défaut est `llama3.2:1b`, surchargeable par `LUMYN_OLLAMA_MODEL`. Il intervient après l'analyse déterministe, pendant une recherche
 explicitement déclenchée. Sa sortie JSON est limitée à personne, établissement,
 profession, ville, mode, date, heure et indices ; tout champ adresse ou inconnu est
 refusé. Seuls personne/profession/établissement/ville enrichissent la requête vers
@@ -19,11 +19,12 @@ mais aucun quota chiffré spécifique à Web Search n'est publié. Les pages con
 n'indiquent pas de carte obligatoire pour Free ; cela ne garantit ni un volume
 gratuit précis, ni un accès illimité.
 
-Point bloquant : les [conditions Ollama](https://ollama.com/terms), mises à jour en
-mai 2026, exigent 18 ans minimum pour utiliser le service. La factory refuse donc
-l'activation réelle de Web Search dans ce lot, même avec une clé. Aucun compte n'est
-créé et aucune requête réelle n'est envoyée. L'adaptateur reste prêt pour une future
-utilisation par une personne éligible après nouvelle vérification des conditions.
+L'activation reste volontaire et locale : `LUMYN_OLLAMA_WEB=1` et
+`OLLAMA_API_KEY` sont toutes deux requises. Sans elles, la factory renvoie `None`
+et l'interface n'offre pas le complément Web. Le compte validé par l'utilisatrice
+affiche une utilisation incluse gratuite, 0 % utilisé et une remise à zéro mensuelle,
+sans crédit payant ajouté. Lumyn n'achète aucun crédit et ne possède aucun mécanisme
+de paiement ou de dépassement payant.
 
 Avec un transport simulé, l'adaptateur envoie seulement la requête minimale suivie
 de « adresse professionnelle ». Il refuse un résultat sans URL ou sans adresse

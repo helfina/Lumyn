@@ -13,6 +13,7 @@ CHAMPS_AUTORISES = {
     "date", "heure", "indices",
 }
 MODES_AUTORISES = {"physique", "visio", "domicile", "telephone", "non_defini"}
+MODELE_OLLAMA_PAR_DEFAUT = "llama3.2:1b"
 
 
 class ErreurConfigurationIALocale(ValueError):
@@ -86,7 +87,7 @@ def interpreteur_local_depuis_environnement(environ=None, *, transport=None):
     if activation != "ollama":
         raise ErreurConfigurationIALocale("LUMYN_IA_LOCALE doit valoir 'ollama' ou rester vide.")
     return InterpreteurOllama(
-        environ.get("LUMYN_OLLAMA_MODEL"),
+        environ.get("LUMYN_OLLAMA_MODEL", MODELE_OLLAMA_PAR_DEFAUT),
         url=environ.get("LUMYN_OLLAMA_URL", "http://127.0.0.1:11434"),
         transport=transport,
     )

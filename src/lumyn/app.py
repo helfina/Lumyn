@@ -10,6 +10,7 @@ from lumyn.modules.lieux.ui import creer_interface_lieux
 from lumyn.modules.rendez_vous.ui import creer_interface_rendez_vous
 from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
 from lumyn.modules.synapse.ia_locale import interpreteur_local_depuis_environnement
+from lumyn.modules.synapse.ollama_web import fournisseur_ollama_web_depuis_environnement
 
 
 class Lumyn(toga.App):
@@ -27,8 +28,14 @@ class Lumyn(toga.App):
             interpreteur_local = interpreteur_local_depuis_environnement()
         except ValueError:
             interpreteur_local = None
+        try:
+            fournisseur_ia = fournisseur_ollama_web_depuis_environnement(
+                ban=fournisseur_lieux.adresses)
+        except ValueError:
+            fournisseur_ia = None
         self.interface_rendez_vous = creer_interface_rendez_vous(
-            fournisseur_lieux, interpreteur_local=interpreteur_local)
+            fournisseur_lieux, fournisseur_ia=fournisseur_ia,
+            interpreteur_local=interpreteur_local)
         self.interface_lieux = creer_interface_lieux(fournisseur_lieux)
 
         self.zone_contenu = toga.Box(

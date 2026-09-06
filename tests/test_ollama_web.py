@@ -27,13 +27,28 @@ BAN = PropositionLieu(
 )
 
 
-def test_cle_absente_et_activation_reelle_verrouillee():
+def test_cle_absente_et_activation_locale_explicite():
     with pytest.raises(ErreurConfigurationOllamaWeb, match="OLLAMA_API_KEY"):
         FournisseurOllamaWeb("", ban=Mock())
     assert fournisseur_ollama_web_depuis_environnement({}) is None
-    with pytest.raises(ErreurConfigurationOllamaWeb, match=r"18\+"):
+    with pytest.raises(ErreurConfigurationOllamaWeb, match="OLLAMA_API_KEY"):
         fournisseur_ollama_web_depuis_environnement(
-            {"LUMYN_OLLAMA_WEB": "1", "OLLAMA_API_KEY": "fictive"}, ban=Mock())
+            {"LUMYN_OLLAMA_WEB": "1"}, ban=Mock())
+    ban = Mock()
+    fournisseur = fournisseur_ollama_web_depuis_environnement(
+        {"LUMYN_OLLAMA_WEB": "1", "OLLAMA_API_KEY": "fictive"}, ban=ban)
+    assert isinstance(fournisseur, FournisseurOllamaWeb)
+    assert fournisseur.ban is ban
+
+
+def test_activation_web_exige_ban_et_valeur_connue():
+    with pytest.raises(ErreurConfigurationOllamaWeb, match="BAN"):
+        fournisseur_ollama_web_depuis_environnement(
+            {"LUMYN_OLLAMA_WEB": "1", "OLLAMA_API_KEY": "fictive"})
+    with pytest.raises(ErreurConfigurationOllamaWeb, match="doit valoir"):
+        fournisseur_ollama_web_depuis_environnement(
+            {"LUMYN_OLLAMA_WEB": "peut-etre", "OLLAMA_API_KEY": "fictive"},
+            ban=Mock())
 
 
 def test_resultat_source_verifie_et_normalise_par_ban():

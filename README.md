@@ -2,12 +2,13 @@
 
 ## Ollama facultatif
 
-Ollama local peut désormais améliorer la requête de recherche sans remplacer
+Ollama local utilise `llama3.2:1b` par défaut et peut améliorer la requête sans remplacer
 Synapse : aucune adresse IA n'est acceptée, et une panne laisse Lumyn fonctionner
 normalement. Aucun modèle n'est installé automatiquement.
 
-Ollama Web Search est préparé mais désactivé. Le service exige un compte et une clé,
-ne publie pas de quota Web gratuit chiffré et ses conditions exigent 18 ans minimum.
+Ollama Web Search reste désactivé par défaut. Il est injecté uniquement avec
+`LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` dans la configuration locale ; Lumyn
+n'achète aucun crédit et ne déclenche aucun paiement ni dépassement payant.
 Gemini reste expérimental désactivé ; Geoapify reste optionnel non injecté.
 
 ## Recherche locale et services publics français

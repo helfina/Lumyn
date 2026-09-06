@@ -1,19 +1,19 @@
 # Contexte du projet Lumyn
 
-## Décision Ollama local et Web verrouillé — 06/09/2026
+## Décision Ollama local et Web activable explicitement — 06/09/2026
 
 Ollama local est maintenant raccordé comme enrichissement facultatif de la requête
 de recherche. Il ne remplace ni l'analyse déterministe, ni ses dates/heures, ne
 produit aucune adresse et toute panne est ignorée au profit du parcours normal.
-Activation locale seulement par `LUMYN_IA_LOCALE=ollama` avec un modèle configuré ;
+Activation locale seulement par `LUMYN_IA_LOCALE=ollama` ; `llama3.2:1b` est le modèle par défaut ;
 aucun modèle n'est téléchargé automatiquement.
 
-L'adaptateur Ollama Web Search est préparé et testé avec doubles, mais sa factory
-refuse toute activation réelle. La documentation officielle exige un compte gratuit
-et `OLLAMA_API_KEY`, ne chiffre pas le quota Web, et les conditions du service
-réservent son utilisation aux 18 ans et plus. Le code sait préserver les URL,
+L'adaptateur Ollama Web Search est raccordé seulement avec `LUMYN_OLLAMA_WEB=1`
+et `OLLAMA_API_KEY` dans l'environnement local. Le compte validé indique un usage
+inclus gratuit, 0 % utilisé et une remise à zéro mensuelle, sans crédit payant.
+Le code sait préserver les URL,
 garder plusieurs adresses contradictoires et vérifier une adresse avec BAN. Une
-proposition Web reste non persistable. **225 tests Linux** passent pour ce lot.
+proposition Web reste non persistable. **226 tests Linux** passent pour ce lot.
 
 Gemini reste expérimental désactivé. Geoapify reste optionnel non injecté. Version
 0.0.4 et PR #3 brouillon inchangées ; Android et crash Windows hors périmètre.
