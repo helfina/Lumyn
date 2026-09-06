@@ -20,7 +20,7 @@ def test_routage_adresse_entreprise_et_sante_sans_melanger_les_sources():
 def test_sante_absente_ne_retombe_pas_sur_ban_ou_entreprises():
     ban = Mock()
     entreprises = Mock()
-    routeur = RouteurLieuxPublics(adresses=ban, entreprises=entreprises, sante=None)
+    routeur = RouteurLieuxPublics(adresses=ban, entreprises=entreprises, sante=Mock(rechercher=Mock(return_value=[])))
     assert routeur.rechercher("Dentiste Dupont Vannes") == []
     ban.rechercher.assert_not_called()
     entreprises.rechercher.assert_not_called()

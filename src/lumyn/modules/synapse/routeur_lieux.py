@@ -4,6 +4,7 @@ import re
 
 from lumyn.modules.synapse.entreprises import FournisseurEntreprises
 from lumyn.modules.synapse.geoplateforme import FournisseurGeoplateforme
+from lumyn.modules.synapse.sante_publique import FournisseurEtablissementsSante
 
 
 MOTS_SANTE = {
@@ -23,7 +24,7 @@ class RouteurLieuxPublics:
     def __init__(self, *, adresses=None, entreprises=None, sante=None):
         self.adresses = adresses or FournisseurGeoplateforme()
         self.entreprises = entreprises or FournisseurEntreprises()
-        self.sante = sante
+        self.sante = sante if sante is not None else FournisseurEtablissementsSante()
 
     def autocompleter(self, texte):
         return self.adresses.autocompleter(texte)
@@ -45,4 +46,3 @@ def classifier_requete(texte):
     if re.search(r"\b\d{1,4}\s", normalise) or mots & MOTS_ADRESSE:
         return "adresse"
     return "entreprise"
-
