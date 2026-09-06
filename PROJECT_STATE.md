@@ -6,7 +6,8 @@ Geoapify est choisi en offre gratuite et intégré derrière `FournisseurLieux`.
 Il reste désactivé sans variable d'environnement. Recherche et autocomplétion sont
 hors thread UI, bornées, attribuées et testées sans réseau réel. IA/web reste
 absente de la configuration. La conservation Geoapify dans le Carnet est bloquée
-tant que les conditions ne l'autorisent pas explicitement ; saisie manuelle intacte.
+tant que les conditions ne l'autorisent pas explicitement ; la saisie manuelle
+indépendante reste intacte.
 
 Suite courante : **188 tests Linux réussis**. Android : Briefcase 0.4.4
 installé temporairement, mais `create android` a échoué avant génération faute de

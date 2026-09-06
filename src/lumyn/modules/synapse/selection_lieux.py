@@ -33,8 +33,8 @@ def enregistrer_proposition(proposition, *, autoriser=False, fiche_id=None):
         raise ValueError('Proposition invalide.')
     if not proposition.conservation_autorisee:
         raise ValueError(
-            "La conservation durable des résultats Geoapify n’est pas encore autorisée. "
-            "Recopie l’adresse manuellement dans le Carnet si tu souhaites la conserver."
+            "La conservation durable de cette proposition externe n’est pas autorisée. "
+            "Tu peux continuer sans l’enregistrer dans le Carnet."
         )
     lieux = charger_lieux()
     nom = normaliser_recherche(proposition.nom)

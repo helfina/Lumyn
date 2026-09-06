@@ -70,8 +70,9 @@ peut servir au rendez-vous après choix, mais le bouton de sauvegarde est désac
 et l'API métier refuse également l'écriture. Le défaut du contrat est désormais
 le refus ; un futur fournisseur devra déclarer positivement un droit vérifié.
 
-Cette protection n'empêche pas l'utilisatrice de saisir elle-même une adresse dans
-le Carnet. Il faut demander à Geoapify une clarification écrite couvrant la copie
+La saisie manuelle reste disponible pour une adresse obtenue indépendamment ; elle
+ne doit pas servir à recopier un résultat Geoapify et contourner ce verrou. Il faut
+demander à Geoapify une clarification écrite couvrant la copie
 durable de `formatted`, nom, catégorie et provenance dans une application locale,
 puis documenter les obligations ODbL/attribution avant de lever ce verrou. Le
 consentement utilisateur ne suffit pas à donner ce droit contractuel.
