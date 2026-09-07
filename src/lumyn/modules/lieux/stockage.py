@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import threading
 import uuid
 from lumyn.modules.lieux.validation import preparer_fiche, verifier_maison_unique
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 
 DOSSIER_DONNEES = Path.home() / ".lumyn"
 FICHIER_LIEUX = DOSSIER_DONNEES / "lieux.json"
+_VERROU_ECRITURE = threading.RLock()
 
 
 def ajouter_identifiants_manquants(lieux):
@@ -103,14 +105,13 @@ def charger_lieux():
 def enregistrer_lieu(lieu):
     """Ajoute une nouvelle fiche au carnet de lieux."""
 
-    lieux = charger_lieux()
-
-    nouveau_lieu = preparer_fiche(lieu)
-    nouveau_lieu["id"] = str(uuid.uuid4())
-
-    verifier_maison_unique(lieux + [nouveau_lieu])
-    lieux.append(nouveau_lieu)
-    sauvegarder_lieux(lieux)
+    with _VERROU_ECRITURE:
+        lieux = charger_lieux()
+        nouveau_lieu = preparer_fiche(lieu)
+        nouveau_lieu["id"] = str(uuid.uuid4())
+        verifier_maison_unique(lieux + [nouveau_lieu])
+        lieux.append(nouveau_lieu)
+        sauvegarder_lieux(lieux)
 
     return nouveau_lieu
 
@@ -118,18 +119,19 @@ def enregistrer_lieu(lieu):
 def modifier_lieu(lieu_id, nouvelles_donnees):
     """Modifie une fiche existante."""
 
-    lieux = charger_lieux()
+    with _VERROU_ECRITURE:
+        lieux = charger_lieux()
 
-    for index, lieu in enumerate(lieux):
-        if lieu.get("id") == lieu_id:
-            lieu_modifie = preparer_fiche({**lieu, **nouvelles_donnees})
-            lieu_modifie["id"] = lieu_id
+        for index, lieu in enumerate(lieux):
+            if lieu.get("id") == lieu_id:
+                lieu_modifie = preparer_fiche({**lieu, **nouvelles_donnees})
+                lieu_modifie["id"] = lieu_id
 
-            verifier_maison_unique(lieux[:index] + [lieu_modifie] + lieux[index + 1:])
-            lieux[index] = lieu_modifie
-            sauvegarder_lieux(lieux)
+                verifier_maison_unique(lieux[:index] + [lieu_modifie] + lieux[index + 1:])
+                lieux[index] = lieu_modifie
+                sauvegarder_lieux(lieux)
 
-            return lieu_modifie
+                return lieu_modifie
 
     return None
 
@@ -137,17 +139,13 @@ def modifier_lieu(lieu_id, nouvelles_donnees):
 def supprimer_lieu(lieu_id):
     """Supprime une fiche du carnet à partir de son identifiant."""
 
-    lieux = charger_lieux()
-
-    nouvelle_liste = [
-        lieu
-        for lieu in lieux
-        if lieu.get("id") != lieu_id
-    ]
-
-    if len(nouvelle_liste) == len(lieux):
-        return False
-
-    sauvegarder_lieux(nouvelle_liste)
+    with _VERROU_ECRITURE:
+        lieux = charger_lieux()
+        nouvelle_liste = [
+            lieu for lieu in lieux if lieu.get("id") != lieu_id
+        ]
+        if len(nouvelle_liste) == len(lieux):
+            return False
+        sauvegarder_lieux(nouvelle_liste)
 
     return True

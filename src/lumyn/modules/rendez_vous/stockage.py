@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import threading
 import uuid
 from datetime import date
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 
 DOSSIER_DONNEES = Path.home() / ".lumyn"
 FICHIER_RENDEZ_VOUS = DOSSIER_DONNEES / "rendez_vous.json"
+_VERROU_ECRITURE = threading.RLock()
 
 
 def convertir_pour_json(rendez_vous):
@@ -104,32 +106,30 @@ def charger_rendez_vous():
 def enregistrer_rendez_vous(rendez_vous):
     """Ajoute un nouveau rendez-vous au stockage local."""
 
-    rendez_vous_existants = charger_rendez_vous()
-
-    rendez_vous_a_enregistrer = convertir_pour_json(rendez_vous)
-
-    rendez_vous_a_enregistrer["id"] = str(uuid.uuid4())
-
-    rendez_vous_existants.append(rendez_vous_a_enregistrer)
-
-    sauvegarder_rendez_vous(rendez_vous_existants)
+    with _VERROU_ECRITURE:
+        rendez_vous_existants = charger_rendez_vous()
+        rendez_vous_a_enregistrer = convertir_pour_json(rendez_vous)
+        rendez_vous_a_enregistrer["id"] = str(uuid.uuid4())
+        rendez_vous_existants.append(rendez_vous_a_enregistrer)
+        sauvegarder_rendez_vous(rendez_vous_existants)
 
     return rendez_vous_a_enregistrer
 
 def modifier_rendez_vous(rendez_vous_id, nouvelles_donnees):
     """Modifie un rendez-vous existant à partir de son identifiant."""
 
-    rendez_vous_existants = charger_rendez_vous()
+    with _VERROU_ECRITURE:
+        rendez_vous_existants = charger_rendez_vous()
 
-    for index, rendez_vous in enumerate(rendez_vous_existants):
-        if rendez_vous.get("id") == rendez_vous_id:
-            rendez_vous_modifie = convertir_pour_json(nouvelles_donnees)
-            rendez_vous_modifie["id"] = rendez_vous_id
+        for index, rendez_vous in enumerate(rendez_vous_existants):
+            if rendez_vous.get("id") == rendez_vous_id:
+                rendez_vous_modifie = convertir_pour_json(nouvelles_donnees)
+                rendez_vous_modifie["id"] = rendez_vous_id
 
-            rendez_vous_existants[index] = rendez_vous_modifie
-            sauvegarder_rendez_vous(rendez_vous_existants)
+                rendez_vous_existants[index] = rendez_vous_modifie
+                sauvegarder_rendez_vous(rendez_vous_existants)
 
-            return rendez_vous_modifie
+                return rendez_vous_modifie
 
     return None
 
@@ -137,17 +137,14 @@ def modifier_rendez_vous(rendez_vous_id, nouvelles_donnees):
 def supprimer_rendez_vous(rendez_vous_id):
     """Supprime un rendez-vous existant à partir de son identifiant."""
 
-    rendez_vous_existants = charger_rendez_vous()
-
-    nouvelle_liste = [
-        rendez_vous
-        for rendez_vous in rendez_vous_existants
-        if rendez_vous.get("id") != rendez_vous_id
-    ]
-
-    if len(nouvelle_liste) == len(rendez_vous_existants):
-        return False
-
-    sauvegarder_rendez_vous(nouvelle_liste)
+    with _VERROU_ECRITURE:
+        rendez_vous_existants = charger_rendez_vous()
+        nouvelle_liste = [
+            rendez_vous for rendez_vous in rendez_vous_existants
+            if rendez_vous.get("id") != rendez_vous_id
+        ]
+        if len(nouvelle_liste) == len(rendez_vous_existants):
+            return False
+        sauvegarder_rendez_vous(nouvelle_liste)
 
     return True

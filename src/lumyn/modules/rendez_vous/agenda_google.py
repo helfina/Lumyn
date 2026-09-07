@@ -8,7 +8,7 @@ ou suppression.
 
 import atexit
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -371,6 +371,15 @@ def construire_corps_evenement_google(
         minutes,
         tzinfo=FUSEAU_LUMYN,
     )
+    # ZoneInfo accepte de construire une heure murale inexistante. Un
+    # aller-retour UTC permet de la détecter sans changer le choix historique
+    # fold=0 pour une heure d'hiver ambiguë.
+    retour_local = debut.astimezone(timezone.utc).astimezone(FUSEAU_LUMYN)
+    if retour_local.replace(tzinfo=None) != debut.replace(tzinfo=None):
+        raise ValueError(
+            "Cette heure locale n'existe pas en Europe/Paris à cause du "
+            "changement d'heure. Choisis une autre heure."
+        )
 
     duree = rendez_vous.get(
         "duree_minutes",
@@ -391,9 +400,9 @@ def construire_corps_evenement_google(
     if duree <= 0:
         duree = duree_minutes
 
-    fin = debut + timedelta(
-        minutes=duree
-    )
+    fin = (
+        debut.astimezone(timezone.utc) + timedelta(minutes=duree)
+    ).astimezone(FUSEAU_LUMYN)
 
     corps = {
         "summary": rendez_vous.get(

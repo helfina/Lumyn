@@ -7,10 +7,12 @@ import hashlib
 import json
 import os
 import tempfile
+import threading
 import uuid
 from pathlib import Path
 
 FICHIER_REPRISE = Path.home() / '.lumyn' / 'creations_google.json'
+_VERROU_ECRITURE = threading.RLock()
 
 
 def _charger():
@@ -65,16 +67,18 @@ def _sauvegarder(donnees):
 def reserver_creation(calendrier, corps):
     cle = hashlib.sha256(json.dumps([calendrier, corps], sort_keys=True,
                                    ensure_ascii=False).encode()).hexdigest()
-    donnees = _charger()
-    if cle not in donnees:
-        donnees[cle] = {'id': uuid.uuid4().hex, 'calendrier': calendrier}
-        _sauvegarder(donnees)
-    return donnees[cle]['id']
+    with _VERROU_ECRITURE:
+        donnees = _charger()
+        if cle not in donnees:
+            donnees[cle] = {'id': uuid.uuid4().hex, 'calendrier': calendrier}
+            _sauvegarder(donnees)
+        return donnees[cle]['id']
 
 
 def terminer_creation(calendrier, evenement_id):
-    donnees = _charger()
-    restantes = {k: v for k, v in donnees.items()
-                 if (v['calendrier'], v['id']) != (calendrier, evenement_id)}
-    if restantes != donnees:
-        _sauvegarder(restantes)
+    with _VERROU_ECRITURE:
+        donnees = _charger()
+        restantes = {k: v for k, v in donnees.items()
+                     if (v['calendrier'], v['id']) != (calendrier, evenement_id)}
+        if restantes != donnees:
+            _sauvegarder(restantes)
