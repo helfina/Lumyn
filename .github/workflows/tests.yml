@@ -44,7 +44,9 @@ jobs:
         run: python -m pip install -r requirements-test.txt
 
       - name: Exécuter les tests
-        run: python -m pytest -q
+        run: >-
+          python -m pytest -q --cov=lumyn --cov-report=term-missing
+          --cov-report=xml
 
       - name: Compiler les sources Python
         run: python -m compileall -q src tests tools

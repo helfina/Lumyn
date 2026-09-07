@@ -4,6 +4,7 @@ import pytest
 
 from lumyn.modules.synapse.interpreteur_rendez_vous import (
     extraire_indices_deterministes,
+    interpreter_rendez_vous,
 )
 from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe
 
@@ -110,3 +111,45 @@ def test_chez_le_medecin_et_ville_ne_deviennent_pas_une_adresse():
     assert resultat['rendez_vous']['lieu'] is None
     assert resultat['rendez_vous']['lieu_source'] is None
     assert resultat['etat'] == 'incomplet'
+
+
+@pytest.mark.parametrize('phrase,heure', [
+    ("j'ai rdv avec Dr Martin mardi à 14h30 à Vannes", '14h30'),
+    ('mardi 14 h 30 je vois le docteur Martin à Vannes', '14h30'),
+    ('rdv chez ma dentiste Dupont mercredi à 9 heures', '09h'),
+    ('vendredi 10h avec ma psy Laporte à Lorient', '10h'),
+    ('consultation avec le centre médical Ker Anna lundi à 11h', '11h'),
+    ("j'ai rendez-vous vers 15h avec Martin au cabinet de Vannes", '15h'),
+    ('JEUDI 10 H CHEZ MA PSY LAPORTE À LORIENT merci', '10h'),
+    ('clinique Ker Anna, lundi 10 heures s’il vous plaît', '10h'),
+])
+def test_corpus_large_neleve_pas_et_ninvente_pas_adresse(phrase, heure):
+    interpretation = interpreter_rendez_vous(phrase)
+    resultat = proposer_recherche_externe(
+        phrase, Mock(), autoriser=False, lieux=[])
+
+    assert interpretation['heure'] == heure
+    assert resultat['rendez_vous'].get('lieu_source') != 'carnet'
+    lieu = resultat['rendez_vous'].get('lieu')
+    if lieu:
+        assert normaliser_sans_ponctuation(lieu) in normaliser_sans_ponctuation(phrase)
+        assert not any(mot in lieu.casefold() for mot in (
+            'rue ', 'avenue ', 'boulevard ', 'impasse '))
+
+
+@pytest.mark.parametrize('forme', ['10h', '10 h', '10 heures'])
+def test_variantes_heures_entieres(forme):
+    resultat = interpreter_rendez_vous(f'rdv dentiste mardi {forme}')
+    assert resultat['heure'] == '10h'
+
+
+def test_nom_seul_reste_dans_le_texte_sans_identite_inventee():
+    phrase = 'mardi 14h je vois Martin à Vannes'
+    interpretation = interpreter_rendez_vous(phrase)
+    assert interpretation['professionnel'] is None
+    assert 'Martin' in interpretation['titre']
+    assert interpretation['ville'] == 'Vannes'
+
+
+def normaliser_sans_ponctuation(texte):
+    return ' '.join(str(texte).casefold().replace(',', ' ').split())

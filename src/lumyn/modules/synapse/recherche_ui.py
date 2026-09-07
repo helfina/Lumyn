@@ -47,6 +47,11 @@ class RechercheLieuxUI:
         self.enregistrer_button.enabled = False
         self.resultats.clear()
         self.statut.text = ''
+        # Une recherche ou une sélection périmée ne doit jamais laisser le
+        # résumé précédent confirmable dans le formulaire parent.
+        self.formulaire.resultat_courant = None
+        self.formulaire.saisie_analysee = None
+        self.formulaire.confirmer_button.enabled = False
 
     async def rechercher(self, widget=None, **kwargs):
         """Exécute le fournisseur hors du thread UI et rejette toute réponse périmée."""

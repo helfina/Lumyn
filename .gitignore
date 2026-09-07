@@ -83,6 +83,8 @@ token.json
 # Environnement de tests
 .venv-tests/
 .pytest_cache/
+.coverage
+coverage.xml
 
 # Configurations locales contenant potentiellement des clés
 .env
