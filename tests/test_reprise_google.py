@@ -189,3 +189,134 @@ def test_move_reponse_perdue_pas_de_creation_ou_ecriture_locale(interface,monkey
         interface._modifier_rendez_vous_lie(dict(RDV,heure='11h'))
     creation.assert_not_called()
     assert stockage.charger_rendez_vous() == [original]
+
+
+def nouvelle_instance():
+    instance = ui.InterfaceRendezVous()
+    instance.construire()
+    return instance
+
+
+def test_redemarrage_apres_reservation_non_envoyee_reutilise_identifiant(
+        interface, google_simule):
+    service, evenements = google_simule
+    corps = g.construire_corps_evenement_google(RDV)
+    identifiant = r.reserver_creation('famille', corps)
+
+    redemarree = nouvelle_instance()
+    resultat = redemarree._creer_rendez_vous_lie(RDV)
+
+    assert resultat['google_event_id'] == identifiant
+    assert list(evenements) == [identifiant]
+    assert len(stockage.charger_rendez_vous()) == 1
+
+
+def test_redemarrage_apres_reponse_google_perdue_ne_duplique_pas(
+        interface, google_simule):
+    service, evenements = google_simule
+    inserer = service.events().insert.side_effect
+
+    def perdre_reponse(**kwargs):
+        requete = inserer(**kwargs)
+        return Mock(execute=lambda: (requete.execute(), (_ for _ in ()).throw(
+            TimeoutError('Réponse perdue')))[1])
+
+    service.events().insert.side_effect = perdre_reponse
+    with pytest.raises(TimeoutError):
+        g.creer_evenement_google(RDV, 'famille')
+    service.events().insert.side_effect = inserer
+
+    resultat = nouvelle_instance()._creer_rendez_vous_lie(RDV)
+    assert len(evenements) == 1
+    assert len(stockage.charger_rendez_vous()) == 1
+    assert resultat['google_event_id'] == next(iter(evenements))
+
+
+def test_redemarrage_apres_google_reussi_et_panne_locale_reprend_sans_doublon(
+        interface, google_simule, monkeypatch):
+    service, evenements = google_simule
+    sauvegarde = ui.enregistrer_rendez_vous
+    suppression = service.events().delete.side_effect
+    monkeypatch.setattr(ui, 'enregistrer_rendez_vous',
+                        Mock(side_effect=PermissionError('lecture seule')))
+    service.events().delete.side_effect = OSError('suppression indisponible')
+    with pytest.raises(PermissionError):
+        interface._creer_rendez_vous_lie(RDV)
+    assert len(evenements) == 1
+
+    monkeypatch.setattr(ui, 'enregistrer_rendez_vous', sauvegarde)
+    service.events().delete.side_effect = suppression
+    resultat = nouvelle_instance()._creer_rendez_vous_lie(RDV)
+    assert len(evenements) == len(stockage.charger_rendez_vous()) == 1
+    assert resultat['google_event_id'] == next(iter(evenements))
+
+
+def test_redemarrage_apres_delete_google_et_panne_locale_ne_recree_jamais(
+        interface, google_simule, monkeypatch):
+    interface._creer_rendez_vous_lie(RDV)
+    original = stockage.charger_rendez_vous()[0]
+    suppression_locale = ui.supprimer_rendez_vous
+    monkeypatch.setattr(ui, 'supprimer_rendez_vous',
+                        Mock(side_effect=OSError('disque plein')))
+    with pytest.raises(RuntimeError, match='clique à nouveau'):
+        interface._supprimer_rendez_vous_lie(original)
+    assert google_simule[1] == {}
+
+    monkeypatch.setattr(ui, 'supprimer_rendez_vous', suppression_locale)
+    redemarree = nouvelle_instance()
+    redemarree._supprimer_rendez_vous_lie(original)
+    assert stockage.charger_rendez_vous() == []
+    assert google_simule[0].events().insert.call_count == 1
+
+
+def test_redemarrage_apres_update_interrompu_garde_identite_et_ne_cree_pas(
+        interface, monkeypatch):
+    original = stockage.enregistrer_rendez_vous(dict(
+        RDV, google_event_id='g1', google_calendar_id='famille'))
+    modification = Mock(side_effect=TimeoutError('réponse perdue'))
+    creation = Mock()
+    monkeypatch.setattr(ui, 'modifier_evenement_google', modification)
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation)
+
+    redemarree = nouvelle_instance()
+    redemarree.rendez_vous_en_modification = stockage.charger_rendez_vous()[0]
+    with pytest.raises(RuntimeError, match='réponse perdue'):
+        redemarree._modifier_rendez_vous_lie(dict(RDV, heure='11h'))
+
+    assert stockage.charger_rendez_vous() == [original]
+    creation.assert_not_called()
+
+
+def test_journal_absent_ou_vide_est_un_etat_normal():
+    assert r._charger() == {}
+    r.FICHIER_REPRISE.write_text('{}', encoding='utf-8')
+    assert r._charger() == {}
+
+
+def test_redemarrage_apres_move_interrompu_ne_cree_rien(
+        interface, monkeypatch):
+    original = stockage.enregistrer_rendez_vous(dict(
+        RDV, google_event_id='g1', google_calendar_id='autre'))
+    deplacement = Mock(side_effect=TimeoutError('réponse perdue'))
+    creation = Mock()
+    monkeypatch.setattr(ui, 'deplacer_evenement_google', deplacement)
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation)
+
+    redemarree = nouvelle_instance()
+    redemarree.rendez_vous_en_modification = stockage.charger_rendez_vous()[0]
+    with pytest.raises(RuntimeError, match='réponse perdue'):
+        redemarree._modifier_rendez_vous_lie(dict(RDV, heure='11h'))
+
+    assert stockage.charger_rendez_vous() == [original]
+    creation.assert_not_called()
+
+
+def test_fichier_local_corrompu_bloque_create_avant_google(interface, monkeypatch):
+    contenu = '[{"id":"duplique"},{"id":"duplique"}]'
+    stockage.FICHIER_RENDEZ_VOUS.write_text(contenu, encoding='utf-8')
+    creation = Mock()
+    monkeypatch.setattr(ui, 'creer_evenement_google', creation)
+    with pytest.raises(ValueError, match='même identifiant'):
+        nouvelle_instance()._creer_rendez_vous_lie(RDV)
+    creation.assert_not_called()
+    assert stockage.FICHIER_RENDEZ_VOUS.read_text(encoding='utf-8') == contenu

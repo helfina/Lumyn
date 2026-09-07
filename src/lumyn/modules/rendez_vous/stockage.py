@@ -36,6 +36,16 @@ def ajouter_identifiants_manquants(rendez_vous):
     return modification
 
 
+def verifier_identifiants(rendez_vous):
+    """Refuse les identifiants présents invalides ou dupliqués."""
+
+    identifiants = [rdv.get("id") for rdv in rendez_vous if "id" in rdv]
+    if any(not isinstance(i, str) or not i.strip() for i in identifiants):
+        raise ValueError("Un identifiant de rendez-vous est invalide.")
+    if len(identifiants) != len(set(identifiants)):
+        raise ValueError("Plusieurs rendez-vous partagent le même identifiant.")
+
+
 def sauvegarder_rendez_vous(rendez_vous):
     """Écrit toute la liste des rendez-vous dans le fichier."""
 
@@ -82,6 +92,8 @@ def charger_rendez_vous():
             "Le fichier des rendez-vous doit contenir une liste de rendez-vous. "
             "Il a été conservé sans modification."
         )
+
+    verifier_identifiants(rendez_vous)
 
     if ajouter_identifiants_manquants(rendez_vous):
         sauvegarder_rendez_vous(rendez_vous)

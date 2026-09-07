@@ -17,9 +17,22 @@ def _charger():
     if not FICHIER_REPRISE.exists():
         return {}
     try:
-        donnees = json.loads(FICHIER_REPRISE.read_text(encoding='utf-8'))
+        def objet_unique(paires):
+            objet = {}
+            for cle, valeur in paires:
+                if cle in objet:
+                    raise ValueError('Clé dupliquée')
+                objet[cle] = valeur
+            return objet
+
+        donnees = json.loads(
+            FICHIER_REPRISE.read_text(encoding='utf-8'),
+            object_pairs_hook=objet_unique,
+        )
         if not isinstance(donnees, dict) or not all(
-            isinstance(k, str) and isinstance(v, dict)
+            isinstance(k, str) and len(k) == 64
+            and all(c in '0123456789abcdef' for c in k)
+            and isinstance(v, dict) and set(v) == {'id', 'calendrier'}
             and isinstance(v.get('id'), str) and len(v['id']) == 32
             and all(c in '0123456789abcdef' for c in v['id'])
             and isinstance(v.get('calendrier'), str)

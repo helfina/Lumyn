@@ -14,6 +14,8 @@ from lumyn.modules.rendez_vous.agenda_google import (
 )
 
 import json
+import os
+import tempfile
 from pathlib import Path
 
 NOMS_MOIS = [
@@ -178,21 +180,26 @@ def sauvegarder_preferences_calendriers(
 ):
     """Enregistre les calendriers affichés ou masqués."""
 
+    contenu = json.dumps(preferences, ensure_ascii=False, indent=4)
+
     DOSSIER_LUMYN.mkdir(
         parents=True,
         exist_ok=True,
     )
-
-    with FICHIER_PREFERENCES_CALENDRIERS.open(
-        "w",
-        encoding="utf-8",
-    ) as fichier:
-        json.dump(
-            preferences,
-            fichier,
-            ensure_ascii=False,
-            indent=4,
-        )
+    temporaire = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=DOSSIER_LUMYN,
+            prefix="calendriers-", suffix=".tmp", delete=False,
+        ) as fichier:
+            temporaire = Path(fichier.name)
+            fichier.write(contenu)
+            fichier.flush()
+            os.fsync(fichier.fileno())
+        os.replace(temporaire, FICHIER_PREFERENCES_CALENDRIERS)
+    finally:
+        if temporaire is not None:
+            temporaire.unlink(missing_ok=True)
 
 def creer_html_calendrier(
     annee,

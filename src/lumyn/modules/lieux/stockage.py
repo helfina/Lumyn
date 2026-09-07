@@ -25,6 +25,16 @@ def ajouter_identifiants_manquants(lieux):
     return modification
 
 
+def verifier_identifiants(lieux):
+    """Refuse les identifiants présents invalides ou dupliqués."""
+
+    identifiants = [lieu.get("id") for lieu in lieux if "id" in lieu]
+    if any(not isinstance(i, str) or not i.strip() for i in identifiants):
+        raise ValueError("Un identifiant de fiche du Carnet est invalide.")
+    if len(identifiants) != len(set(identifiants)):
+        raise ValueError("Plusieurs fiches du Carnet partagent le même identifiant.")
+
+
 def sauvegarder_lieux(lieux):
     """Écrit toute la liste des lieux dans le fichier local."""
 
@@ -78,6 +88,9 @@ def charger_lieux():
             "Le fichier du carnet de lieux doit contenir une liste de fiches. "
             "Il a été conservé sans modification."
         )
+
+
+    verifier_identifiants(lieux)
 
     lieux = [preparer_fiche(lieu, ancienne=True) for lieu in lieux]
 
