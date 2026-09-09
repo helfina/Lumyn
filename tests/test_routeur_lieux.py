@@ -17,6 +17,36 @@ def test_routage_adresse_entreprise_et_sante_sans_melanger_les_sources():
     sante.rechercher.assert_called_once()
 
 
+def test_centre_hospitalier_est_route_vers_sante_et_pas_entreprises():
+    ban = Mock()
+    entreprises = Mock()
+    sante = Mock(rechercher=Mock(return_value=[]))
+    routeur = RouteurLieuxPublics(
+        adresses=ban,
+        entreprises=entreprises,
+        sante=sante,
+    )
+
+    requete = "Centre Hospitalier Bretagne Atlantique Vannes"
+
+    assert routeur.rechercher(requete) == []
+    sante.rechercher.assert_called_once_with(requete)
+    entreprises.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()
+
+
+def test_classification_des_centres_hospitaliers_sans_faux_positifs():
+    assert classifier_requete(
+        "Centre Hospitalier Bretagne Atlantique Vannes"
+    ) == "sante"
+    assert classifier_requete("centre hospitalier de Lorient") == "sante"
+    assert classifier_requete(
+        "centre hospitalier universitaire Rennes"
+    ) == "sante"
+    assert classifier_requete("centre commercial Atlantique") == "entreprise"
+    assert classifier_requete("centre culturel Vannes") == "entreprise"
+
+
 def test_sante_absente_ne_retombe_pas_sur_ban_ou_entreprises():
     ban = Mock()
     entreprises = Mock()

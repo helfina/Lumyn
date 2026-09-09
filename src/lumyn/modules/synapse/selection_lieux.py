@@ -30,7 +30,7 @@ def choisir_proposition(texte, proposition, propositions, *, resultat_prepare=No
         rdv['titre'] = construire_titre_structure({
             'personne': interpretation.get('professionnel'),
             'profession': interpretation.get('profession'),
-        }) or rdv.get('titre')
+        }, nom_canonique=proposition.nom) or rdv.get('titre')
     rdv.update(lieu=proposition.adresse, mode='physique',
                lieu_source='externe', lieu_explicite=proposition.adresse,
                lieu_provenance=proposition.source, lieu_id=None)

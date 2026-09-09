@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe, PropositionLieu
+from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe, PropositionLieu, requete_minimale
 from lumyn.modules.lieux import stockage
 
 
@@ -53,3 +53,13 @@ def test_pas_de_recherche_pour_maison_absente():
     r=proposer_recherche_externe('Laporte mardi 14h visio',fournisseur,autoriser=True)
     fournisseur.rechercher.assert_not_called()
     assert r['etat']=='incomplet'
+
+def test_requete_minimale_retire_le_prefixe_rendez_vous_pour_un_etablissement():
+    phrase = (
+        "j'ai rendez-vous au Centre Hospitalier Bretagne Atlantique "
+        "mardi à 14h30 à Vannes"
+    )
+
+    assert requete_minimale(phrase) == (
+        "Centre Hospitalier Bretagne Atlantique Vannes"
+    )

@@ -179,3 +179,27 @@ def test_ui_invalidation_pendant_recherche_reactive_le_bouton(interface):
         await tache
     asyncio.run(scenario())
     assert panneau.propositions==[] and interface.resultat_courant is None
+
+def test_choix_etablissement_utilise_le_nom_canonique_dans_le_titre():
+    phrase = (
+        "j'ai rendez-vous au Centre Hospitalier Bretagne Atlantique "
+        "mardi à 14h30 à Vannes"
+    )
+
+    proposition = PropositionLieu(
+        "CENTRE HOSPITALIER BRETAGNE ATLANTIQUE",
+        "20 BD GEN MAURICE GUILLAUDOT 56000 VANNES",
+        "Source test",
+        ville="Vannes",
+    )
+
+    resultat = choisir_proposition(
+        phrase,
+        proposition,
+        [proposition],
+    )
+
+    assert resultat["etat"] == "confirmation"
+    assert resultat["rendez_vous"]["titre"] == (
+        "Rdv CENTRE HOSPITALIER BRETAGNE ATLANTIQUE"
+    )

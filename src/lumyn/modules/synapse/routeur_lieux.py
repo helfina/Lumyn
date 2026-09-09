@@ -10,7 +10,9 @@ from lumyn.modules.synapse.sante_publique import FournisseurEtablissementsSante
 MOTS_SANTE = {
     "docteur", "dr", "médecin", "medecin", "dentiste", "dermatologue",
     "infirmier", "infirmière", "kine", "kiné", "psychologue", "psy",
-    "pharmacie", "hôpital", "hopital", "clinique", "cabinet médical",
+    "pharmacie", "hôpital", "hopital", "hospitalier", "hospitalière",
+    "hospitaliere", "clinique", "cabinet médical", "centre hospitalier",
+    "centre hospitalier universitaire",
 }
 MOTS_ADRESSE = {
     "rue", "avenue", "boulevard", "route", "impasse", "allée", "allee",

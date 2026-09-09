@@ -47,6 +47,18 @@ def requete_minimale(texte):
     morceaux = []
     for cle in ('titre', 'profession', 'lieu_explicite'):
         valeur = interpretation.get(cle)
+        if not valeur:
+            continue
+        valeur = str(valeur).strip()
+        if cle == 'titre':
+            valeur = re.sub(
+                r"^\s*(?:j['’]ai\s+)?(?:un\s+)?"
+                r"(?:rendez[- ]?vous|rdv)\s+"
+                r"(?:au|aux|chez|avec|à\s+la|a\s+la|à\s+l['’]|a\s+l['’])\s+",
+                '',
+                valeur,
+                flags=re.IGNORECASE,
+            ).strip()
         if valeur and valeur.casefold() not in ' '.join(morceaux).casefold():
             morceaux.append(valeur)
     return ' '.join(morceaux)
