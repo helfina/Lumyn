@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+import pytest
+
 from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics, classifier_requete
 
 
@@ -62,3 +64,12 @@ def test_autocompletion_est_toujours_ban_et_classification():
     routeur.autocompleter("12 rue du gén")
     ban.autocompleter.assert_called_once_with("12 rue du gén")
     assert classifier_requete("Centre commercial Vannes") == "entreprise"
+
+
+@pytest.mark.parametrize("requete,categorie", [
+    ("Hôpital Bretagne Atlantique Vannes", "sante"),
+    ("Centre hospitalier de Vannes", "sante"),
+    ("Centre culturel Vannes", "entreprise"),
+])
+def test_classification_des_variantes_d_etablissements(requete, categorie):
+    assert classifier_requete(requete) == categorie
