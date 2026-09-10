@@ -203,3 +203,23 @@ def test_choix_etablissement_utilise_le_nom_canonique_dans_le_titre():
     assert resultat["rendez_vous"]["titre"] == (
         "Rdv CENTRE HOSPITALIER BRETAGNE ATLANTIQUE"
     )
+
+
+def test_choix_etablissement_remplace_un_titre_naturel_commencant_par_rdv():
+    phrase = (
+        "rdv au Centre Hospitalier Bretagne Atlantique "
+        "mardi à 14h30 à Vannes"
+    )
+    proposition = PropositionLieu(
+        "CENTRE HOSPITALIER BRETAGNE ATLANTIQUE",
+        "20 BD GEN MAURICE GUILLAUDOT 56000 VANNES",
+        "Source test",
+        ville="Vannes",
+    )
+
+    resultat = choisir_proposition(phrase, proposition, [proposition])
+
+    assert resultat["etat"] == "confirmation"
+    assert resultat["rendez_vous"]["titre"] == (
+        "Rdv CENTRE HOSPITALIER BRETAGNE ATLANTIQUE"
+    )

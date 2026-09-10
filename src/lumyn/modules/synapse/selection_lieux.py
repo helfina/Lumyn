@@ -25,12 +25,11 @@ def choisir_proposition(texte, proposition, propositions, *, resultat_prepare=No
         return resultat
     if rdv.get('lieu_source') in ('carnet', 'maison') or rdv.get('mode') in ('visio','domicile','telephone'):
         return resultat
-    if not str(rdv.get('titre') or '').startswith('Rdv '):
-        interpretation = interpreter_rendez_vous(texte)
-        rdv['titre'] = construire_titre_structure({
-            'personne': interpretation.get('professionnel'),
-            'profession': interpretation.get('profession'),
-        }, nom_canonique=proposition.nom) or rdv.get('titre')
+    interpretation = interpreter_rendez_vous(texte)
+    rdv['titre'] = construire_titre_structure({
+        'personne': interpretation.get('professionnel'),
+        'profession': interpretation.get('profession'),
+    }, nom_canonique=proposition.nom) or rdv.get('titre')
     rdv.update(lieu=proposition.adresse, mode='physique',
                lieu_source='externe', lieu_explicite=proposition.adresse,
                lieu_provenance=proposition.source, lieu_id=None)
