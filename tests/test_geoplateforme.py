@@ -83,6 +83,53 @@ def test_limiteur_de_debit_reste_sous_quota_officiel():
     assert pauses == [pytest.approx(0.15)]
 
 
+def test_recherche_ban_ignore_features_partielles_ou_non_adresse():
+    charge = {"features": [
+        "pas une feature",
+        {"properties": "pas un dictionnaire"},
+        {"properties": {"_type": "poi", "label": "Lieu"}},
+        {"properties": {"_type": "address", "label": "  "}},
+    ]}
+    fournisseur = FournisseurGeoplateforme(
+        intervalle_minimum=0, transport=lambda url, timeout: charge)
+
+    assert fournisseur.rechercher("12 rue Test") == []
+
+
+def test_recherche_ban_utilise_id_et_conserve_les_metadonnees_fiables():
+    charge = {"features": [{"properties": {
+        "_type": "address", "name": "12 rue Test",
+        "label": "12 rue Test 56000 Vannes", "city": "Vannes", "id": "id-ban",
+    }}]}
+    fournisseur = FournisseurGeoplateforme(
+        intervalle_minimum=0, transport=lambda url, timeout: charge)
+
+    propositions = fournisseur.rechercher("12 rue Test")
+
+    assert len(propositions) == 1
+    proposition = propositions[0]
+    assert proposition.identifiant == "id-ban"
+    assert proposition.conservation_autorisee is True
+    assert proposition.adresse_verifiee is True
+    assert proposition.source == SOURCE_BAN
+
+
+def test_recherche_ban_dedoublonne_avant_d_appliquer_la_limite():
+    charge = {"features": [
+        {"properties": {"_type": "address", "name": "Rue A", "label": "1 RUE A Vannes"}},
+        {"properties": {"_type": "address", "name": "Rue A", "label": "1 rue a vannes"}},
+        {"properties": {"_type": "address", "name": "Rue B", "label": "2 rue B Vannes"}},
+        {"properties": {"_type": "address", "name": "Rue C", "label": "3 rue C Vannes"}},
+    ]}
+    fournisseur = FournisseurGeoplateforme(
+        limite=2, intervalle_minimum=0, transport=lambda url, timeout: charge)
+
+    propositions = fournisseur.rechercher("rue Vannes")
+
+    assert [proposition.adresse for proposition in propositions] == [
+        "1 RUE A Vannes", "2 rue B Vannes"]
+
+
 @pytest.mark.parametrize("code", [401, 403, 429, 500, 503])
 def test_codes_http_geoplateforme_sont_des_erreurs_propres(code):
     fournisseur = FournisseurGeoplateforme(
