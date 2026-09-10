@@ -1,9 +1,7 @@
 from unittest.mock import Mock
-from datetime import date
 
 import pytest
 
-from lumyn.modules.rendez_vous import analyseur
 from lumyn.modules.synapse.interpreteur_rendez_vous import (
     extraire_indices_deterministes,
     interpreter_rendez_vous,
@@ -19,16 +17,6 @@ CORPUS = [
      'docteur'),
     ('jeudi vers 10 heures chez ma psy Laporte à Lorient', 'psy'),
 ]
-
-
-@pytest.fixture(autouse=True)
-def date_reference_mercredi(monkeypatch):
-    class DateFixe(date):
-        @classmethod
-        def today(cls):
-            return cls(2026, 9, 9)
-
-    monkeypatch.setattr(analyseur, 'date', DateFixe)
 
 
 def fiche_laporte(*adresses):

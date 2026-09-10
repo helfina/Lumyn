@@ -11,7 +11,7 @@ MOTS_SANTE = {
     "docteur", "dr", "médecin", "medecin", "dentiste", "dermatologue",
     "infirmier", "infirmière", "kine", "kiné", "psychologue", "psy",
     "pharmacie", "hôpital", "hopital", "hospitalier", "hospitalière",
-    "hospitaliere", "clinique", "cabinet médical", "centre hospitalier",
+    "hospitaliere", "clinique", "cabinet médical", "cabinet medical", "centre hospitalier",
     "centre hospitalier universitaire",
 }
 MOTS_ADRESSE = {

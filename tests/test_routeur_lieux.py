@@ -37,6 +37,29 @@ def test_centre_hospitalier_est_route_vers_sante_et_pas_entreprises():
     ban.rechercher.assert_not_called()
 
 
+@pytest.mark.parametrize("requete", [
+    "Hôpital Bretagne Atlantique Vannes",
+    "Hopital Bretagne Atlantique Vannes",
+    "Centre hospitalier de Vannes",
+    "Clinique Atlantique Vannes",
+    "Cabinet medical Vannes",
+])
+def test_variantes_sante_sont_routees_vers_sante(requete):
+    ban = Mock()
+    entreprises = Mock()
+    sante = Mock(rechercher=Mock(return_value=[]))
+    routeur = RouteurLieuxPublics(
+        adresses=ban,
+        entreprises=entreprises,
+        sante=sante,
+    )
+
+    assert routeur.rechercher(requete) == []
+    sante.rechercher.assert_called_once_with(requete)
+    entreprises.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()
+
+
 def test_classification_des_centres_hospitaliers_sans_faux_positifs():
     assert classifier_requete(
         "Centre Hospitalier Bretagne Atlantique Vannes"
@@ -67,9 +90,32 @@ def test_autocompletion_est_toujours_ban_et_classification():
 
 
 @pytest.mark.parametrize("requete,categorie", [
-    ("Hôpital Bretagne Atlantique Vannes", "sante"),
-    ("Centre hospitalier de Vannes", "sante"),
+    ("Hopital Bretagne Atlantique Vannes", "sante"),
+    ("Clinique Atlantique Vannes", "sante"),
+    ("Cabinet médical Vannes", "sante"),
+    ("Cabinet medical Vannes", "sante"),
     ("Centre culturel Vannes", "entreprise"),
 ])
 def test_classification_des_variantes_d_etablissements(requete, categorie):
     assert classifier_requete(requete) == categorie
+
+
+@pytest.mark.parametrize("requete", [
+    "Centre commercial Atlantique Vannes",
+    "Centre culturel Vannes",
+    "Garage Renault Josselin",
+])
+def test_variantes_non_medicales_sont_routees_vers_entreprises(requete):
+    ban = Mock()
+    entreprises = Mock(rechercher=Mock(return_value=[]))
+    sante = Mock()
+    routeur = RouteurLieuxPublics(
+        adresses=ban,
+        entreprises=entreprises,
+        sante=sante,
+    )
+
+    assert routeur.rechercher(requete) == []
+    entreprises.rechercher.assert_called_once_with(requete)
+    sante.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()

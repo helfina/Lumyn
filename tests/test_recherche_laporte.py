@@ -1,13 +1,9 @@
 import asyncio
-from datetime import date
 from unittest.mock import Mock
-
-import pytest
 
 from lumyn.modules.lieux import stockage as carnet
 from lumyn.modules.rendez_vous import stockage as rendez_vous
 from lumyn.modules.rendez_vous import ui
-from lumyn.modules.rendez_vous import analyseur
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse
 from lumyn.modules.synapse.interpreteur_rendez_vous import extraire_indices_deterministes
 from lumyn.modules.synapse.recherche_lieux import PropositionLieu, proposer_recherche_externe
@@ -18,16 +14,6 @@ from tests.test_ui import interface
 
 PHRASE = "j'ai rendez-vous avec ma psy Laporte jeudi vers 10h à son cabinet de Lorient"
 INDICES = {'personne': 'Laporte', 'profession': 'psy', 'ville': 'Lorient'}
-
-
-@pytest.fixture(autouse=True)
-def date_reference_mercredi(monkeypatch):
-    class DateFixe(date):
-        @classmethod
-        def today(cls):
-            return cls(2026, 9, 9)
-
-    monkeypatch.setattr(analyseur, 'date', DateFixe)
 
 
 class InterpreteurLocal:
