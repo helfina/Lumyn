@@ -1,5 +1,10 @@
 # Reprises Google/local et recherche de lieux — 06/09/2026
 
+## État actuel de la PR #3
+
+Au HEAD `5ca7dfe`, la suite complète compte **428 tests réussis**, avec services
+réseau et Google simulés. La CI valide Linux/Python 3.12 et Windows/Python 3.13.
+
 ## Correctif du parcours Laporte — test Windows réel
 
 Le test Windows réel avec « j'ai rendez-vous avec ma psy Laporte jeudi vers 10h
@@ -26,7 +31,8 @@ empêche l'appel Web.
 Le choix utilisateur reste obligatoire. Le titre structuré survit au choix ; BAN
 normalise ou marque l'adresse non vérifiée sans prouver l'existence du
 professionnel. Aucun choix, enregistrement Carnet ou appel Google automatique
-n'est ajouté. Validation locale : **236 tests réussis**, réseau entièrement simulé.
+n'est ajouté. À cette étape historique, la validation locale comptait **236 tests
+réussis**, réseau entièrement simulé.
 
 ## Ollama local et Web Search — décision ciblée du 06/09/2026
 

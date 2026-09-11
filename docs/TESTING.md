@@ -1,9 +1,15 @@
 # Tester Lumyn
 
-## Ollama local/Web et vérification BAN — 06/09/2026
+## État actuel de la PR #3
 
-Suite complète finale : **226 tests réussis** sous Linux/Python 3.12. Les nouveaux tests utilisent exclusivement des
-transports injectés : aucun appel à Ollama local, Ollama Cloud, au Web ou à BAN.
+Suite complète au HEAD `5ca7dfe` : **428 tests réussis** sous Linux/Python 3.12,
+avec services réseau et Google simulés. La CI valide également Windows/Python 3.13.
+
+## Historique — Ollama local/Web et vérification BAN — 06/09/2026
+
+À cette étape du chantier, la suite comptait **226 tests réussis** sous
+Linux/Python 3.12. Les nouveaux tests utilisaient exclusivement des transports
+injectés : aucun appel à Ollama local, Ollama Cloud, au Web ou à BAN.
 Ils couvrent enrichissement local facultatif, indisponibilité/timeout/JSON invalide,
 absence de clé Web, activation locale explicite, BAN obligatoire, zéro résultat, URL obligatoire,
 adresses contradictoires, timeout/erreur, normalisation BAN et maintien d'une
