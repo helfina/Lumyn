@@ -63,3 +63,25 @@ def test_pas_de_recherche_pour_maison_absente():
 def test_requete_minimale_retire_le_prefixe_rendez_vous_pour_un_etablissement(
         phrase):
     assert requete_minimale(phrase) == "Centre Hospitalier Bretagne Atlantique Vannes"
+
+
+@pytest.mark.parametrize('phrase', [
+    'vendredi rdv caf 10h à Vannes',
+    'vendredi rdv caf 10h a Vannes',
+])
+def test_recherche_caf_conserve_la_ville_sans_selection_automatique(phrase):
+    proposition = PropositionLieu(
+        'CAF Vannes', '10 rue Exemple, 56000 Vannes', 'Source publique simulée',
+        ville='Vannes', conservation_autorisee=True)
+    fournisseur = Mock(rechercher=Mock(return_value=[proposition]))
+
+    resultat = proposer_recherche_externe(
+        phrase, fournisseur, autoriser=True, lieux=[])
+
+    fournisseur.rechercher.assert_called_once()
+    requete = fournisseur.rechercher.call_args.args[0].casefold()
+    assert 'caf' in requete
+    assert 'vannes' in requete
+    assert resultat['propositions_externes'] == [proposition]
+    assert resultat['etat'] == 'ambigu'
+    assert resultat['rendez_vous']['lieu'] is None

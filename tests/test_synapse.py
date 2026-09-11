@@ -130,6 +130,20 @@ def test_physique_sans_adresse_demande_precision():
     assert r['etat']=='incomplet'
 
 
+@pytest.mark.parametrize('phrase', [
+    'vendredi rdv caf 10h à Vannes',
+    'vendredi rdv caf 10h a Vannes',
+])
+def test_ville_seule_est_un_indice_mais_exige_une_adresse_precise(phrase):
+    resultat = preparer(phrase, [])
+
+    assert resultat['etat'] == 'incomplet'
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['rendez_vous']['lieu_explicite'] == 'Vannes'
+    assert 'Il manque : le lieu' not in resultat['message']
+    assert 'adresse précise' in resultat['message']
+
+
 def test_maison_medicale_ne_devient_pas_domicile():
     resultat = preparer('Maison médicale demain 10h', [])
     assert resultat['rendez_vous']['mode'] == 'non_defini'

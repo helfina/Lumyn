@@ -428,6 +428,7 @@ class InterfaceRendezVous:
         )
 
         self.rdv_input = toga.TextInput(
+            on_change=self.changer_saisie,
             on_confirm=self.valider_depuis_saisie,
             placeholder=(
                 "Exemple : Dentiste mardi à 14h30"
@@ -1501,6 +1502,7 @@ class InterfaceRendezVous:
         )
 
         self.resultat_courant = None
+        self.saisie_analysee = None
 
         titre = rendez_vous.get(
             "titre",
@@ -1573,6 +1575,31 @@ class InterfaceRendezVous:
     # =========================================================
     # ANALYSE
     # =========================================================
+
+    def changer_saisie(self, widget=None, **kwargs):
+        """Invalide immédiatement tout résultat lié à l'ancienne saisie."""
+        recherche_active = bool(
+            self.recherche_lieux_ui is not None
+            and (
+                self.recherche_lieux_ui.instantane is not None
+                or self.recherche_lieux_ui.resultat_recherche is not None
+                or self.recherche_lieux_ui.propositions
+                or self.recherche_lieux_ui.selection is not None
+            )
+        )
+        if not (self.resultat_courant or self.saisie_analysee or recherche_active):
+            return
+
+        if self.recherche_lieux_ui is not None:
+            self.recherche_lieux_ui.invalider()
+        else:
+            self.resultat_courant = None
+            self.saisie_analysee = None
+            self.confirmer_button.enabled = False
+        self.modifier_button.enabled = False
+        self.resultat_label.text = (
+            "Saisie modifiée. Analyse de nouveau le rendez-vous."
+        )
 
     def changer_calendrier(self, widget=None, **kwargs):
         """Invalide le résumé et rend la saisie accessible à la touche Entrée."""
@@ -1868,6 +1895,7 @@ class InterfaceRendezVous:
 
         self.resultat_courant = None
         self.rendez_vous_en_modification = None
+        self.saisie_analysee = None
 
         self.rdv_input.value = ""
 

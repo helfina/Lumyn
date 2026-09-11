@@ -191,8 +191,9 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
             and not _adresse_manuelle_suffisante(rdv['lieu'])):
         rdv['lieu'] = None
         source = None
-        if 'le lieu' not in rdv['manquants']:
-            rdv['manquants'].append('le lieu')
+        manque_adresse = "l'adresse précise" if explicite else 'le lieu'
+        if manque_adresse not in rdv['manquants']:
+            rdv['manquants'].append(manque_adresse)
     suffixes = {'visio':'VISIO', 'domicile':'DOMICILE', 'telephone':'TÉLÉPHONE'}
     if mode in suffixes and rdv['titre']:
         rdv['titre'] += ' — ' + suffixes[mode]

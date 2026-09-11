@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from unittest.mock import Mock
 
 from lumyn.modules.lieux import stockage as carnet
@@ -88,6 +89,65 @@ def test_choix_externe_devient_invalide_apres_modification(interface):
     panneau.choisir(PUBLIC)
     assert panneau.selection is None
     assert not interface.confirmer_button.enabled
+
+
+def test_modification_de_saisie_efface_immediatement_le_choix_externe(
+        interface, monkeypatch):
+    fournisseur = Mock(rechercher=Mock(return_value=[PUBLIC]))
+    creation = Mock()
+    monkeypatch.setattr(ui, "creer_evenement_google", creation)
+    panneau = RechercheLieuxUI(interface, fournisseur)
+    interface.recherche_lieux_ui = panneau
+    interface.rdv_input.value = PHRASE_EXTERNE
+    asyncio.run(panneau.rechercher())
+    panneau.choisir(PUBLIC)
+    assert panneau.selection == PUBLIC
+    assert panneau.propositions == [PUBLIC]
+    assert interface.confirmer_button.enabled
+
+    appels_avant_modification = fournisseur.rechercher.call_count
+    interface.rdv_input.value = "Dr Dupont dermatologue Rennes mardi 14h"
+
+    assert interface.resultat_courant is None
+    assert interface.saisie_analysee is None
+    assert panneau.selection is None
+    assert panneau.propositions == []
+    assert panneau.instantane is None
+    assert list(panneau.resultats.children) == []
+    assert not interface.confirmer_button.enabled
+    assert fournisseur.rechercher.call_count == appels_avant_modification
+    creation.assert_not_called()
+
+
+def test_modification_pendant_recherche_ignore_la_reponse_perimee(interface):
+    async def scenario():
+        recherche_lancee = threading.Event()
+        liberer_recherche = threading.Event()
+
+        def rechercher(requete):
+            recherche_lancee.set()
+            assert liberer_recherche.wait(5)
+            return [PUBLIC]
+
+        fournisseur = Mock(rechercher=Mock(side_effect=rechercher))
+        panneau = RechercheLieuxUI(interface, fournisseur)
+        interface.recherche_lieux_ui = panneau
+        interface.rdv_input.value = PHRASE_EXTERNE
+        tache = asyncio.create_task(panneau.rechercher())
+        assert await asyncio.to_thread(recherche_lancee.wait, 5)
+
+        interface.rdv_input.value = "Dr Dupont dermatologue Rennes mardi 14h"
+        liberer_recherche.set()
+        await tache
+
+        assert panneau.propositions == []
+        assert panneau.selection is None
+        assert panneau.instantane is None
+        assert interface.resultat_courant is None
+        assert interface.saisie_analysee is None
+        assert not interface.confirmer_button.enabled
+
+    asyncio.run(scenario())
 
 
 def test_google_echoue_avant_succes_sans_fausse_persistance(

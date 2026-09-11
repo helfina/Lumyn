@@ -39,6 +39,9 @@ def test_saisie_changee_invalide_confirmation(interface, monkeypatch):
     interface.rdv_input.value='CAF demain 10h'
     interface.analyser_rendez_vous(None)
     interface.rdv_input.value='CAF demain 11h'
+    assert interface.resultat_courant is None
+    assert interface.saisie_analysee is None
+    assert not interface.confirmer_button.enabled
     interface.confirmer_rendez_vous(None)
     creation.assert_not_called()
 
