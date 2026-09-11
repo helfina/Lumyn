@@ -13,6 +13,14 @@ DOMICILE = (
     r'\b(?:(?:à|a)\s+(?:la\s+)?)?maison\b'
     r'(?=\s*(?:$|[,—–]|\d|(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|aujourd.hui|à|a)\b))'
 )
+ETABLISSEMENTS_PHYSIQUES = (
+    r"garage|centre|clinique|hôpital|hopital|cabinet|caisse|caf|cpam|"
+    r"mairie|préfecture|prefecture|france\s+travail|urssaf|ccas"
+)
+REPERES_TEMPORELS = (
+    r"lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|"
+    r"aujourd.hui"
+)
 
 
 def interpreter_rendez_vous(texte):
@@ -51,6 +59,10 @@ def interpreter_rendez_vous(texte):
         ('titre', 'le titre'), ('date', 'la date'), ('heure', "l'heure")
     ) if not rdv.get(cle)]
     indices_deterministes = extraire_indices_deterministes(texte)
+    etablissement = indices_deterministes.get('etablissement')
+    mode = modes[0] if len(modes) == 1 else 'non_defini'
+    if etablissement and not modes:
+        mode = 'physique'
     return {
         'intention': 'rendez_vous',
         'titre': rdv['titre'],
@@ -59,9 +71,9 @@ def interpreter_rendez_vous(texte):
                        or (profession.group(0) if profession else None)),
         'ville': indices_deterministes.get('ville'),
         'date': rdv['date'], 'heure': rdv['heure'],
-        'mode': modes[0] if len(modes) == 1 else 'non_defini',
+        'mode': mode,
         'lieu_explicite': lieu,
-        'lieu_a_resoudre': rdv['titre'],
+        'lieu_a_resoudre': etablissement or rdv['titre'],
         'manquants': list(rdv['manquants']),
         'ambiguities': ambiguities,
         'rendez_vous': rdv,
@@ -106,6 +118,15 @@ def extraire_indices_deterministes(texte):
             )
             if personne_avant:
                 indices['personne'] = personne_avant.group(1).strip()
+
+    etablissement = re.search(
+        rf"(?i:\b(?:rendez[- ]?vous|rdv)\s+(?:au|aux|à\s+la|a\s+la)\s+)"
+        rf"(?P<etablissement>(?i:(?:{ETABLISSEMENTS_PHYSIQUES})\b)[^,\n]*?)"
+        rf"(?=\s+(?i:(?:{REPERES_TEMPORELS})\b))",
+        texte,
+    )
+    if etablissement:
+        indices['etablissement'] = etablissement.group('etablissement').strip()
 
     # « son cabinet de Lorient » donne un indice de ville, jamais une adresse.
     ville = re.search(

@@ -2,7 +2,10 @@
 from copy import deepcopy
 import pytest
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse as preparer
-from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    extraire_indices_deterministes,
+    interpreter_rendez_vous,
+)
 
 @pytest.fixture
 def carnet():
@@ -148,3 +151,26 @@ def test_maison_medicale_ne_devient_pas_domicile():
     resultat = preparer('Maison médicale demain 10h', [])
     assert resultat['rendez_vous']['mode'] == 'non_defini'
     assert resultat['rendez_vous']['titre'] == 'Maison médicale'
+
+
+@pytest.mark.parametrize('phrase,etablissement', [
+    ('rendez-vous au Garage du Prat Vannes demain à 15h',
+     'Garage du Prat Vannes'),
+    ('rendez-vous au Centre culturel Vannes vendredi à 10h',
+     'Centre culturel Vannes'),
+    ('rendez-vous au Centre Hospitalier Bretagne Atlantique mardi à 14h30 à Vannes',
+     'Centre Hospitalier Bretagne Atlantique'),
+])
+def test_etablissement_physique_sans_adresse_reste_incomplet(
+        phrase, etablissement):
+    indices = extraire_indices_deterministes(phrase)
+    resultat = preparer(phrase, [])
+
+    assert indices['etablissement'] == etablissement
+    assert 'Centre Hospitalier Bretagne Vannes' not in etablissement
+    assert resultat['rendez_vous']['date'] is not None
+    assert resultat['rendez_vous']['heure'] in ('15h', '10h', '14h30')
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['interpretation']['lieu_a_resoudre'] == etablissement
+    assert resultat['etat'] == 'incomplet'
+    assert "adresse précise" in resultat['message']

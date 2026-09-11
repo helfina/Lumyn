@@ -185,7 +185,9 @@ def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
         if adresse or explicite:
             mode = 'physique'
     if mode == 'physique' and not rdv.get('lieu'):
-        rdv['manquants'].append('le lieu')
+        manque = ("l'adresse précise"
+                  if indices_locaux.get('etablissement') else 'le lieu')
+        rdv['manquants'].append(manque)
     if (mode not in ('visio', 'domicile', 'telephone')
             and source == 'saisie' and rdv.get('lieu')
             and not _adresse_manuelle_suffisante(rdv['lieu'])):

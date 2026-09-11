@@ -6,6 +6,7 @@ from lumyn.modules.lieux import stockage as carnet
 from lumyn.modules.rendez_vous import stockage, ui
 from lumyn.modules.synapse.recherche_lieux import PropositionLieu
 from lumyn.modules.synapse.recherche_ui import RechercheLieuxUI
+from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
 from tests.test_ui import interface
 
 
@@ -266,3 +267,109 @@ def test_echec_externe_ne_reactive_pas_ancienne_confirmation(interface):
     assert interface.resultat_courant["etat"] == "incomplet"
     assert interface.resultat_courant["rendez_vous"]["titre"] != "CAF"
     assert not interface.confirmer_button.enabled
+
+
+def test_parcours_caf_utilise_dila_puis_exige_un_choix(interface, monkeypatch):
+    proposition = PropositionLieu(
+        "Caisse d'allocations familiales (Caf) du Morbihan - siège de Vannes",
+        "70 rue de Sainte-Anne, 56018 Vannes Cedex",
+        "Service-Public.gouv.fr / DILA — source simulée",
+        ville="Vannes Cedex", identifiant="caf-vannes",
+        conservation_autorisee=True, adresse_verifiee=False)
+    ban = Mock()
+    entreprises = Mock()
+    sante = Mock()
+    administration = Mock(rechercher=Mock(return_value=[proposition]))
+    google = Mock()
+    monkeypatch.setattr(ui, "creer_evenement_google", google)
+    routeur = RouteurLieuxPublics(
+        adresses=ban, entreprises=entreprises, sante=sante,
+        administration=administration)
+    panneau = RechercheLieuxUI(interface, routeur)
+    interface.recherche_lieux_ui = panneau
+    interface.rdv_input.value = "vendredi rdv caf 10h à Vannes"
+
+    interface.analyser_rendez_vous(None)
+
+    assert interface.resultat_courant["etat"] == "incomplet"
+    assert interface.resultat_courant["rendez_vous"]["lieu"] is None
+    assert interface.resultat_courant["rendez_vous"]["lieu_explicite"] == "Vannes"
+    assert not interface.confirmer_button.enabled
+    administration.rechercher.assert_not_called()
+
+    asyncio.run(panneau.rechercher())
+
+    administration.rechercher.assert_called_once()
+    requete = administration.rechercher.call_args.args[0].casefold()
+    assert "caf" in requete and "vannes" in requete
+    entreprises.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()
+    assert panneau.propositions == [proposition]
+    assert panneau.selection is None
+    assert interface.resultat_courant is None
+    assert not interface.confirmer_button.enabled
+    google.assert_not_called()
+
+    panneau.choisir(proposition)
+
+    assert panneau.selection == proposition
+    assert interface.resultat_courant["rendez_vous"]["lieu"] == proposition.adresse
+    assert interface.resultat_courant["rendez_vous"]["titre"] == "Rdv " + proposition.nom
+    assert interface.confirmer_button.enabled
+    google.assert_not_called()
+
+
+def test_parcours_garage_attend_une_adresse_et_route_entreprises(
+        interface, monkeypatch):
+    proposition = PropositionLieu(
+        "GARAGE DU PRAT SARL", "10 rue Exemple, 56000 Vannes",
+        "Entreprises — source simulée", ville="Vannes",
+        identifiant="garage-vannes", conservation_autorisee=True)
+    ban = Mock()
+    entreprises = Mock(rechercher=Mock(return_value=[proposition]))
+    sante = Mock()
+    administration = Mock()
+    google = Mock()
+    monkeypatch.setattr(ui, "creer_evenement_google", google)
+    routeur = RouteurLieuxPublics(
+        adresses=ban, entreprises=entreprises, sante=sante,
+        administration=administration)
+    panneau = RechercheLieuxUI(interface, routeur)
+    interface.recherche_lieux_ui = panneau
+    interface.rdv_input.value = (
+        "rendez-vous au Garage du Prat Vannes demain à 15h")
+
+    interface.analyser_rendez_vous(None)
+
+    resultat = interface.resultat_courant
+    assert "Garage du Prat Vannes" in resultat["rendez_vous"]["titre"]
+    assert resultat["rendez_vous"]["heure"] == "15h"
+    assert resultat["rendez_vous"]["lieu"] is None
+    assert resultat["etat"] == "incomplet"
+    assert "adresse précise" in resultat["message"]
+    assert not interface.confirmer_button.enabled
+    entreprises.rechercher.assert_not_called()
+    administration.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()
+    google.assert_not_called()
+
+    asyncio.run(panneau.rechercher())
+
+    entreprises.rechercher.assert_called_once()
+    requete = entreprises.rechercher.call_args.args[0].casefold()
+    assert "garage du prat" in requete and "vannes" in requete
+    administration.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()
+    assert panneau.propositions == [proposition]
+    assert panneau.selection is None
+    assert not interface.confirmer_button.enabled
+
+    panneau.choisir(proposition)
+
+    assert panneau.selection == proposition
+    assert interface.resultat_courant["rendez_vous"]["lieu"] == proposition.adresse
+    assert interface.confirmer_button.enabled
+    google.assert_not_called()

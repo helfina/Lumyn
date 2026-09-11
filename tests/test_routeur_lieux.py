@@ -119,3 +119,31 @@ def test_variantes_non_medicales_sont_routees_vers_entreprises(requete):
     entreprises.rechercher.assert_called_once_with(requete)
     sante.rechercher.assert_not_called()
     ban.rechercher.assert_not_called()
+
+
+@pytest.mark.parametrize("requete,categorie", [
+    ("CAF Vannes", "administration"),
+    ("Mairie Vannes", "administration"),
+    ("Garage du Prat Vannes", "entreprise"),
+    ("Centre commercial Atlantique Vannes", "entreprise"),
+    ("Centre Hospitalier Bretagne Atlantique Vannes", "sante"),
+    ("12 rue Exemple Vannes", "adresse"),
+])
+def test_classification_preserve_chaque_source_publique(requete, categorie):
+    assert classifier_requete(requete) == categorie
+
+
+def test_administration_est_la_seule_source_appelee_pour_caf():
+    ban = Mock()
+    entreprises = Mock()
+    sante = Mock()
+    administration = Mock(rechercher=Mock(return_value=[]))
+    routeur = RouteurLieuxPublics(
+        adresses=ban, entreprises=entreprises, sante=sante,
+        administration=administration)
+
+    assert routeur.rechercher("CAF Vannes") == []
+    administration.rechercher.assert_called_once_with("CAF Vannes")
+    entreprises.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    ban.rechercher.assert_not_called()

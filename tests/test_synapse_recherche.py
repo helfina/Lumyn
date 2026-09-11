@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 import pytest
 from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe, PropositionLieu, requete_minimale
+from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
 from lumyn.modules.lieux import stockage
 
 
@@ -85,3 +86,35 @@ def test_recherche_caf_conserve_la_ville_sans_selection_automatique(phrase):
     assert resultat['propositions_externes'] == [proposition]
     assert resultat['etat'] == 'ambigu'
     assert resultat['rendez_vous']['lieu'] is None
+
+
+def test_recherche_garage_utilise_etablissement_ville_et_route_entreprises():
+    phrase = 'rendez-vous au Garage du Prat Vannes demain à 15h'
+    proposition = PropositionLieu(
+        'GARAGE DU PRAT SARL', '10 rue Exemple, 56000 Vannes',
+        'Entreprises — source simulée', ville='Vannes',
+        conservation_autorisee=True)
+    entreprises = Mock(rechercher=Mock(return_value=[proposition]))
+    adresses = Mock()
+    sante = Mock()
+    administration = Mock()
+    fournisseur = RouteurLieuxPublics(
+        adresses=adresses,
+        entreprises=entreprises,
+        sante=sante,
+        administration=administration,
+    )
+
+    resultat = proposer_recherche_externe(
+        phrase, fournisseur, autoriser=True, lieux=[])
+
+    entreprises.rechercher.assert_called_once()
+    requete = entreprises.rechercher.call_args.args[0].casefold()
+    assert 'garage du prat' in requete
+    assert 'vannes' in requete
+    adresses.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    administration.rechercher.assert_not_called()
+    assert resultat['propositions_externes'] == [proposition]
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['etat'] == 'ambigu'
