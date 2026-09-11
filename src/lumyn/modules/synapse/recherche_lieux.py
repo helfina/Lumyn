@@ -53,8 +53,9 @@ def requete_minimale(texte):
         if cle == 'titre':
             valeur = re.sub(
                 r"^\s*(?:j['’]ai\s+)?(?:un\s+)?"
-                r"(?:rendez[- ]?vous|rdv)\s+"
-                r"(?:au|aux|chez|avec|à\s+la|a\s+la|à\s+l['’]|a\s+l['’])\s+",
+                r"(?:rendez[- ]?vous|rdv)"
+                r"(?:\s+(?:au|aux|chez|avec|à\s+la|a\s+la|"
+                r"à\s+l['’]|a\s+l['’]))?\s+",
                 '',
                 valeur,
                 flags=re.IGNORECASE,

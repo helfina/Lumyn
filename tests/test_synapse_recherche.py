@@ -66,6 +66,11 @@ def test_requete_minimale_retire_le_prefixe_rendez_vous_pour_un_etablissement(
     assert requete_minimale(phrase) == "Centre Hospitalier Bretagne Atlantique Vannes"
 
 
+def test_requete_minimale_retire_rdv_sans_preposition():
+    assert requete_minimale(
+        'vendredi rdv caf 10h à Vannes') == 'caf Vannes'
+
+
 @pytest.mark.parametrize('phrase', [
     'vendredi rdv caf 10h à Vannes',
     'vendredi rdv caf 10h a Vannes',
@@ -81,6 +86,7 @@ def test_recherche_caf_conserve_la_ville_sans_selection_automatique(phrase):
 
     fournisseur.rechercher.assert_called_once()
     requete = fournisseur.rechercher.call_args.args[0].casefold()
+    assert 'rdv' not in requete
     assert 'caf' in requete
     assert 'vannes' in requete
     assert resultat['propositions_externes'] == [proposition]

@@ -301,6 +301,7 @@ def test_parcours_caf_utilise_dila_puis_exige_un_choix(interface, monkeypatch):
 
     administration.rechercher.assert_called_once()
     requete = administration.rechercher.call_args.args[0].casefold()
+    assert "rdv" not in requete
     assert "caf" in requete and "vannes" in requete
     entreprises.rechercher.assert_not_called()
     sante.rechercher.assert_not_called()
