@@ -156,7 +156,7 @@ flatpak_sdk = "org.gnome.Sdk"
 
 [tool.briefcase.app.lumyn.windows]
 requires = [
-    "toga-winforms~=0.5.0",
+    "toga-winforms==0.5.6",
 ]
 
 # Mobile deployments

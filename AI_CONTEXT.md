@@ -1,5 +1,33 @@
 # Contexte du projet Lumyn
 
+## État courant — correctif Windows validé — 12/09/2026
+
+La version reste **0.0.4**. La PR #3 est fusionnée dans `main` au commit
+`629e63ce68827e19387bc4f24a74b5c697a0611b`. La branche de correction Windows est
+`fix/windows-shutdown-crash` ; son correctif validé est
+`79033bc583def28e8005706c6ae4b993f461e7f2` et la suite compte **437 tests réussis**.
+
+Le crash Windows à la fermeture n'est plus un diagnostic ouvert. Une continuation
+.NET `Task.Delay(...).ContinueWith(...)` retenant un callback Python pouvait rester
+en attente jusqu'à `pythonnet.unload()`. Le correctif vit dans
+`src/lumyn/compat_toga_winforms.py`, appliqué avant `Lumyn()` dans `app.py` :
+`CancellationTokenSource`, `TaskContinuationOptions.OnlyOnRanToCompletion`, puis
+annulation du délai à la sortie. Sa portée est Windows, Python 3.13+ et
+`toga-winforms==0.5.6` (figé pour reproductibilité). Ne pas reprendre une nouvelle
+investigation de ce crash sauf régression démontrée. Le `proactor.py` de `.briefcase`
+reste original et non modifié manuellement.
+
+Suite de travail : finaliser proprement Windows/documentation, effectuer uniquement
+les validations natives restantes, ouvrir un chantier distinct Google vers Lumyn,
+reprendre Android/APK/OAuth Android, définir la 0.0.5, puis les fonctionnalités
+ultérieures. Le chantier Google devra identifier les suppressions par
+`google_calendar_id + google_event_id` ; seuls 404/410 prouvent une suppression.
+Timeout, réseau et OAuth ne suppriment jamais localement. Couvrir aussi
+modifications distantes, conflits, redémarrage et réconciliation explicite.
+
+Android : aucun APK validé ; la génération a été bloquée par l'environnement JDK.
+Manifeste, permissions et OAuth Android natif restent à valider sur appareil.
+
 ## Décision Ollama local et Web activable explicitement — 06/09/2026
 
 Ollama local est maintenant raccordé comme enrichissement facultatif de la requête
@@ -15,8 +43,9 @@ Le code sait préserver les URL,
 garder plusieurs adresses contradictoires et vérifier une adresse avec BAN. Une
 proposition Web reste non persistable. **226 tests Linux** passent pour ce lot.
 
-Gemini reste expérimental désactivé. Geoapify reste optionnel non injecté. Version
-0.0.4 et PR #3 brouillon inchangées ; Android et crash Windows hors périmètre.
+Gemini reste expérimental désactivé. Geoapify reste optionnel non injecté. Cette
+section décrit l'état historique du 06/09/2026 ; la PR #3 est désormais fusionnée
+et le correctif Windows est validé dans l'état courant ci-dessus.
 
 ## Décision services publics et IA facultative — 06/09/2026
 
@@ -58,7 +87,8 @@ Lire d'abord :
 - `docs/TESTING.md`
 
 La version stable actuelle est **0.0.4**, fusionnée dans `main` par la PR #2
-au commit `0460534`. Le socle 0.0.3 décrit ci-dessous reste présent.
+au commit `0460534`; la PR #3 ultérieure est également fusionnée dans `main` au
+commit `629e63c`. Le socle 0.0.3 décrit ci-dessous reste présent.
 
 Elle contient notamment :
 - les rendez-vous locaux ;
@@ -194,9 +224,9 @@ Le navigateur Google Calendar a nécessité une fois un rafraîchissement manuel
 pour afficher un événement déjà créé côté Google. Ce comportement n'est pas
 considéré comme un défaut Lumyn.
 
-## Crash de fermeture Windows intermittent
+## Historique — crash de fermeture Windows avant correctif
 
-Un crash de fermeture Windows reste connu :
+Un crash de fermeture Windows était connu :
 
     Windows fatal exception: access violation
 
@@ -241,9 +271,9 @@ intermittent du problème.
 Aucun impact fonctionnel ni corruption de données n'a été observé avant la
 fermeture.
 
-La cause exacte reste à investiguer séparément côté Toga WinForms/pythonnet.
-Ne pas appliquer de correctif spéculatif Toga/pythonnet/asyncio sans
-investigation dédiée.
+Cette investigation a depuis isolé la cause et validé le correctif
+`79033bc`; voir l'état courant en tête de document. Ne pas modifier le correctif
+ou le proactor `.briefcase` sans une régression reproductible.
 
 ## Limites encore ouvertes
 

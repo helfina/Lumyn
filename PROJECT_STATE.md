@@ -1,6 +1,62 @@
 # État actuel de Lumyn
 
-## Ollama local raccordé, Web activable localement — 06/09/2026
+## Situation courante — 12/09/2026
+
+La PR #3 `feature/google-reprise-recherche-lieux` est **terminée et fusionnée**
+dans `main`. Le commit de référence après fusion est
+`629e63ce68827e19387bc4f24a74b5c697a0611b`. Elle ne constitue plus le chantier
+courant.
+
+La PR #3 a livré les reprises Lumyn vers Google, le stockage robuste, Synapse
+déterministe avec priorité au Carnet, les fournisseurs BAN/Géoplateforme,
+Recherche d'entreprises/SIRENE, FINESS et DILA/Administration, ainsi que leur
+routage. Les propositions externes restent sourcées, jamais sélectionnées ou
+enregistrées automatiquement, et Ollama local/Web reste facultatif. Les jobs CI
+Linux et Windows interdisent le réseau réel pendant les tests. La suite complète
+actuelle compte **437 tests réussis**.
+
+Le chantier `fix/windows-shutdown-crash`, créé depuis `629e63c`, est terminé
+techniquement au commit `79033bc583def28e8005706c6ae4b993f461e7f2`. La cause du
+crash historique à la fermeture sous Windows/Python 3.13 est une continuation
+.NET `Task.Delay(...).ContinueWith(...)` qui conservait un callback Python jusqu'à
+la finalisation de `pythonnet` et pouvait entrer en collision avec
+`pythonnet.unload()`.
+
+Le correctif est intégré dans `src/lumyn/compat_toga_winforms.py` et appliqué avant
+`Lumyn()` par `src/lumyn/app.py`. Il annule les délais avec un
+`CancellationTokenSource` et limite la continuation à
+`TaskContinuationOptions.OnlyOnRanToCompletion`. Sa portée est volontairement
+restreinte à Windows, Python 3.13+ et `toga-winforms==0.5.6`, dépendance figée
+pour reproductibilité. Un A/B/A sur le proactor et deux fermetures manuelles avec
+le proactor Toga original ont validé le résultat ; le fichier `.briefcase` n'est
+pas modifié manuellement.
+
+## Ordre de travail
+
+1. Finaliser proprement le chantier Windows et sa documentation.
+2. Effectuer uniquement les validations natives encore nécessaires.
+3. Ouvrir un chantier séparé Google vers Lumyn : suppressions et modifications
+   distantes, conflits et réconciliation explicite.
+4. Reprendre Android/APK/OAuth lorsque l'environnement JDK sera fonctionnel.
+5. Définir et préparer la future 0.0.5.
+6. Développer ultérieurement Historique de résolution, Notes, Tâches et rappels
+   locaux.
+
+Pour Google vers Lumyn, une suppression ne pourra être conclue qu'après
+vérification par `google_calendar_id + google_event_id` : 404/410 signifie une
+suppression certaine ; timeout, panne réseau ou erreur OAuth ne doit jamais
+supprimer le rendez-vous local. Le chantier devra aussi couvrir le redémarrage,
+les modifications distantes, les conflits et la synchronisation/réconciliation
+explicite.
+
+Android reste au stade d'une tentative bloquée avant génération : runtime Java
+sans `javac`, téléchargement du JDK 17 Briefcase expiré, aucun APK produit et
+aucun manifeste, permission ou OAuth Android natif validé sur appareil.
+
+La version reste **0.0.4**. La 0.0.5 est seulement à définir après stabilisation ;
+aucun tag, release ou nouvel installateur n'est préparé à ce stade.
+
+## Historique — Ollama local raccordé, Web activable localement — 06/09/2026
 
 L'interpréteur Ollama local est injecté au démarrage seulement si sa configuration
 est présente ; `llama3.2:1b` est le modèle par défaut. Lors d'une recherche explicite, il peut ajouter personne, profession,
@@ -20,10 +76,11 @@ zéro mensuelle, sans crédit payant ; Lumyn n'effectue aucun achat.
 Les réponses Web et leurs métadonnées tierces ne bénéficient pas automatiquement
 de la licence BAN. Même normalisée, une proposition Web reste donc non persistable ;
 une adresse provenant directement de BAN conserve le mécanisme volontaire actuel.
-Suite courante : **226 tests Linux réussis**. Ollama local réel est validé sous
-Windows avec `llama3.2:1b`, extraction correcte et aucune adresse inventée.
+À cette étape, la suite comptait **226 tests Linux réussis**. Ollama local réel
+est validé sous Windows avec `llama3.2:1b`, extraction correcte et aucune adresse
+inventée.
 
-## Architecture locale et services publics — 06/09/2026
+## Historique — Architecture locale et services publics — 06/09/2026
 
 La branche `feature/google-reprise-recherche-lieux` utilise désormais par défaut
 un routeur sans compte : Géoplateforme/BAN pour les adresses et l'autocomplétion,
@@ -44,9 +101,10 @@ L'adaptateur Gemini Web est également testé avec doubles, mais son activation 
 refusée : Google Search grounding n'est pas disponible au Free Tier et son niveau
 payant exige une facturation/prépaiement. Aucun service payant n'est nécessaire.
 
-Suite courante : **212 tests Linux réussis**. Version toujours 0.0.4, PR #3 en
-brouillon. Android reste au diagnostic antérieur (échec avant génération faute de
-JDK complet) ; aucune nouvelle tentative. Crash Windows hors périmètre.
+À cette étape, la suite comptait **212 tests Linux réussis** et la PR #3 était
+encore en brouillon. Android restait au diagnostic antérieur (échec avant
+génération faute de JDK complet) ; aucune nouvelle tentative. Le crash Windows
+était hors périmètre de ce lot.
 
 
 ## Étape préparatoire du 06/09/2026
@@ -56,7 +114,8 @@ La candidate finale a été validée par l'utilisatrice : **137 tests sous Windo
 Python 3.13 en 4.44 s**, Carnet, Synapse, focus WinForms et Google Calendar réel.
 Ces validations concernent la 0.0.4 ; elles ne valent pas validation native du lot suivant.
 
-Travail courant : `feature/google-reprise-recherche-lieux`, issue de ce merge.
+Le travail courant à cette date était `feature/google-reprise-recherche-lieux`,
+issue de ce merge.
 Version applicative conservée à **0.0.4**, aucune nouvelle release préparée.
 Le travail déjà présent dans le workspace a été conservé et complété.
 
@@ -73,7 +132,8 @@ Le travail déjà présent dans le workspace a été conservé et complété.
 - Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
   Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
 - Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de
-  données. Nouvelle PR à conserver en brouillon. Aucune fusion ni publication.
+  données. À cette date, la nouvelle PR devait rester en brouillon, sans fusion
+  ni publication.
 - Crash Windows préexistant : hors périmètre, aucun changement de runtime.
 
 ## Historique avant fusion de 0.0.4
@@ -160,7 +220,9 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
 
 ## Limites connues
 
-- Crash de fermeture Windows intermittent : `Windows fatal exception: access violation`
+### Historique — incident Windows résolu
+
+- Crash de fermeture Windows historique : `Windows fatal exception: access violation`
   observé dans `toga_winforms/libs/proactor.py` pendant le déchargement de
   `pythonnet` / `clr_loader`.
 
@@ -173,15 +235,15 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
   `rendez_vous/ui.py` par la version de `c92aaab`. Le correctif de focus n'est donc
   pas identifié comme cause.
 
-- Le crash est confirmé comme préexistant à la branche Synapse et au correctif de
-  focus ; il n'est pas considéré comme une régression introduite par la future
-  0.0.4. La cause exacte côté Toga WinForms/pythonnet reste à investiguer
-  séparément.
+- Le crash était préexistant à la branche Synapse et au correctif de focus ; il
+  n'était pas une régression introduite par la 0.0.4. Sa cause est désormais
+  identifiée et le correctif validé au commit `79033bc`.
 
-- Certaines fermetures restent parfaitement propres : le défaut est intermittent.
-  Aucun impact sur les données ou le fonctionnement de Lumyn n'a été observé avant
-  la fermeture. Aucun correctif spéculatif Toga/pythonnet n'est appliqué pour le
-  moment.
+- Certaines fermetures étaient parfaitement propres, ce qui expliquait le caractère
+  intermittent. Le correctif appliqué annule désormais la continuation retardée ;
+  aucun correctif direct dans `.briefcase` n'est requis.
+
+### Autres limites connues
 
 - Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
   concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi

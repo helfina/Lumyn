@@ -1,9 +1,15 @@
 # Tester Lumyn
 
-## État actuel de la PR #3
+## État actuel — 12/09/2026
 
-Suite complète au HEAD `5ca7dfe` : **428 tests réussis** sous Linux/Python 3.12,
-avec services réseau et Google simulés. La CI valide également Windows/Python 3.13.
+La PR #3 est terminée et fusionnée dans `main` au commit
+`629e63ce68827e19387bc4f24a74b5c697a0611b`. La suite complète vérifiée sur cette
+base compte actuellement **437 tests réussis** avec Toga Dummy, services réseau et
+Google simulés. La CI de la PR validait également Windows/Python 3.13.
+
+Le chantier `fix/windows-shutdown-crash` est corrigé et validé techniquement au
+commit `79033bc583def28e8005706c6ae4b993f461e7f2` : 7 tests dédiés couvrent le
+correctif. Il ne modifie pas les garanties fonctionnelles acquises par la PR #3.
 
 ## Historique — Ollama local/Web et vérification BAN — 06/09/2026
 
@@ -218,9 +224,9 @@ comme défaut Lumyn. La présence des rappels est confirmée, pas leur déclench
 Dans le Carnet, ajouter une adresse nécessite « Ajouter l'adresse », puis
 « Enregistrer la fiche ». Le parcours fonctionne ; son ergonomie reste inchangée.
 
-### Crash de fermeture Windows intermittent
+### Historique — crash de fermeture Windows corrigé
 
-Un crash de fermeture reste observable de manière intermittente sous Windows :
+Un crash de fermeture était observable de manière intermittente sous Windows :
 
     Windows fatal exception: access violation
 
@@ -249,16 +255,36 @@ Un test d'isolation avait également remplacé entièrement
 `src/lumyn/modules/rendez_vous/ui.py` de `f244bd0` par la version de `c92aaab` :
 le crash s'était encore produit.
 
-Ces comparaisons confirment que le défaut préexistait à la branche Synapse et au
-correctif de focus. Il n'est donc pas considéré comme une régression introduite
-par la future 0.0.4.
+Ces comparaisons avaient confirmé, avant les fusions de la 0.0.4, que le défaut
+préexistait à la branche Synapse et au correctif de focus. Il n'est donc pas
+considéré comme une régression introduite par ces travaux.
 
-Certaines fermetures restent propres, ce qui confirme le caractère intermittent.
-Aucune corruption de données ni régression fonctionnelle n'a été observée avant
-la fermeture.
+Certaines fermetures étaient propres, ce qui confirmait le caractère intermittent.
+La cause est désormais isolée : `Task.Delay(...).ContinueWith(...)` pouvait
+conserver un callback Python en attente lors de `pythonnet.unload()`.
 
-La cause exacte reste à investiguer séparément côté Toga WinForms/pythonnet.
-Aucun correctif spéculatif Toga/pythonnet/asyncio n'est appliqué pour le moment.
+#### Reproduction du 12/09/2026 sur le chantier dédié
+
+Sur la branche locale `fix/windows-shutdown-crash`, créée depuis `629e63c`, Lumyn
+complet a de nouveau produit l'access violation avec `PYTHONFAULTHANDLER=1`,
+`PYTHONASYNCIODEBUG=1` et `briefcase dev -v`. La trace implique toujours le tick
+du proactor Toga WinForms, `pythonnet.unload()` et `clr_loader`.
+
+Une application Toga minimale a ensuite été exécutée avec le Python de
+l'environnement Briefcase de Lumyn. Elle s'est fermée proprement avec
+`$LASTEXITCODE = 0`, sans access violation. Ce résultat ne prouve pas que
+Toga/pythonnet est innocent ; il établit seulement que Toga minimal ne suffit pas,
+dans cet essai, à reproduire le crash de Lumyn.
+
+Un reproducteur minimal pythonnet et un test A/B/A du proactor ont confirmé cette
+cause. Le correctif du dépôt, `src/lumyn/compat_toga_winforms.py`, annule le délai
+avec un `CancellationTokenSource` et n'autorise la continuation que par
+`TaskContinuationOptions.OnlyOnRanToCompletion`. Il est appliqué avant `Lumyn()`
+et limité à Windows, Python 3.13+ et `toga-winforms==0.5.6`, figé pour
+reproductibilité. Le `proactor.py` de `.briefcase` reste le fichier Toga original
+(SHA256 `1D76DEB8F357F8D5712866DAC0784E89BD0B4071EBBCC8100DED82C42095BDC6`) et n'est
+pas modifié manuellement. Deux fermetures de Lumyn avec ce fichier original se
+sont terminées proprement ; la suite complète compte **437 tests réussis**.
 
 ### Correctif de focus de ce lot
 
@@ -301,14 +327,17 @@ Le défaut de focus observé avant le correctif est donc corrigé et validé sou
 Windows. Toga Dummy ne simule toujours pas visuellement le focus natif, mais cette
 limite est désormais couverte par la validation manuelle WinForms.
 
-### Branche et livraison
+### Historique — Branche et livraison au 05/09/2026
 
-La stabilisation 0.0.3 a été fusionnée avant cette reprise. Le travail courant
-reste sur `feature/synapse-rendez-vous`, sans fusion ni changement d'état de PR.
+La stabilisation 0.0.3 avait été fusionnée avant cette reprise. Le travail courant
+à cette date restait sur `feature/synapse-rendez-vous`, sans fusion ni changement
+d'état de PR.
 Le contrôle natif Windows du correctif de focus est validé. Le crash de fermeture
-Windows reste un défaut intermittent connu, reproduit indépendamment du correctif
+Windows restait un défaut intermittent connu, reproduit indépendamment du correctif
 de focus et sans régression fonctionnelle observée. La décision de livraison 0.0.4
-reste à prendre en tenant compte de ce défaut connu.
+restait alors à prendre en tenant compte de ce défaut connu. Depuis, la 0.0.4 et
+la PR #3 ont été fusionnées dans `main` ; aucune release n'est créée par le
+chantier de diagnostic actuel.
 
 
 ## Audit final et candidate 0.0.4 — 05/09/2026

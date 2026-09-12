@@ -7,6 +7,7 @@ import toga
 from toga.style.pack import COLUMN, ROW, Pack
 
 from lumyn.configuration import charger_env_local
+from lumyn.compat_toga_winforms import appliquer_correctif_shutdown_toga_winforms
 from lumyn.modules.lieux.ui import creer_interface_lieux
 from lumyn.modules.rendez_vous.ui import creer_interface_rendez_vous
 from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
@@ -119,4 +120,5 @@ class Lumyn(toga.App):
 
 
 def main():
+    appliquer_correctif_shutdown_toga_winforms()
     return Lumyn()
