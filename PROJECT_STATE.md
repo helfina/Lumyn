@@ -12,27 +12,28 @@ déterministe avec priorité au Carnet, les fournisseurs BAN/Géoplateforme,
 Recherche d'entreprises/SIRENE, FINESS et DILA/Administration, ainsi que leur
 routage. Les propositions externes restent sourcées, jamais sélectionnées ou
 enregistrées automatiquement, et Ollama local/Web reste facultatif. Les jobs CI
-Linux et Windows interdisent le réseau réel pendant les tests. La suite complète vérifiée
-sur la base fusionnée compte actuellement **430 tests réussis**.
+Linux et Windows interdisent le réseau réel pendant les tests. La suite complète
+actuelle compte **437 tests réussis**.
 
-Le chantier courant est `fix/windows-shutdown-crash`, créé localement depuis
-`629e63c`. Il concerne exclusivement le crash intermittent à la fermeture sous
-Windows/Python 3.13. Lumyn complet a de nouveau produit une
-`Windows fatal exception: access violation` avec `PYTHONFAULTHANDLER=1` et
-`PYTHONASYNCIODEBUG=1`. La trace implique toujours le tick du proactor
-Toga WinForms, `pythonnet.unload()` et `clr_loader`.
+Le chantier `fix/windows-shutdown-crash`, créé depuis `629e63c`, est terminé
+techniquement au commit `79033bc583def28e8005706c6ae4b993f461e7f2`. La cause du
+crash historique à la fermeture sous Windows/Python 3.13 est une continuation
+.NET `Task.Delay(...).ContinueWith(...)` qui conservait un callback Python jusqu'à
+la finalisation de `pythonnet` et pouvait entrer en collision avec
+`pythonnet.unload()`.
 
-Une application Toga minimale, exécutée avec le Python de l'environnement
-Briefcase de Lumyn, s'est au contraire fermée proprement avec un code de sortie
-0. Ce test ne disculpe pas Toga/pythonnet, mais montre que la fenêtre Toga
-minimale ne suffit pas à reproduire le crash. Il faut désormais isoler ce que
-Lumyn initialise ou laisse actif : tâches asyncio, threads, executors et
-`asyncio.to_thread`, callbacks, services/adaptateurs et ordre de finalisation.
-Aucun correctif ne doit être appliqué sans cause démontrée.
+Le correctif est intégré dans `src/lumyn/compat_toga_winforms.py` et appliqué avant
+`Lumyn()` par `src/lumyn/app.py`. Il annule les délais avec un
+`CancellationTokenSource` et limite la continuation à
+`TaskContinuationOptions.OnlyOnRanToCompletion`. Sa portée est volontairement
+restreinte à Windows, Python 3.13+ et `toga-winforms==0.5.6`, dépendance figée
+pour reproductibilité. Un A/B/A sur le proactor et deux fermetures manuelles avec
+le proactor Toga original ont validé le résultat ; le fichier `.briefcase` n'est
+pas modifié manuellement.
 
 ## Ordre de travail
 
-1. Terminer le diagnostic du crash Windows.
+1. Finaliser proprement le chantier Windows et sa documentation.
 2. Effectuer uniquement les validations natives encore nécessaires.
 3. Ouvrir un chantier séparé Google vers Lumyn : suppressions et modifications
    distantes, conflits et réconciliation explicite.
@@ -219,7 +220,9 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
 
 ## Limites connues
 
-- Crash de fermeture Windows intermittent : `Windows fatal exception: access violation`
+### Historique — incident Windows résolu
+
+- Crash de fermeture Windows historique : `Windows fatal exception: access violation`
   observé dans `toga_winforms/libs/proactor.py` pendant le déchargement de
   `pythonnet` / `clr_loader`.
 
@@ -232,15 +235,15 @@ et navigation entre les deux écrans validés manuellement. La validation compl�
   `rendez_vous/ui.py` par la version de `c92aaab`. Le correctif de focus n'est donc
   pas identifié comme cause.
 
-- Le crash est confirmé comme préexistant à la branche Synapse et au correctif de
-  focus ; il n'est pas considéré comme une régression introduite par la future
-  0.0.4. La cause exacte côté Toga WinForms/pythonnet reste à investiguer
-  séparément.
+- Le crash était préexistant à la branche Synapse et au correctif de focus ; il
+  n'était pas une régression introduite par la 0.0.4. Sa cause est désormais
+  identifiée et le correctif validé au commit `79033bc`.
 
-- Certaines fermetures restent parfaitement propres : le défaut est intermittent.
-  Aucun impact sur les données ou le fonctionnement de Lumyn n'a été observé avant
-  la fermeture. Aucun correctif spéculatif Toga/pythonnet n'est appliqué pour le
-  moment.
+- Certaines fermetures étaient parfaitement propres, ce qui expliquait le caractère
+  intermittent. Le correctif appliqué annule désormais la continuation retardée ;
+  aucun correctif direct dans `.briefcase` n'est requis.
+
+### Autres limites connues
 
 - Interprétation par règles, limitée aux formulations couvertes ; plusieurs dates
   concurrentes et « la semaine prochaine » restent à fiabiliser. Un lieu saisi

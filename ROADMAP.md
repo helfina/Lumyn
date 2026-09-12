@@ -1,13 +1,13 @@
 # Feuille de route de Lumyn
 
 État au 12/09/2026. La version reste **0.0.4**. La PR #3 est terminée et
-fusionnée dans `main` au commit `629e63c`. Le chantier courant est
-`fix/windows-shutdown-crash`, créé localement depuis ce commit.
+fusionnée dans `main` au commit `629e63c`. Le chantier
+`fix/windows-shutdown-crash` est terminé techniquement au commit `79033bc`.
 
 ## Ordre actuel
 
 1. PR #3 : terminée et fusionnée.
-2. Crash Windows à la fermeture : diagnostic en cours.
+2. Finaliser proprement le chantier Windows et sa documentation.
 3. Validations natives restantes réellement nécessaires.
 4. Nouvelle PR Google vers Lumyn.
 5. Android, APK et OAuth Android.
@@ -70,22 +70,27 @@ fusionnée dans `main` au commit `629e63c`. Le chantier courant est
 - [x] CI GitHub Actions Linux/Python 3.12 et Windows/Python 3.13.
 - [x] PR #3 fusionnée dans `main` au commit `629e63c`.
 
-## Chantier courant — Crash Windows à la fermeture
+## Chantier Windows — crash à la fermeture corrigé
 
 - [x] Crash confirmé comme antérieur à la PR #3 et à Synapse.
 - [x] Reproduction de Lumyn complet avec faulthandler et debug asyncio ; trace
   `toga_winforms/libs/proactor.py`, `pythonnet.unload()` et `clr_loader`.
 - [x] Test Toga minimal avec le Python Briefcase de Lumyn : fermeture propre,
   code de sortie 0, aucune access violation observée.
-- [ ] Isoler les tâches asyncio, threads, executors/`asyncio.to_thread`, callbacks,
-  services/adaptateurs et leur ordre de finalisation.
-- [ ] Démontrer la cause avant toute correction.
-- [ ] Valider nativement sous Windows le correctif minimal éventuel.
+- [x] Reproducteur minimal pythonnet et A/B/A : une continuation .NET
+  `Task.Delay(...).ContinueWith(...)` conservant un callback Python peut survivre
+  jusqu'à `pythonnet.unload()`.
+- [x] Correctif Lumyn au commit `79033bc` : annulation par
+  `CancellationTokenSource` et `TaskContinuationOptions.OnlyOnRanToCompletion`.
+- [x] Portée limitée à Windows, Python 3.13+ et `toga-winforms==0.5.6`, figé pour
+  reproductibilité ; `proactor.py` dans `.briefcase` reste original et non modifié.
+- [x] Deux fermetures manuelles propres avec le proactor Toga original ; 7 tests
+  dédiés, suite complète à **437 tests réussis**.
 
-## Validations natives après le diagnostic
+## Validations natives restantes
 
 - [ ] Confirmer sous Windows le démarrage, l'utilisation normale et la fermeture
-  après un éventuel correctif du crash.
+  après le correctif ; les deux fermetures ciblées sont déjà validées.
 - [ ] Vérifier le rendu WinForms du choix explicite des propositions publiques
   avec des lieux non sensibles.
 - [ ] Si le cycle de vie Google est modifié pour corriger le crash, refaire une

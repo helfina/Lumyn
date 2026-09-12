@@ -229,8 +229,8 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
   régression introduite par `feature/synapse-rendez-vous`.
 
 - Aucun impact fonctionnel ni corruption de données n'a été observé avant
-  fermeture. La cause exacte reste à investiguer séparément côté
-  Toga WinForms/pythonnet. Aucun correctif spéculatif appliqué.
+  fermeture. À cette date, la cause restait à investiguer séparément côté
+  Toga WinForms/pythonnet ; aucun correctif spéculatif n'était appliqué.
 
 - Version déclarée conservée à 0.0.3. Aucun merge dans `main` ni changement de
   version sans décision explicite de l'utilisatrice. La prochaine décision
@@ -344,28 +344,37 @@ et des redémarrages, Synapse déterministe avec priorité au Carnet, BAN,
 Recherche d'entreprises/SIRENE, FINESS, DILA/Administration, leur routage, les
 choix externes explicites, Ollama facultatif, l'invalidation des résultats
 périmés, les tests d'intégration et la CI Linux/Windows sans réseau réel. La suite
-complète vérifiée sur la base fusionnée compte **430 tests réussis**. Version
+complète vérifiée ultérieurement compte **437 tests réussis**. Version
 maintenue à 0.0.4 ; aucun tag ni release créé.
 
-## 12/09/2026 — Ouverture du diagnostic du crash Windows
+## 12/09/2026 — Diagnostic et correctif du crash Windows validés
 
-Le chantier courant est `fix/windows-shutdown-crash`, créé localement depuis
-`629e63c`. Lumyn complet a de nouveau reproduit l'access violation à la fermeture
-avec `PYTHONFAULTHANDLER=1`, `PYTHONASYNCIODEBUG=1` et `briefcase dev -v`. La trace
-implique toujours `toga_winforms/libs/proactor.py`, `pythonnet.unload()` et
-`clr_loader`.
+Le chantier `fix/windows-shutdown-crash`, créé depuis `629e63c`, est corrigé et
+validé techniquement au commit `79033bc583def28e8005706c6ae4b993f461e7f2`.
+L'incident historique concernait une continuation .NET
+`Task.Delay(...).ContinueWith(...)` conservant un callback Python jusqu'à la
+finalisation de `pythonnet`, en collision avec `pythonnet.unload()`.
 
-Une application Toga minimale exécutée avec le Python de l'environnement Briefcase
-de Lumyn s'est fermée proprement avec `$LASTEXITCODE = 0`. Ce test ne prouve pas
-que Toga/pythonnet est innocent, mais Toga minimal seul ne suffit pas à reproduire
-le crash dans cet essai. La prochaine étape consiste à isoler les tâches asyncio,
-threads, executors/`asyncio.to_thread`, callbacks, services/adaptateurs et l'ordre
-de finalisation propres à Lumyn. Aucun correctif spéculatif n'est engagé.
+Un reproducteur minimal pythonnet et un test A/B/A sur le proactor Toga ont isolé
+la cause : la version corrigée se ferme proprement, le retour au proactor original
+reproduit le crash, puis la réapplication du correctif restaure une fermeture
+propre. Le correctif Lumyn utilise un `CancellationTokenSource`,
+`TaskContinuationOptions.OnlyOnRanToCompletion` et annule le délai à la sortie.
+Il est appliqué avant `Lumyn()` par `src/lumyn/app.py`, dans
+`src/lumyn/compat_toga_winforms.py`, uniquement sous Windows, Python 3.13+ et
+`toga-winforms==0.5.6` (figé pour reproductibilité). Les 7 tests dédiés et la
+suite complète donnent **437 tests réussis**.
 
-La suite planifiée est : terminer le crash Windows, effectuer les validations
-natives réellement nécessaires, ouvrir une nouvelle PR Google vers Lumyn, puis
-reprendre Android/APK/OAuth Android, définir la 0.0.5 et enfin les fonctionnalités
-ultérieures.
+Le `proactor.py` de l'environnement `.briefcase` a été restauré à son contenu Toga
+original (SHA256 `1D76DEB8F357F8D5712866DAC0784E89BD0B4071EBBCC8100DED82C42095BDC6`) :
+il n'est pas modifié manuellement ; le correctif vit exclusivement dans le dépôt
+Lumyn. Deux fermetures manuelles de Lumyn avec ce fichier original se sont
+terminées sans access violation.
+
+La suite planifiée est : finaliser proprement ce chantier documentaire, effectuer
+uniquement les validations natives encore nécessaires, ouvrir une nouvelle PR
+Google vers Lumyn, puis reprendre Android/APK/OAuth Android, définir la 0.0.5 et
+enfin les fonctionnalités ultérieures.
 
 Le futur chantier Google vers Lumyn devra détecter les suppressions par
 `google_calendar_id + google_event_id`, considérer uniquement 404/410 comme une
