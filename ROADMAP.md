@@ -1,7 +1,18 @@
 # Feuille de route de Lumyn
 
-État au 06/09/2026. 0.0.4 fusionnée dans main (PR #2, `0460534`).
-Travail courant : `feature/google-reprise-recherche-lieux`, version conservée à 0.0.4.
+État au 12/09/2026. La version reste **0.0.4**. La PR #3 est terminée et
+fusionnée dans `main` au commit `629e63c`. Le chantier courant est
+`fix/windows-shutdown-crash`, créé localement depuis ce commit.
+
+## Ordre actuel
+
+1. PR #3 : terminée et fusionnée.
+2. Crash Windows à la fermeture : diagnostic en cours.
+3. Validations natives restantes réellement nécessaires.
+4. Nouvelle PR Google vers Lumyn.
+5. Android, APK et OAuth Android.
+6. Définition et préparation de 0.0.5.
+7. Historique de résolution, Notes, Tâches, rappels locaux et autres modules.
 
 ## 0.0.3 — Rendez-vous stable
 
@@ -31,16 +42,17 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] PR #2 fusionnée dans main, commit 0460534 ; candidate finale Windows : 137 tests en 4.44 s.
 - [ ] Publication/installateurs : décision distincte, aucune publication effectuée dans ce lot.
 
-## Lot courant après 0.0.4
+## PR #3 — Reprises Google et recherche de lieux — terminée
 
 - [x] Réservations persistantes CREATE ; reprise DELETE sans recréation.
 - [x] Tests de pannes partielles UPDATE/MOVE et remontée des restaurations incomplètes.
 - [x] Propositions sourcées, sélection explicite, repli IA autorisé, Carnet volontaire.
 - [x] Étape préparatoire à 175 tests, puis intégration Geoapify à 188 tests Linux.
 - [x] Comparatif des fournisseurs et audit préparatoire Android/OAuth documentés.
-- [x] Geoapify choisi et intégré en offre gratuite, clé hors dépôt.
+- [x] Geoapify évalué et intégré pendant le chantier, puis relégué en adaptateur
+  optionnel non injecté par défaut ; clé toujours hors dépôt.
 - [x] Recherche et autocomplétion hors thread UI, bornées, sans IA réelle.
-- [ ] Clarification écrite des droits de conservation Geoapify avant sauvegarde Carnet.
+- [x] Conservation Geoapify interdite ; fournisseur optionnel non injecté par défaut.
 - [x] Adaptateur réel : timeout, cinq résultats, attribution et réponses périmées.
 - [x] Géoplateforme/BAN par défaut, sans compte ni clé, Licence Ouverte 2.0.
 - [x] API Recherche d'entreprises et établissements FINESS sans authentification.
@@ -51,13 +63,64 @@ Travail courant : `feature/google-reprise-recherche-lieux`, version conservée �
 - [x] IA locale hors thread : enrichissement du Carnet puis de la requête publique ; Synapse reste déterministe.
 - [x] Adaptateur Ollama Web sourcé et vérification BAN testés avec doubles.
 - [x] Ollama Web raccordé, désactivé par défaut, clé et activation locales obligatoires.
-- [ ] Source RPPS individuelle sans compte : non disponible via FHIR (clé requise).
-- [ ] Validation WinForms réelle des services publics avec des lieux non sensibles.
-- [ ] Validation native Windows/Google du lot courant.
-- [ ] Construction Android : tentative bloquée avant génération par JDK incomplet/téléchargement expiré.
-- [ ] OAuth natif et validation sur appareil après build réussi.
+- [x] Source RPPS individuelle sans compte indisponible via FHIR (clé requise) ;
+  limite documentée, sans intégration supplémentaire.
+- [x] DILA/Administration intégré pour CAF, CPAM, mairies et autres administrations prises en charge.
+- [x] Tests d'intégration Rendez-vous, garde réseau, concurrence, persistance atomique et reprises après redémarrage.
+- [x] CI GitHub Actions Linux/Python 3.12 et Windows/Python 3.13.
+- [x] PR #3 fusionnée dans `main` au commit `629e63c`.
 
-## Au-delà
+## Chantier courant — Crash Windows à la fermeture
 
-Historique de résolution, Notes et Tâches restent différés. Le crash Windows fait
-l'objet d'un chantier natif séparé. Aucun de ces sujets n'est développé ici.
+- [x] Crash confirmé comme antérieur à la PR #3 et à Synapse.
+- [x] Reproduction de Lumyn complet avec faulthandler et debug asyncio ; trace
+  `toga_winforms/libs/proactor.py`, `pythonnet.unload()` et `clr_loader`.
+- [x] Test Toga minimal avec le Python Briefcase de Lumyn : fermeture propre,
+  code de sortie 0, aucune access violation observée.
+- [ ] Isoler les tâches asyncio, threads, executors/`asyncio.to_thread`, callbacks,
+  services/adaptateurs et leur ordre de finalisation.
+- [ ] Démontrer la cause avant toute correction.
+- [ ] Valider nativement sous Windows le correctif minimal éventuel.
+
+## Validations natives après le diagnostic
+
+- [ ] Confirmer sous Windows le démarrage, l'utilisation normale et la fermeture
+  après un éventuel correctif du crash.
+- [ ] Vérifier le rendu WinForms du choix explicite des propositions publiques
+  avec des lieux non sensibles.
+- [ ] Si le cycle de vie Google est modifié pour corriger le crash, refaire une
+  non-régression ciblée de la connexion Calendar ; sinon conserver les validations
+  Google déjà acquises.
+
+## Nouvelle PR future — Google vers Lumyn
+
+- [ ] Détecter un événement supprimé dans Google.
+- [ ] Vérifier par `google_calendar_id + google_event_id`.
+- [ ] Traiter 404/410 comme une suppression distante certaine.
+- [ ] Ne jamais supprimer localement sur timeout, panne réseau ou erreur OAuth.
+- [ ] Vérifier la reprise après redémarrage suivant une suppression.
+- [ ] Synchroniser les modifications Google vers Lumyn.
+- [ ] Définir la gestion des conflits.
+- [ ] Fournir une synchronisation/réconciliation explicite.
+
+## Android / APK / OAuth Android
+
+- [x] Première tentative effectuée.
+- [x] Blocage identifié avant génération : runtime Java sans `javac`, puis
+  téléchargement du JDK 17 Briefcase expiré.
+- [ ] Obtenir un environnement JDK Android complet et fonctionnel.
+- [ ] Réussir le premier build et examiner package, manifeste et permissions.
+- [ ] Adapter et valider OAuth Google Android sur appareil réel.
+- [ ] Produire et tester un APK ; aucun APK n'est actuellement validé.
+
+## Version suivante
+
+- [ ] Définir le périmètre de 0.0.5 après stabilisation.
+- [ ] Préparer 0.0.5 seulement après décision explicite ; aucune release ni tag
+  n'est actuellement prévu.
+
+## Fonctionnalités ultérieures
+
+Historique de résolution, Notes, Tâches, rappels locaux et autres extensions de
+Lumyn restent différés. Aucun de ces sujets n'est développé dans le chantier
+Windows courant.

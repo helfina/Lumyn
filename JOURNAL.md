@@ -332,3 +332,46 @@ chaque recherche exige l'autorisation du bouton dédié. Aucun paiement n'est g�
 
 Suite finale : **226 tests réussis sous Linux**. Gemini, Geoapify, Android, crash
 Windows, version 0.0.4 et statut brouillon restent inchangés.
+
+## 12/09/2026 — PR #3 terminée et fusionnée
+
+La PR #3 `feature/google-reprise-recherche-lieux` est terminée et fusionnée dans
+`main`. Le commit de référence après fusion est
+`629e63ce68827e19387bc4f24a74b5c697a0611b`. Elle n'est plus le chantier courant.
+
+Le lot fusionné comprend les reprises Lumyn vers Google, la robustesse du stockage
+et des redémarrages, Synapse déterministe avec priorité au Carnet, BAN,
+Recherche d'entreprises/SIRENE, FINESS, DILA/Administration, leur routage, les
+choix externes explicites, Ollama facultatif, l'invalidation des résultats
+périmés, les tests d'intégration et la CI Linux/Windows sans réseau réel. La suite
+complète vérifiée sur la base fusionnée compte **430 tests réussis**. Version
+maintenue à 0.0.4 ; aucun tag ni release créé.
+
+## 12/09/2026 — Ouverture du diagnostic du crash Windows
+
+Le chantier courant est `fix/windows-shutdown-crash`, créé localement depuis
+`629e63c`. Lumyn complet a de nouveau reproduit l'access violation à la fermeture
+avec `PYTHONFAULTHANDLER=1`, `PYTHONASYNCIODEBUG=1` et `briefcase dev -v`. La trace
+implique toujours `toga_winforms/libs/proactor.py`, `pythonnet.unload()` et
+`clr_loader`.
+
+Une application Toga minimale exécutée avec le Python de l'environnement Briefcase
+de Lumyn s'est fermée proprement avec `$LASTEXITCODE = 0`. Ce test ne prouve pas
+que Toga/pythonnet est innocent, mais Toga minimal seul ne suffit pas à reproduire
+le crash dans cet essai. La prochaine étape consiste à isoler les tâches asyncio,
+threads, executors/`asyncio.to_thread`, callbacks, services/adaptateurs et l'ordre
+de finalisation propres à Lumyn. Aucun correctif spéculatif n'est engagé.
+
+La suite planifiée est : terminer le crash Windows, effectuer les validations
+natives réellement nécessaires, ouvrir une nouvelle PR Google vers Lumyn, puis
+reprendre Android/APK/OAuth Android, définir la 0.0.5 et enfin les fonctionnalités
+ultérieures.
+
+Le futur chantier Google vers Lumyn devra détecter les suppressions par
+`google_calendar_id + google_event_id`, considérer uniquement 404/410 comme une
+suppression certaine et ne jamais supprimer localement sur timeout, panne réseau
+ou erreur OAuth. Il couvrira aussi le redémarrage, les modifications distantes,
+les conflits et une synchronisation/réconciliation explicite.
+
+Android reste bloqué avant génération par l'environnement JDK : aucun APK,
+manifeste, permission ou OAuth Android natif n'a encore été validé sur appareil.
