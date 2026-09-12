@@ -42,7 +42,11 @@ def choisir_proposition(texte, proposition, propositions, *, resultat_prepare=No
     rdv['manquants'] = [label for cle, label in
         (('titre','le titre'),('date','la date'),('heure',"l'heure")) if not rdv.get(cle)]
     resultat = valider_rendez_vous(rdv)
-    resultat['message'] += '\nSource : ' + proposition.source + '\nAdresse choisie à vérifier avant confirmation.'
+    statut_adresse = (
+        'Adresse vérifiée par BAN.' if proposition.adresse_verifiee
+        else 'Adresse choisie à vérifier avant confirmation.'
+    )
+    resultat['message'] += '\nSource : ' + proposition.source + '\n' + statut_adresse
     return resultat
 
 

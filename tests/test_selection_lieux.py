@@ -88,6 +88,27 @@ def test_proposition_hors_liste_refusee():
     with pytest.raises(ValueError):choisir_proposition(PHRASE,Q,[P])
 
 
+@pytest.mark.parametrize(
+    ('adresse_verifiee', 'message_attendu'),
+    [
+        (True, 'Adresse vérifiée par BAN.'),
+        (False, 'Adresse choisie à vérifier avant confirmation.'),
+    ],
+)
+def test_choix_proposition_indique_le_statut_de_verification_ban(
+        adresse_verifiee, message_attendu):
+    proposition = PropositionLieu(
+        'Dr Dupont',
+        '1 rue Exemple, Vannes',
+        'Source test',
+        adresse_verifiee=adresse_verifiee,
+    )
+
+    resultat = choisir_proposition(PHRASE, proposition, [proposition])
+
+    assert message_attendu in resultat['message']
+
+
 @pytest.fixture
 def panneau(interface):
     interface.recherche_lieux_ui = RechercheLieuxUI(interface,Mock(rechercher=Mock(return_value=[P,Q])))
