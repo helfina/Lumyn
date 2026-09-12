@@ -1,5 +1,107 @@
 # Tester Lumyn
 
+## État actuel de la PR #3
+
+Suite complète au HEAD `5ca7dfe` : **428 tests réussis** sous Linux/Python 3.12,
+avec services réseau et Google simulés. La CI valide également Windows/Python 3.13.
+
+## Historique — Ollama local/Web et vérification BAN — 06/09/2026
+
+À cette étape du chantier, la suite comptait **226 tests réussis** sous
+Linux/Python 3.12. Les nouveaux tests utilisaient exclusivement des transports
+injectés : aucun appel à Ollama local, Ollama Cloud, au Web ou à BAN.
+Ils couvrent enrichissement local facultatif, indisponibilité/timeout/JSON invalide,
+absence de clé Web, activation locale explicite, BAN obligatoire, zéro résultat, URL obligatoire,
+adresses contradictoires, timeout/erreur, normalisation BAN et maintien d'une
+proposition non vérifiée en cas d'échec. Les tests existants conservent la priorité
+Carnet/public, les réponses périmées, le choix explicite, l'absence d'écriture
+automatique et l'absence de Google avant confirmation.
+
+Validation Windows fournie le 06/09/2026 : Ollama installé, `llama3.2:1b` présent et
+extraction réelle correcte de Laporte / psy / Lorient / jeudi / 10h, sans adresse
+inventée. Restent à valider sous Windows : arrêt du service ou modèle absent ;
+parcours public/BAN et saisie manuelle. Web Search doit rester absent de l'interface
+sauf configuration locale explicite et ne produire aucun trafic sinon. Aucun essai
+Android demandé dans ce lot.
+
+## Services publics et adaptateurs IA — 06/09/2026
+
+Suite complète de cette étape : **212 passed in 1.41s** sous Linux/Python 3.12, Toga Dummy.
+Compilation Python et `git diff --check` réussis. Les sockets externes restent
+bloquées dans les tests ; Géoplateforme, Entreprises, FINESS, Ollama et Gemini sont
+entièrement simulés par transports injectés.
+
+Les cas nouveaux couvrent recherche/autocomplétion BAN, zéro/plusieurs/invalides,
+timeouts et erreurs, limite de débit interne, Licence Ouverte et sauvegarde
+volontaire ; Entreprises/FINESS sans clé ; routage exclusif ; absence d'IA locale,
+JSON strict, champ adresse halluciné refusé et timeout ; Gemini absent, activation
+payante refusée, citations obligatoires, borne et non-persistance. Les tests Toga
+existants couvrent déjà debounce, réponse périmée, choix explicite, saisie manuelle
+et absence de création Google avant confirmation.
+
+À refaire sous Windows : suite complète, rendu WinForms, autocomplétion BAN réelle,
+recherche d'un établissement Entreprises/FINESS, panne réseau, choix/sauvegarde et
+réutilisation locale, puis non-régression Google CREATE/UPDATE/MOVE/DELETE. Ne pas
+installer Ollama avant que son raccordement UI soit développé. Gemini et Geoapify
+ne doivent produire aucun appel dans la configuration normale.
+
+## Validation Geoapify — 06/09/2026
+
+Suite complète après intégration : **188 passed** sous Linux/Python 3.12,
+Toga Dummy. Tous les tests Geoapify utilisent un transport injecté ou des mocks :
+aucune vraie clé, aucun compte et aucun appel au service. Cas ajoutés : configuration
+absente/activation sans clé, conversion zéro/un/plusieurs/invalides, timeout/erreur,
+limite et attribution, refus de conservation, activation des deux écrans, debounce,
+minimum de caractères, dernier résultat mémoire, réponse périmée, saisie manuelle,
+choix explicite et recherche Rendez-vous hors thread UI. Les tests Google/local
+existants restent inchangés et verts.
+
+Validation manuelle restante : clé gratuite créée par un adulte, rendu WinForms,
+requêtes sur lieux publics, débit/quota dans MyProjects, erreurs hors ligne et
+qualité réelle des POI. Ne pas utiliser de données médicales/personnelles pour ce
+premier essai. La sauvegarde Geoapify vers le Carnet doit rester indisponible.
+
+Android réel : `briefcase create android --no-input` a échoué avant génération :
+OpenJDK présent sans `javac`, puis téléchargement du JDK 17 Briefcase expiré.
+Aucun manifeste, package, permission ou APK vérifié. Détails dans ANDROID_OAUTH.md.
+
+
+## Résultat courant — 06/09/2026
+
+`.venv-tests/bin/python -m pytest -q` : **175 passed in 1.13s** sous Linux,
+Python 3.12, Toga Dummy. Les 137 tests existants restent réussis ; 38 nouveaux cas.
+Les résultats chronologiques ci-dessous ne doivent pas être confondus avec ce lot.
+La candidate finale 0.0.4 a été validée sous Windows/Python 3.13 : **137 passed in
+4.44s**, puis fusionnée (PR #2, `0460534`). Les validations natives sont conservées.
+
+Nouveaux tests : `test_reprise_google.py` (22 cas) et `test_selection_lieux.py`
+(16 cas). Ils couvrent perte de réponse CREATE, conflit 409 vérifié, journal
+illisible/écriture impossible, double panne locale/Google, nettoyage tardif,
+DELETE répété après suppression distante, erreurs HTTP non assimilées à un succès,
+MOVE partiel et restauration échouée. Recherche : zéro/un/plusieurs/invalides,
+erreur/timeout, priorités locales, IA absente ou inutile, choix/changement, aucune
+écriture automatique, Carnet volontaire sans doublon exact et réutilisation locale.
+
+Aucun fournisseur réseau réel appelé dans ces scénarios. Les adaptateurs sont
+simulés ; les données de reprise sont également redirigées vers un dossier temporaire.
+Le blocage socket des tests est une protection supplémentaire, pas un pare-feu système.
+
+### Validation manuelle restante pour ce lot
+
+1. Sous Windows : relancer toute la suite avec les commandes ci-dessous.
+2. Avec un agenda de test choisi par l'utilisatrice : CREATE, UPDATE, MOVE, DELETE,
+   vérifier un seul événement et les identifiants locaux ; refaire après redémarrage.
+3. Les pannes d'écriture/compensation restent simulées automatiquement ; ne pas
+   provoquer volontairement de corruption sur les données personnelles réelles.
+4. Le panneau externe nécessite un fournisseur injecté : aucun bouton nouveau
+   visible par défaut. Après choix et intégration du fournisseur, valider rendu
+   WinForms, navigation clavier, délai réseau, changement de proposition et Carnet.
+5. Android : suivre [ANDROID_OAUTH.md](ANDROID_OAUTH.md). Aucun APK ni OAuth Android
+   n'a été construit ou validé pendant cette séance.
+
+Ne pas considérer les validations natives de 0.0.4 comme celles des 175 tests.
+
+
 ## Tests automatiques isolés
 
 Depuis la racine du dépôt, dans un environnement de test distinct de Briefcase :

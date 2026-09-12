@@ -250,3 +250,85 @@ Arrêt après documentation ; PR conservée en brouillon, sans fusion.
   audit ; CHANGELOG et documents synchronisés. Rapport docs/AUDIT_0.0.4.md ajouté.
 - Recommandation : prête à fusionner avec le défaut de fermeture connu. Préparation
   d'une PR en brouillon ; aucune fusion, sortie de brouillon, release ou tag créé.
+
+
+## 06/09/2026 — Reprise après fusion de 0.0.4
+
+PR #2 fusionnée au commit 0460534. Validation finale rapportée : 137 tests
+Windows/Python 3.13 en 4.44 s, contrôles Carnet/Synapse/focus et Google réels acquis.
+Création de feature/google-reprise-recherche-lieux depuis main. Au retour de quota,
+état Git contrôlé et modifications utiles conservées, sans repartir de zéro.
+
+Réservations de création Google persistantes et reprise de suppression sans
+recréation ; restaurations de modifications/déplacements mieux signalées.
+Parcours de recherche optionnel, structuré puis IA consentie, sélection sourcée
+et Carnet volontaire. Aucun fournisseur réel choisi ni activé. 175 tests Linux
+réussis (137 existants + 38 nouveaux), sans compte Google réel.
+
+Documentation post-fusion corrigée, comparatif fournisseurs et procédure
+Android/OAuth préparés. Version maintenue à 0.0.4. Crash Windows hors périmètre.
+Arrêt au choix utilisateur des fournisseurs/coûts/gestion des clés ; lot à relire
+en PR brouillon, sans fusion ni nouvelle publication. Validation native à refaire.
+
+## 06/09/2026 — Intégration Geoapify et tentative Android
+
+Reprise propre sur la PR #3. Vérification officielle : Free à 3 000 crédits/jour,
+5 requêtes/s, sans carte, attributions Geoapify et OSM obligatoires. Adaptateur
+HTTP, configuration par environnement, conversion sourcée, timeout et limites.
+Recherche Rendez-vous et autocomplétion Carnet hors thread UI, réponses périmées
+ignorées, aucun fallback IA réel.
+
+L'autorisation de conservation durable n'étant pas démontrée, sauvegarde directe
+dans le Carnet bloquée ; saisie manuelle disponible. 188 tests Linux
+réussis avec services simulés. Sous-lots publiés régulièrement dans la PR #3.
+
+Briefcase 0.4.4 installé temporairement. `create android` tenté puis bloqué avant
+génération : runtime Java sans javac et téléchargement JDK expiré. Aucun succès
+Android revendiqué. Crash Windows, version, Notes/Tâches et OAuth desktop inchangés.
+
+## 06/09/2026 — Services publics, IA locale préparée et Gemini verrouillé
+
+Reprise propre au commit 63b42d1, branche et origin synchronisés. Géoplateforme/BAN
+est devenue la source d'adresse et d'autocomplétion par défaut, sans compte ni clé,
+avec Licence Ouverte 2.0, timeout, borne et limite de débit. API Recherche
+d'entreprises et filtre FINESS intégrés derrière un routeur par intention. Geoapify
+reste présent mais non injecté.
+
+L'API FHIR Annuaire Santé exige une clé et répond 403 sans elle : aucun compte créé,
+pas de RPPS individuel ni de gros dataset téléchargé. Adaptateur Ollama local strict
+préparé sans modèle ni raccordement UI. Adaptateur Gemini Web simulé et sourcé, mais
+activation refusée car Google Search grounding relève du niveau payant avec
+facturation/prépaiement. Aucun service payant requis.
+
+Suite portée de 188 à **212 tests réussis** sous Linux ; compilation, diff et
+recherche de secrets vérifiés. Android non retenté, crash Windows hors périmètre,
+version 0.0.4 et PR #3 brouillon conservées. Validation native Windows à refaire.
+
+## 06/09/2026 — Ollama local raccordé, Web Search préparé et verrouillé
+
+Reprise propre au commit 01ae798, synchronisée avec la PR #3. L'interpréteur Ollama
+local existant est raccordé au parcours de recherche comme enrichissement facultatif
+de personne/profession/établissement/ville. Il ne modifie jamais date, heure, mode,
+adresse ou confirmation ; toutes ses erreurs retombent sur Synapse et les services
+publics. Aucun modèle téléchargé.
+
+Audit officiel ciblé d'Ollama Web Search : compte gratuit et clé obligatoires,
+réponses title/url/content, plan Free à 0 $ avec crédits de démarrage mais quota Web
+non chiffré. Les conditions exigent 18 ans minimum. L'adaptateur Web est donc testé
+avec doubles mais son activation réelle reste bloquée. Il conserve l'URL, garde les
+contradictions et normalise prudemment via BAN sans prétendre certifier un praticien.
+Toute proposition Web reste non persistable, même si son adresse est rapprochée BAN.
+
+Suite portée à **225 tests réussis sous Linux**. Android, Gemini, Geoapify, opérations Google,
+version 0.0.4 et statut brouillon restent inchangés. Validation Windows à effectuer.
+
+## 06/09/2026 — Finalisation du lot Ollama
+
+`llama3.2:1b` devient le modèle local par défaut quand `LUMYN_IA_LOCALE=ollama`.
+La validation Windows réelle fournie confirme l'extraction Laporte / psy / Lorient /
+jeudi / 10h sans adresse inventée. Ollama Web est raccordé à l'interface uniquement
+avec `LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` locales ; il reste dernier recours et
+chaque recherche exige l'autorisation du bouton dédié. Aucun paiement n'est géré.
+
+Suite finale : **226 tests réussis sous Linux**. Gemini, Geoapify, Android, crash
+Windows, version 0.0.4 et statut brouillon restent inchangés.

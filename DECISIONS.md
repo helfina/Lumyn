@@ -2,6 +2,24 @@
 
 ---
 
+## 06/09/2026 — Local puis services publics
+
+- Le parcours normal ne dépend d'aucun abonnement, carte ou compte supplémentaire.
+- Ordre : Synapse déterministe, Maison/Carnet, source publique adaptée, choix,
+  confirmation, puis seulement Google Calendar.
+- Géoplateforme/BAN devient la source d'adresse par défaut, sans clé. La Licence
+  Ouverte 2.0 autorise la réutilisation durable avec provenance.
+- API Recherche d'entreprises couvre les établissements ; le filtre FINESS couvre
+  les établissements de santé. BAN n'est jamais présentée comme annuaire.
+- Geoapify est conservé mais non injecté. Son verrou de conservation demeure.
+- L'API FHIR Annuaire Santé exige une clé malgré son accès dit libre : aucun compte
+  n'est créé, RPPS individuel reste hors intégration.
+- Ollama est le backend local préparé, facultatif et strict ; aucun modèle téléchargé.
+- Gemini Web reste désactivé : Google Search grounding n'est pas dans le Free Tier.
+  Son adaptateur ne peut ni écrire le Carnet ni créer un rendez-vous.
+
+---
+
 # 21/07/2026
 
 ## Nom du projet
@@ -125,3 +143,41 @@ préexistant reste connu ; aucune correction native sûre n'est démontrée.
 Ne pas remplacer l'absence de diagnostic par un contournement de shutdown.
 Recommandation de fusion avec défaut documenté ; décision finale de fusion,
 statut de PR et publication réservés à l'utilisatrice.
+
+
+## 06/09/2026 — Après fusion, reprises et recherche optionnelle
+
+La PR #2 est fusionnée (0460534). Les consignes de branche/candidate du 05/09 sont
+historiques. Développement sur feature/google-reprise-recherche-lieux uniquement.
+
+Conserver 0.0.4 et le socle local. Réserver l'identifiant CREATE avant l'appel
+Google et vérifier tout conflit ; une suppression Google suivie d'une panne
+locale ne recrée plus un événement. Le modèle reste à un seul écrivain et ne
+prétend pas assurer une transaction distribuée ni toutes les doubles pannes.
+
+Priorité Maison/Carnet ; recherche structurée explicitement déclenchée ; repli
+IA/web séparément autorisé. Sélection et confirmation distinctes, sauvegarde
+Carnet volontaire, rapprochement de fiches confirmé. Aucune clé ou donnée réelle.
+
+Décisions en attente : fournisseur, conditions de conservation Carnet, budget,
+clés personnelles ou serveur ; voir docs/REPRISE_ET_RECHERCHE.md. Aucun service
+réel activé avant ce choix. Avant activation : adaptateur borné et travail réseau
+hors thread UI. Android/OAuth natif exige une validation séparée sur appareil et
+un choix de configuration Google Cloud ; seule la procédure est préparée.
+Crash Windows exclu, aucune fusion/release/changement final de PR sans accord.
+
+## 06/09/2026 — Geoapify gratuit retenu
+
+Geoapify devient le premier fournisseur structuré. Rester sur Free : aucun paiement,
+retry ou polling. Clé par environnement, France préférée, cinq résultats, timeout
+6 s. Recherche au clic et autocomplétion après 650 ms/quatre caractères ; réseau
+hors thread UI. IA/web demeure non injectée.
+
+Attribution `Geoapify / OpenStreetMap`. Les conditions publiques ne suffisent pas
+à démontrer le droit de copier durablement les résultats dans le Carnet : chaque
+adaptateur doit désormais autoriser explicitement la conservation, Geoapify la
+refuse. Obtenir une clarification écrite avant de changer ce choix.
+
+La tentative Android réelle est arrêtée avant génération : JRE sans javac et JDK
+Briefcase non téléchargeable dans cet environnement. Le flux OAuth desktop reste
+inchangé. Version 0.0.4 et PR #3 brouillon conservées.

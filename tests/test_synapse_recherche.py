@@ -1,5 +1,7 @@
 from unittest.mock import Mock
-from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe, PropositionLieu
+import pytest
+from lumyn.modules.synapse.recherche_lieux import proposer_recherche_externe, PropositionLieu, requete_minimale
+from lumyn.modules.synapse.routeur_lieux import RouteurLieuxPublics
 from lumyn.modules.lieux import stockage
 
 
@@ -20,16 +22,20 @@ def test_pas_de_reseau_par_defaut():
 
 def test_proposition_unique_jamais_appliquee_ni_enregistree():
     fournisseur=Mock()
-    fournisseur.rechercher.return_value=[PropositionLieu('Cabinet','Adresse externe fictive','Source test')]
+    fournisseur.rechercher.return_value=[PropositionLieu(
+        'Cabinet dentaire','12 rue Test, Lorient','Source test',
+        profession='dentiste', ville='Lorient')]
     r=proposer_recherche_externe('Dentiste mardi 14h à Lorient',fournisseur,autoriser=True)
     assert r['etat']=='ambigu'
-    assert r['rendez_vous']['lieu']=='Lorient'
+    assert r['rendez_vous']['lieu'] is None
     assert not stockage.FICHIER_LIEUX.exists()
 
 
 def test_propositions_multiples_exigent_choix():
     fournisseur=Mock()
-    fournisseur.rechercher.return_value=[PropositionLieu('A','Adresse A','Test'),PropositionLieu('B','Adresse B','Test')]
+    fournisseur.rechercher.return_value=[
+        PropositionLieu('Cabinet dentaire A','Adresse A','Test',profession='dentiste'),
+        PropositionLieu('Cabinet dentaire B','Adresse B','Test',profession='dentiste')]
     r=proposer_recherche_externe('Dentiste mardi 14h',fournisseur,autoriser=True)
     assert r['etat']=='ambigu'
     assert r['rendez_vous']['lieu'] is None
@@ -49,3 +55,72 @@ def test_pas_de_recherche_pour_maison_absente():
     r=proposer_recherche_externe('Laporte mardi 14h visio',fournisseur,autoriser=True)
     fournisseur.rechercher.assert_not_called()
     assert r['etat']=='incomplet'
+
+@pytest.mark.parametrize("phrase", [
+    "rdv au Centre Hospitalier Bretagne Atlantique mardi à 14h30 à Vannes",
+    "j'ai un rendez-vous au Centre Hospitalier Bretagne Atlantique mardi à 14h30 à Vannes",
+    "rendez-vous au Centre Hospitalier Bretagne Atlantique mardi à 14h30 à Vannes",
+])
+def test_requete_minimale_retire_le_prefixe_rendez_vous_pour_un_etablissement(
+        phrase):
+    assert requete_minimale(phrase) == "Centre Hospitalier Bretagne Atlantique Vannes"
+
+
+def test_requete_minimale_retire_rdv_sans_preposition():
+    assert requete_minimale(
+        'vendredi rdv caf 10h à Vannes') == 'caf Vannes'
+
+
+@pytest.mark.parametrize('phrase', [
+    'vendredi rdv caf 10h à Vannes',
+    'vendredi rdv caf 10h a Vannes',
+])
+def test_recherche_caf_conserve_la_ville_sans_selection_automatique(phrase):
+    proposition = PropositionLieu(
+        'CAF Vannes', '10 rue Exemple, 56000 Vannes', 'Source publique simulée',
+        ville='Vannes', conservation_autorisee=True)
+    fournisseur = Mock(rechercher=Mock(return_value=[proposition]))
+
+    resultat = proposer_recherche_externe(
+        phrase, fournisseur, autoriser=True, lieux=[])
+
+    fournisseur.rechercher.assert_called_once()
+    requete = fournisseur.rechercher.call_args.args[0].casefold()
+    assert 'rdv' not in requete
+    assert 'caf' in requete
+    assert 'vannes' in requete
+    assert resultat['propositions_externes'] == [proposition]
+    assert resultat['etat'] == 'ambigu'
+    assert resultat['rendez_vous']['lieu'] is None
+
+
+def test_recherche_garage_utilise_etablissement_ville_et_route_entreprises():
+    phrase = 'rendez-vous au Garage du Prat Vannes demain à 15h'
+    proposition = PropositionLieu(
+        'GARAGE DU PRAT SARL', '10 rue Exemple, 56000 Vannes',
+        'Entreprises — source simulée', ville='Vannes',
+        conservation_autorisee=True)
+    entreprises = Mock(rechercher=Mock(return_value=[proposition]))
+    adresses = Mock()
+    sante = Mock()
+    administration = Mock()
+    fournisseur = RouteurLieuxPublics(
+        adresses=adresses,
+        entreprises=entreprises,
+        sante=sante,
+        administration=administration,
+    )
+
+    resultat = proposer_recherche_externe(
+        phrase, fournisseur, autoriser=True, lieux=[])
+
+    entreprises.rechercher.assert_called_once()
+    requete = entreprises.rechercher.call_args.args[0].casefold()
+    assert 'garage du prat' in requete
+    assert 'vannes' in requete
+    adresses.rechercher.assert_not_called()
+    sante.rechercher.assert_not_called()
+    administration.rechercher.assert_not_called()
+    assert resultat['propositions_externes'] == [proposition]
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['etat'] == 'ambigu'

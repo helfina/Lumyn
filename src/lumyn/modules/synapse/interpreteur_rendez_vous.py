@@ -2,7 +2,7 @@
 import re
 from lumyn.modules.rendez_vous.analyseur import analyser_rendez_vous
 
-PROFESSIONS = r"dentiste|psychiatre|médecin|medecin|infirmière|infirmiere|infirmier|orthophoniste|psychologue|kinésithérapeute|kinesitherapeute"
+PROFESSIONS = r"dentiste|psychiatre|docteur|médecin|medecin|infirmière|infirmiere|infirmier|orthophoniste|psychologue|psy|kinésithérapeute|kinesitherapeute"
 MODES = {
     'visio': r'\b(?:en\s+)?visio(?:conférence|conference)?\b',
     'telephone': r'\b(?:(?:par|au)\s+)?téléphone\b|\b(?:(?:par|au)\s+)?telephone\b',
@@ -12,6 +12,14 @@ DOMICILE = (
     r'\b(?:(?:à|a)\s+)?domicile\b|\bchez\s+moi\b|'
     r'\b(?:(?:à|a)\s+(?:la\s+)?)?maison\b'
     r'(?=\s*(?:$|[,—–]|\d|(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|aujourd.hui|à|a)\b))'
+)
+ETABLISSEMENTS_PHYSIQUES = (
+    r"garage|centre|clinique|hôpital|hopital|cabinet|caisse|caf|cpam|"
+    r"mairie|préfecture|prefecture|france\s+travail|urssaf|ccas"
+)
+REPERES_TEMPORELS = (
+    r"lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|"
+    r"aujourd.hui"
 )
 
 
@@ -50,16 +58,83 @@ def interpreter_rendez_vous(texte):
     rdv['manquants'] = [label for cle, label in (
         ('titre', 'le titre'), ('date', 'la date'), ('heure', "l'heure")
     ) if not rdv.get(cle)]
+    indices_deterministes = extraire_indices_deterministes(texte)
+    etablissement = indices_deterministes.get('etablissement')
+    mode = modes[0] if len(modes) == 1 else 'non_defini'
+    if etablissement and not modes:
+        mode = 'physique'
     return {
         'intention': 'rendez_vous',
         'titre': rdv['titre'],
-        'professionnel': professionnel,
-        'profession': profession.group(0) if profession else None,
+        'professionnel': indices_deterministes.get('personne') or professionnel,
+        'profession': (indices_deterministes.get('profession')
+                       or (profession.group(0) if profession else None)),
+        'ville': indices_deterministes.get('ville'),
         'date': rdv['date'], 'heure': rdv['heure'],
-        'mode': modes[0] if len(modes) == 1 else 'non_defini',
+        'mode': mode,
         'lieu_explicite': lieu,
-        'lieu_a_resoudre': rdv['titre'],
+        'lieu_a_resoudre': etablissement or rdv['titre'],
         'manquants': list(rdv['manquants']),
         'ambiguities': ambiguities,
         'rendez_vous': rdv,
     }
+
+
+def construire_titre_structure(indices, *, nom_canonique=None):
+    """Construit un titre de rendez-vous sans recycler la phrase naturelle."""
+    indices = indices or {}
+    profession = str(indices.get('profession') or '').strip()
+    personne = str(nom_canonique or indices.get('personne') or '').strip()
+    morceaux = ['Rdv']
+    if profession:
+        morceaux.append(profession)
+    if personne and personne.casefold() not in ' '.join(morceaux).casefold():
+        morceaux.append(personne)
+    return ' '.join(morceaux) if len(morceaux) > 1 else None
+
+
+def extraire_indices_deterministes(texte):
+    """Extrait les indices simples utiles au Carnet, sans produire d'adresse."""
+    indices = {}
+    profession = re.search(rf'\b({PROFESSIONS})\b', texte, re.IGNORECASE)
+    if profession:
+        indices['profession'] = profession.group(0)
+        personne = re.search(
+            rf"(?:^|(?:(?:avec|chez)\s+)?(?:ma|mon|le|la|un|une)\s+)"
+            rf"(?:{PROFESSIONS})\s+"
+            r"([A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*(?:\s+[A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*)?)"
+            r"(?=\s+(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
+            r"demain|vers|à|a|au|chez)\b|\s*$)",
+            texte,
+        )
+        if personne:
+            indices['personne'] = personne.group(1).strip()
+        if 'personne' not in indices:
+            personne_avant = re.search(
+                rf"\b(?:je\s+vois|voir)\s+"
+                r"([A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*(?:\s+[A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]*)?)"
+                rf"\s+(?:ma|mon|le|la)\s+(?:{PROFESSIONS})\b",
+                texte,
+            )
+            if personne_avant:
+                indices['personne'] = personne_avant.group(1).strip()
+
+    etablissement = re.search(
+        rf"(?i:\b(?:rendez[- ]?vous|rdv)\s+(?:au|aux|à\s+la|a\s+la)\s+)"
+        rf"(?P<etablissement>(?i:(?:{ETABLISSEMENTS_PHYSIQUES})\b)[^,\n]*?)"
+        rf"(?=\s+(?i:(?:{REPERES_TEMPORELS})\b))",
+        texte,
+    )
+    if etablissement:
+        indices['etablissement'] = etablissement.group('etablissement').strip()
+
+    # « son cabinet de Lorient » donne un indice de ville, jamais une adresse.
+    ville = re.search(
+        r"\b(?:cabinet\s+(?:de|à|a)|à|a)\s+"
+        r"([A-ZÀ-ÖØ-Ý][\wÀ-ÿ'’-]+)\s*$",
+        texte.strip(' ,.'),
+        re.IGNORECASE,
+    )
+    if ville:
+        indices['ville'] = ville.group(1)
+    return indices

@@ -1,5 +1,56 @@
 # 💡 Lumyn
 
+## Ollama facultatif
+
+Le bouton **Analyser** suit uniquement le parcours rapide et local :
+
+`Synapse déterministe → Carnet`
+
+Si le rendez-vous reste non résolu, le bouton de recherche suit ensuite :
+
+`Ollama local facultatif → nouvelle tentative Carnet → services publics → Ollama Web facultatif et explicitement autorisé`
+
+Ollama local utilise `llama3.2:1b` par défaut et peut enrichir la requête sans
+remplacer Synapse. Aucune adresse IA n'est acceptée, et une panne laisse Lumyn
+fonctionner normalement. Aucun modèle n'est installé automatiquement. Le test
+Windows réel a mesuré environ 55 secondes à froid, 25 secondes à chaud et plus de
+90 secondes avec le schéma JSON strict : il n'est donc jamais requis par
+**Analyser**.
+
+Ollama Web Search reste désactivé par défaut. Il est injecté uniquement avec
+`LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` dans la configuration locale ; Lumyn
+n'achète aucun crédit et ne déclenche aucun paiement ni dépassement payant.
+Gemini reste expérimental désactivé ; Geoapify reste optionnel non injecté.
+
+### Configuration locale de développement
+
+Copier `.env.example` vers `.env.local`, puis adapter uniquement la copie locale.
+Lumyn recherche ce fichier à la racine lorsqu'il est lancé depuis le dépôt et le
+charge avant la création des fournisseurs Ollama. Les variables déjà définies
+par Windows ou le processus restent prioritaires.
+
+Le format pris en charge est volontairement simple : `CLE=valeur`, lignes vides
+et commentaires commençant par `#`. `.env.local` et `.env` sont ignorés par Git.
+Ne jamais mettre de vraie clé dans `.env.example`, dans la documentation ou dans
+un commit. `credentials.json` et `token.json` restent séparés pour Google.
+
+## Recherche locale et services publics français
+
+Maison et le Carnet restent prioritaires. Sans compte ni clé, Lumyn utilise la
+Géoplateforme/BAN pour rechercher et autocompléter des adresses françaises, puis
+l'API Recherche d'entreprises pour les établissements et le sous-ensemble FINESS
+public pour la santé. La recherche nécessite une action explicite ; aucune adresse
+n'est choisie, enregistrée ou envoyée à Google avant choix et confirmation.
+
+La saisie manuelle fonctionne hors ligne. Geoapify reste un adaptateur optionnel
+non injecté. Ollama local est relié facultativement à la recherche ; Gemini Web
+reste expérimental et bloqué car sa recherche Google nécessite actuellement le
+niveau payant.
+
+Configuration Windows et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
+État du test Android réel : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md).
+
+
 > **Votre second cerveau numérique.**
 
 Lumyn est un assistant personnel modulaire conçu pour réduire la charge mentale.
@@ -93,39 +144,28 @@ L’état de référence est décrit dans PROJECT_STATE.md.
 
 # État du projet
 
-Version préparée sur cette branche :
+**0.0.4 — fusionnée dans main**, PR #2, commit `0460534`.
 
-**0.0.4 — candidate, non publiée**
+Carnet, Synapse local, focus WinForms et Google Calendar réel sont validés.
+La candidate finale a passé 137 tests sous Windows/Python 3.13 en 4.44 s.
+Le crash intermittent de fermeture Windows préexiste à cette version ; il reste
+connu et hors périmètre du chantier courant.
 
-La version 0.0.3 gère les rendez-vous locaux et Google, validés sous Windows avec
-Google réel le 05/09/2026. Sur `feature/synapse-rendez-vous`, la candidate 0.0.4 ajoute
-le Carnet et Synapse local, validés sous Windows/Google réel le 05/09/2026.
+La branche `feature/google-reprise-recherche-lieux` renforce les reprises
+Google/local et prépare un parcours externe : propositions sourcées, sélection,
+confirmation puis ajout volontaire au Carnet. **Aucun fournisseur externe réel
+n'est activé**, le panneau optionnel reste invisible dans l'application par défaut.
+188 tests Linux réussis ; Windows/Google du nouveau lot restent à valider.
+Version applicative inchangée, Android/OAuth seulement préparé.
 
-Les 137 tests passent sous Linux et sous Windows/Python 3.13. Le correctif de focus
-après changement de calendrier est également validé nativement sous Windows.
-Le Carnet, Synapse et le CRUD Google réel sont validés.
-
-Un crash de fermeture Windows intermittent reste connu. Il a été reproduit sur
-`feature/synapse-rendez-vous`, sur l'ancien commit `c92aaab`, ainsi que sur la
-version stable 0.0.3 de `main` au commit `78093a0`.
-
-Sur `main`, le test a été effectué dans un environnement Briefcase neuf, avec
-ouverture puis fermeture immédiate de Lumyn sans interaction. Le même
-`Windows fatal exception: access violation` a été observé dans le chemin
-Toga WinForms / pythonnet / clr_loader.
-
-Le défaut préexistait donc à Synapse et au correctif de focus ; il n'est pas
-considéré comme une régression introduite par la future 0.0.4. La cause exacte
-reste à investiguer séparément. Aucun impact fonctionnel ou corruption de données
-n'a été observé avant fermeture.
-
-Android reste à valider.
+Voir le [comparatif et les limites](docs/REPRISE_ET_RECHERCHE.md) et la
+[procédure Android/OAuth](docs/ANDROID_OAUTH.md).
 
 ---
 
 # Feuille de route
 
-Voir [ROADMAP.md](ROADMAP.md). Prochaine étape : autoriser la fusion puis décider de la publication 0.0.4.
+Voir [ROADMAP.md](ROADMAP.md). Prochaine étape : choisir le fournisseur et sa politique de données, puis intégrer et valider son adaptateur.
 
 ---
 
@@ -150,15 +190,15 @@ Voir [docs/TESTING.md](docs/TESTING.md) pour les commandes PowerShell et les
 vérifications manuelles restantes. Les tests automatiques n'utilisent pas de
 compte Google réel.
 
+La CI GitHub Actions exécute la suite complète, la compilation Python et le
+contrôle des fichiers sensibles suivis sur Ubuntu/Python 3.12 et
+Windows/Python 3.13. Elle utilise `toga-dummy`, sans interface WinForms,
+packaging, compte externe, `.env.local`, `credentials.json`, `token.json` ni
+clé API réelle.
 
-## Préparation de livraison 0.0.4
 
-Audit depuis e030674 face à main 78093a0 : aucune régression bloquante mise en
-évidence dans les parcours validés, 137 tests Linux relancés. Version et documents
-mis à jour sans changement applicatif. Voir [CHANGELOG](CHANGELOG) et le
-[rapport d'audit](docs/AUDIT_0.0.4.md).
+## Historique de livraison 0.0.4
 
-**Recommandation : prête à fusionner avec défaut connu.** Le crash intermittent de
-fermeture Windows préexistait à cette branche et reste non corrigé ; aucune cause
-précise n'est démontrée. Il ne doit pas être présenté comme résolu. La PR reste en
-brouillon et aucune publication ni fusion n'est effectuée par cet audit.
+L'audit depuis e030674 face à main 78093a0 précède la fusion de la PR #2.
+Voir [CHANGELOG](CHANGELOG) et le [rapport historique](docs/AUDIT_0.0.4.md).
+La PR du nouveau lot doit rester en brouillon jusqu'à autorisation explicite.

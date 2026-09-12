@@ -7,7 +7,8 @@ ou suppression.
 """
 
 import atexit
-from datetime import datetime, timedelta
+import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from lumyn.modules.rendez_vous.reprise_google import reserver_creation, terminer_creation
 
 
 RACINE_PROJET = Path(__file__).resolve().parents[4]
@@ -368,6 +371,15 @@ def construire_corps_evenement_google(
         minutes,
         tzinfo=FUSEAU_LUMYN,
     )
+    # ZoneInfo accepte de construire une heure murale inexistante. Un
+    # aller-retour UTC permet de la détecter sans changer le choix historique
+    # fold=0 pour une heure d'hiver ambiguë.
+    retour_local = debut.astimezone(timezone.utc).astimezone(FUSEAU_LUMYN)
+    if retour_local.replace(tzinfo=None) != debut.replace(tzinfo=None):
+        raise ValueError(
+            "Cette heure locale n'existe pas en Europe/Paris à cause du "
+            "changement d'heure. Choisis une autre heure."
+        )
 
     duree = rendez_vous.get(
         "duree_minutes",
@@ -388,9 +400,9 @@ def construire_corps_evenement_google(
     if duree <= 0:
         duree = duree_minutes
 
-    fin = debut + timedelta(
-        minutes=duree
-    )
+    fin = (
+        debut.astimezone(timezone.utc) + timedelta(minutes=duree)
+    ).astimezone(FUSEAU_LUMYN)
 
     corps = {
         "summary": rendez_vous.get(
@@ -454,15 +466,40 @@ def creer_evenement_google(
         rendez_vous
     )
 
-    return (
-        service.events()
-        .insert(
-            calendarId=calendrier_id,
-            body=corps,
-            sendUpdates="none",
-        )
-        .execute()
-    )
+    identifiant = reserver_creation(calendrier_id, corps)
+    corps['id'] = identifiant
+    corps['extendedProperties'] = {'private': {'lumyn_creation': identifiant}}
+    try:
+        return service.events().insert(
+            calendarId=calendrier_id, body=corps, sendUpdates="none",
+        ).execute()
+    except HttpError as erreur:
+        if erreur.resp.status != 409:
+            raise
+        existant = service.events().get(
+            calendarId=calendrier_id, eventId=identifiant,
+        ).execute()
+        if not _creation_identique(existant, corps):
+            raise RuntimeError(
+                "Une création précédente existe mais son contenu a changé ou a été supprimé. "
+                "Vérifie ce rendez-vous dans Google avant toute nouvelle création."
+            ) from erreur
+        return existant
+
+
+def _creation_identique(existant, attendu):
+    if (existant.get('id') != attendu['id'] or existant.get('status') == 'cancelled'
+        or existant.get('extendedProperties', {}).get('private', {}).get('lumyn_creation') != attendu['id']):
+        return False
+    for cle in ('summary', 'location', 'reminders'):
+        if existant.get(cle) != attendu.get(cle):
+            return False
+    try:
+        return all(datetime.fromisoformat(existant[cle]['dateTime']) ==
+                   datetime.fromisoformat(attendu[cle]['dateTime'])
+                   for cle in ('start', 'end'))
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 # ============================================================
@@ -535,15 +572,19 @@ def supprimer_evenement_google(
 
     service = obtenir_service_google_calendar()
 
-    (
-        service.events()
-        .delete(
-            calendarId=calendrier_id,
-            eventId=google_event_id,
-            sendUpdates="none",
-        )
-        .execute()
-    )
+    try:
+        service.events().delete(
+            calendarId=calendrier_id, eventId=google_event_id, sendUpdates="none",
+        ).execute()
+    except HttpError as erreur:
+        try:
+            raisons = [e.get('reason') for e in json.loads(erreur.content)['error']['errors']]
+        except (ValueError, KeyError, TypeError):
+            raisons = []
+        # Un 404 peut être un défaut de droits : seul "deleted" est une preuve.
+        if erreur.resp.status != 410 or raisons != ['deleted']:
+            raise
+    terminer_creation(calendrier_id, google_event_id)
 
     # Google a accepté la suppression.
     # Même si une lecture faite juste après renvoie encore

@@ -2,7 +2,10 @@
 from copy import deepcopy
 import pytest
 from lumyn.modules.synapse.orchestrateur_rendez_vous import preparer_rendez_vous_synapse as preparer
-from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    extraire_indices_deterministes,
+    interpreter_rendez_vous,
+)
 
 @pytest.fixture
 def carnet():
@@ -77,7 +80,8 @@ def test_plusieurs_candidats_et_nom_precis(carnet):
 
 def test_intention_explicite_prime_favorite(carnet):
     r=preparer('dentiste mardi 10h à Pontivy',carnet)
-    assert r['rendez_vous']['lieu']=='Pontivy'
+    assert r['rendez_vous']['lieu'] is None
+    assert r['etat'] == 'incomplet'
     assert '3 rue' not in r['message']
 
 
@@ -129,7 +133,44 @@ def test_physique_sans_adresse_demande_precision():
     assert r['etat']=='incomplet'
 
 
+@pytest.mark.parametrize('phrase', [
+    'vendredi rdv caf 10h à Vannes',
+    'vendredi rdv caf 10h a Vannes',
+])
+def test_ville_seule_est_un_indice_mais_exige_une_adresse_precise(phrase):
+    resultat = preparer(phrase, [])
+
+    assert resultat['etat'] == 'incomplet'
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['rendez_vous']['lieu_explicite'] == 'Vannes'
+    assert 'Il manque : le lieu' not in resultat['message']
+    assert 'adresse précise' in resultat['message']
+
+
 def test_maison_medicale_ne_devient_pas_domicile():
     resultat = preparer('Maison médicale demain 10h', [])
     assert resultat['rendez_vous']['mode'] == 'non_defini'
     assert resultat['rendez_vous']['titre'] == 'Maison médicale'
+
+
+@pytest.mark.parametrize('phrase,etablissement', [
+    ('rendez-vous au Garage du Prat Vannes demain à 15h',
+     'Garage du Prat Vannes'),
+    ('rendez-vous au Centre culturel Vannes vendredi à 10h',
+     'Centre culturel Vannes'),
+    ('rendez-vous au Centre Hospitalier Bretagne Atlantique mardi à 14h30 à Vannes',
+     'Centre Hospitalier Bretagne Atlantique'),
+])
+def test_etablissement_physique_sans_adresse_reste_incomplet(
+        phrase, etablissement):
+    indices = extraire_indices_deterministes(phrase)
+    resultat = preparer(phrase, [])
+
+    assert indices['etablissement'] == etablissement
+    assert 'Centre Hospitalier Bretagne Vannes' not in etablissement
+    assert resultat['rendez_vous']['date'] is not None
+    assert resultat['rendez_vous']['heure'] in ('15h', '10h', '14h30')
+    assert resultat['rendez_vous']['lieu'] is None
+    assert resultat['interpretation']['lieu_a_resoudre'] == etablissement
+    assert resultat['etat'] == 'incomplet'
+    assert "adresse précise" in resultat['message']

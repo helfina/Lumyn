@@ -1,5 +1,87 @@
 # État actuel de Lumyn
 
+## Ollama local raccordé, Web activable localement — 06/09/2026
+
+L'interpréteur Ollama local est injecté au démarrage seulement si sa configuration
+est présente ; `llama3.2:1b` est le modèle par défaut. Lors d'une recherche explicite, il peut ajouter personne, profession,
+établissement et ville à la requête publique. Les champs date/heure/mode restent
+gérés par Synapse déterministe ; toute adresse ou champ inconnu est rejeté. Absence
+du logiciel, du modèle, timeout ou réponse invalide laissent le parcours public et
+la saisie manuelle fonctionner.
+
+Ollama Web Search est implémenté derrière `FournisseurIAWeb`, avec requête minimale,
+trois résultats maximum, URL obligatoire, extraction prudente et rapprochement BAN.
+Une divergence BAN ne supprime pas la proposition mais la marque non vérifiée ;
+plusieurs adresses restent plusieurs choix. Le service est injecté uniquement avec
+`LUMYN_OLLAMA_WEB=1` et `OLLAMA_API_KEY` dans l'environnement local. Le compte
+utilisateur indique une utilisation incluse gratuite, 0 % utilisé et une remise à
+zéro mensuelle, sans crédit payant ; Lumyn n'effectue aucun achat.
+
+Les réponses Web et leurs métadonnées tierces ne bénéficient pas automatiquement
+de la licence BAN. Même normalisée, une proposition Web reste donc non persistable ;
+une adresse provenant directement de BAN conserve le mécanisme volontaire actuel.
+Suite courante : **226 tests Linux réussis**. Ollama local réel est validé sous
+Windows avec `llama3.2:1b`, extraction correcte et aucune adresse inventée.
+
+## Architecture locale et services publics — 06/09/2026
+
+La branche `feature/google-reprise-recherche-lieux` utilise désormais par défaut
+un routeur sans compte : Géoplateforme/BAN pour les adresses et l'autocomplétion,
+API Recherche d'entreprises pour les établissements, et son filtre FINESS pour les
+établissements de santé. Maison/Carnet restent prioritaires. Toute proposition
+externe exige choix puis confirmation ; l'enregistrement BAN/SIRENE dans le Carnet
+reste volontaire et dédoublonné. La saisie manuelle et le fonctionnement local
+restent disponibles hors ligne.
+
+La BAN est diffusée sous Licence Ouverte Etalab 2.0 : les adresses normalisées
+sont persistables avec leur provenance. Geoapify est conservé isolé et testé mais
+n'est plus injecté. L'API FHIR Annuaire Santé répond 403 sans `ESANTE-API-KEY` :
+aucun compte n'a été créé et les praticiens RPPS individuels ne sont pas intégrés.
+
+Un adaptateur Ollama strictement local est préparé, testé et relié facultativement
+au parcours Toga. Il ne télécharge aucun modèle et rejette tout champ adresse.
+L'adaptateur Gemini Web est également testé avec doubles, mais son activation est
+refusée : Google Search grounding n'est pas disponible au Free Tier et son niveau
+payant exige une facturation/prépaiement. Aucun service payant n'est nécessaire.
+
+Suite courante : **212 tests Linux réussis**. Version toujours 0.0.4, PR #3 en
+brouillon. Android reste au diagnostic antérieur (échec avant génération faute de
+JDK complet) ; aucune nouvelle tentative. Crash Windows hors périmètre.
+
+
+## Étape préparatoire du 06/09/2026
+
+**0.0.4 est fusionnée dans main**, PR #2, commit `0460534`.
+La candidate finale a été validée par l'utilisatrice : **137 tests sous Windows /
+Python 3.13 en 4.44 s**, Carnet, Synapse, focus WinForms et Google Calendar réel.
+Ces validations concernent la 0.0.4 ; elles ne valent pas validation native du lot suivant.
+
+Travail courant : `feature/google-reprise-recherche-lieux`, issue de ce merge.
+Version applicative conservée à **0.0.4**, aucune nouvelle release préparée.
+Le travail déjà présent dans le workspace a été conservé et complété.
+
+- Reprise de CREATE Google par identifiant réservé sur disque ; DELETE partiel
+  réessayable sans recréer l'événement ; restaurations UPDATE/MOVE mieux signalées.
+- Parcours optionnel de propositions sourcées, choix explicite puis confirmation,
+  ajout volontaire au Carnet et choix d'une fiche similaire avant ajout d'adresse.
+- Fournisseur structuré puis repli IA/web autorisé séparément : architecture et
+  interface testées par injection. Cette étape précédait le choix Geoapify ; le
+  fournisseur est maintenant optionnel et reste désactivé sans configuration.
+- Cette étape préparatoire comptait **175 tests Linux réussis**. L’intégration
+  Geoapify réalisée ensuite porte la suite courante à **188 tests**. Validation
+  Windows et Google réelle du nouveau lot encore à effectuer.
+- Comparatif et limites : [docs/REPRISE_ET_RECHERCHE.md](docs/REPRISE_ET_RECHERCHE.md).
+  Android/OAuth : [docs/ANDROID_OAUTH.md](docs/ANDROID_OAUTH.md), préparation uniquement.
+- Arrêt avant le choix du fournisseur, des clés, du budget et de la politique de
+  données. Nouvelle PR à conserver en brouillon. Aucune fusion ni publication.
+- Crash Windows préexistant : hors périmètre, aucun changement de runtime.
+
+## Historique avant fusion de 0.0.4
+
+Les sections datées ci-dessous décrivent les étapes antérieures ; leurs mentions
+de candidate et de fusion en attente ne décrivent plus la situation courante.
+
+
 ## Version et branche — 05/09/2026
 
 Version déclarée sur cette branche : **0.0.4**, candidate préparée après audit.

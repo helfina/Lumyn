@@ -8,7 +8,26 @@ from lumyn.modules.lieux.gestion import (
 )
 from lumyn.modules.rendez_vous.gestion import valider_rendez_vous
 from lumyn.modules.rendez_vous.resultat import creer_resultat
-from lumyn.modules.synapse.interpreteur_rendez_vous import interpreter_rendez_vous
+from lumyn.modules.synapse.interpreteur_rendez_vous import (
+    construire_titre_structure,
+    extraire_indices_deterministes,
+    interpreter_rendez_vous,
+)
+
+
+MOTS_VOIE = (
+    r"rue|avenue|boulevard|route|impasse|all[eé]e|place|chemin|quai|cours|"
+    r"lotissement|passage|square|voie"
+)
+
+
+def _adresse_manuelle_suffisante(texte):
+    """Une ville ou un « cabinet » seul ne constitue pas une adresse."""
+    valeur = normaliser_recherche(texte)
+    return bool(
+        re.search(rf"\b\d{{1,5}}\s+(?:{MOTS_VOIE})\b", valeur)
+        and (re.search(r"\b\d{5}\b", valeur) or ',' in str(texte or ''))
+    )
 
 
 def _contient(texte, terme):
@@ -39,11 +58,17 @@ def _adresse_explicite(lieu, explicite):
             or _contient(normaliser_recherche(a.get('libelle')), cle)]
 
 
-def preparer_rendez_vous_synapse(texte, lieux=None):
+def preparer_rendez_vous_synapse(texte, lieux=None, *, indices_locaux=None):
     """Prépare un résumé validable ; n'écrit rien et ne contacte pas Google."""
     if not texte.strip():
         return creer_resultat('vide', "Écris d'abord un rendez-vous.")
     interpretation = interpreter_rendez_vous(texte)
+    indices_deterministes = extraire_indices_deterministes(texte)
+    indices_enrichis = dict(indices_deterministes)
+    for cle, valeur in (indices_locaux or {}).items():
+        if valeur:
+            indices_enrichis[cle] = valeur
+    indices_locaux = indices_enrichis
     rdv = deepcopy(interpretation['rendez_vous'])
     ambiguities = list(interpretation['ambiguities'])
     # Les erreurs de date/heure restent bloquantes avant toute résolution.
@@ -56,6 +81,33 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
     mode = interpretation['mode']
     explicite = interpretation['lieu_explicite']
     candidats = _candidats(interpretation['titre'], lieux)
+    candidats_par_ia = []
+    if not candidats:
+        recherche_ia = ' '.join(str(indices_locaux.get(c) or '') for c in (
+            'personne', 'etablissement', 'profession'))
+        candidats_par_ia = _candidats(recherche_ia, lieux) if recherche_ia.strip() else []
+        candidats = candidats_par_ia
+    resolution_locale_ambigue = len(candidats) > 1 and bool(indices_locaux)
+    if len(candidats) == 1 and indices_locaux.get('ville'):
+        ville = normaliser_recherche(indices_locaux['ville'])
+        adresses_ville = [a for a in candidats[0].get('adresses', [])
+                          if _contient(normaliser_recherche(a.get('adresse')), ville)]
+        if len(adresses_ville) == 1:
+            explicite = adresses_ville[0]['adresse']
+            interpretation['lieu_explicite'] = explicite
+        elif len(adresses_ville) > 1:
+            ambiguities.append(
+                'Plusieurs adresses du Carnet correspondent à '
+                + indices_locaux['ville']
+                + ' pour ' + candidats[0]['nom']
+                + '. Précise laquelle utiliser : '
+                + ' ; '.join(a['adresse'] for a in adresses_ville) + '.'
+            )
+    nom_canonique = candidats[0]['nom'] if len(candidats) == 1 else None
+    titre_structure = construire_titre_structure(
+        indices_locaux, nom_canonique=nom_canonique)
+    if titre_structure and mode not in ('visio', 'domicile', 'telephone'):
+        rdv['titre'] = titre_structure
     fiche = None
     adresse = None
     source = 'saisie' if explicite else None
@@ -86,7 +138,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
         elif len(candidats) > 1:
             ambiguities.append('Plusieurs professionnels correspondent. Précise un nom unique.')
     else:
-        if not explicite and len(candidats) == 1:
+        if not explicite and len(candidats) == 1 and not candidats_par_ia:
             candidat = candidats[0]
             reste = normaliser_recherche(interpretation['titre'])
             termes = termes_lieu(candidat) + [
@@ -104,7 +156,7 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
                 else:
                     ambiguities.append('Précise si « ' + reste + ' » fait partie du titre ou du lieu.')
                     candidats = []
-        if explicite:
+        if explicite and not resolution_locale_ambigue:
             # Un site explicitement nommé prime sur la favorite.
             compatibles = [c for c in candidats if _adresse_explicite(c, explicite)]
             if compatibles:
@@ -126,13 +178,24 @@ def preparer_rendez_vous_synapse(texte, lieux=None):
                 else:
                     rdv['manquants'].append("l'adresse de " + fiche['nom'])
             else:
-                rdv['titre'] = fiche['nom']
+                rdv['titre'] = construire_titre_structure(
+                    indices_locaux, nom_canonique=fiche['nom']) or fiche['nom']
                 rdv['lieu'] = adresse['adresse']
                 source = 'carnet'
         if adresse or explicite:
             mode = 'physique'
     if mode == 'physique' and not rdv.get('lieu'):
-        rdv['manquants'].append('le lieu')
+        manque = ("l'adresse précise"
+                  if indices_locaux.get('etablissement') else 'le lieu')
+        rdv['manquants'].append(manque)
+    if (mode not in ('visio', 'domicile', 'telephone')
+            and source == 'saisie' and rdv.get('lieu')
+            and not _adresse_manuelle_suffisante(rdv['lieu'])):
+        rdv['lieu'] = None
+        source = None
+        manque_adresse = "l'adresse précise" if explicite else 'le lieu'
+        if manque_adresse not in rdv['manquants']:
+            rdv['manquants'].append(manque_adresse)
     suffixes = {'visio':'VISIO', 'domicile':'DOMICILE', 'telephone':'TÉLÉPHONE'}
     if mode in suffixes and rdv['titre']:
         rdv['titre'] += ' — ' + suffixes[mode]

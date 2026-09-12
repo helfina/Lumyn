@@ -45,10 +45,10 @@ MOIS = {
 }
 
 
-def calculer_annee(jour, mois, annee=None):
+def calculer_annee(jour, mois, annee=None, date_reference=None):
     """Choisit l'année indiquée ou la prochaine date future."""
 
-    aujourd_hui = date.today()
+    aujourd_hui = date_reference or date.today()
 
     if annee is not None:
         return annee
@@ -68,7 +68,7 @@ def calculer_annee(jour, mois, annee=None):
 def extraire_heure(texte, rendez_vous):
     """Extrait une heure comme 14h30, 14 h 30 ou 14:30."""
 
-    motif = r"\b\d{1,3}\s*(?:h|:)\s*\d*(?!\w)"
+    motif = r"\b\d{1,3}\s*(?:h(?:eures?)?|:)\s*\d*(?!\w)"
     resultats = list(re.finditer(motif, texte, flags=re.IGNORECASE))
     if not resultats:
         return texte
@@ -77,7 +77,7 @@ def extraire_heure(texte, rendez_vous):
     for resultat in resultats:
         valeur = resultat.group(0).strip()
         valide = re.fullmatch(
-            r"([01]?\d|2[0-3])\s*(?:h(?:\s*([0-5]\d))?|:\s*([0-5]\d))",
+            r"([01]?\d|2[0-3])\s*(?:h(?:eures?)?(?:\s*([0-5]\d))?|:\s*([0-5]\d))",
             valeur, flags=re.IGNORECASE,
         )
         if not valide:
@@ -104,10 +104,10 @@ def extraire_jour_ecrit(texte):
     return None, None
 
 
-def extraire_date_relative(texte, rendez_vous):
+def extraire_date_relative(texte, rendez_vous, date_reference=None):
     """Reconnaît aujourd'hui, demain et après-demain."""
 
-    aujourd_hui = date.today()
+    aujourd_hui = date_reference or date.today()
 
     relatif = re.search(r"\bdans\s+(\d+)\s+jours?\b", texte, re.IGNORECASE)
     if relatif:
@@ -135,7 +135,7 @@ def extraire_date_relative(texte, rendez_vous):
     return texte
 
 
-def extraire_date_numerique(texte, rendez_vous):
+def extraire_date_numerique(texte, rendez_vous, date_reference=None):
     """Reconnaît 18/08, 18-08, 18.08 ou 18/08/2026."""
 
     motif = r"\b(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d{4}))?\b"
@@ -149,7 +149,7 @@ def extraire_date_numerique(texte, rendez_vous):
     annee_ecrite = int(resultat.group(3)) if resultat.group(3) else None
 
     try:
-        annee = calculer_annee(jour, mois, annee_ecrite)
+        annee = calculer_annee(jour, mois, annee_ecrite, date_reference)
         rendez_vous["date"] = date(annee, mois, jour)
     except ValueError:
         rendez_vous["erreurs"].append(
@@ -159,7 +159,7 @@ def extraire_date_numerique(texte, rendez_vous):
     return texte[: resultat.start()] + " " + texte[resultat.end() :]
 
 
-def extraire_date_ecrite(texte, rendez_vous):
+def extraire_date_ecrite(texte, rendez_vous, date_reference=None):
     """Reconnaît une date comme 18 août ou 18 août 2027."""
 
     noms_mois = "|".join(MOIS.keys())
@@ -180,7 +180,7 @@ def extraire_date_ecrite(texte, rendez_vous):
     annee_ecrite = int(resultat.group(3)) if resultat.group(3) else None
 
     try:
-        annee = calculer_annee(jour, mois, annee_ecrite)
+        annee = calculer_annee(jour, mois, annee_ecrite, date_reference)
         rendez_vous["date"] = date(annee, mois, jour)
     except ValueError:
         rendez_vous["erreurs"].append(
@@ -190,10 +190,10 @@ def extraire_date_ecrite(texte, rendez_vous):
     return texte[: resultat.start()] + " " + texte[resultat.end() :]
 
 
-def calculer_date_depuis_jour(numero_jour):
+def calculer_date_depuis_jour(numero_jour, date_reference=None):
     """Calcule la prochaine date correspondant au jour demandé."""
 
-    aujourd_hui = date.today()
+    aujourd_hui = date_reference or date.today()
 
     jours_a_ajouter = (numero_jour - aujourd_hui.weekday()) % 7
 
@@ -204,7 +204,7 @@ def calculer_date_depuis_jour(numero_jour):
     return aujourd_hui + timedelta(days=jours_a_ajouter)
 
 
-def extraire_date(texte, rendez_vous):
+def extraire_date(texte, rendez_vous, date_reference=None):
     """Détermine une date réelle à partir de la phrase."""
 
     jour_ecrit, numero_jour_ecrit = extraire_jour_ecrit(texte)
@@ -213,17 +213,18 @@ def extraire_date(texte, rendez_vous):
         rendez_vous["jour_saisi"] = jour_ecrit.capitalize()
 
     # Priorité à une date précise.
-    texte = extraire_date_numerique(texte, rendez_vous)
+    texte = extraire_date_numerique(texte, rendez_vous, date_reference)
 
     if rendez_vous["date"] is None:
-        texte = extraire_date_ecrite(texte, rendez_vous)
+        texte = extraire_date_ecrite(texte, rendez_vous, date_reference)
 
     if rendez_vous["date"] is None:
-        texte = extraire_date_relative(texte, rendez_vous)
+        texte = extraire_date_relative(texte, rendez_vous, date_reference)
 
     # S'il n'existe aucune autre date, utiliser le jour écrit.
     if rendez_vous["date"] is None and numero_jour_ecrit is not None:
-        rendez_vous["date"] = calculer_date_depuis_jour(numero_jour_ecrit)
+        rendez_vous["date"] = calculer_date_depuis_jour(
+            numero_jour_ecrit, date_reference)
 
     if rendez_vous["date"] is not None:
         jour_calcule = NOMS_JOURS[rendez_vous["date"].weekday()]
@@ -274,14 +275,14 @@ def extraire_titre(texte, rendez_vous):
         rendez_vous["titre"] = texte[:1].upper() + texte[1:]
 
 
-def analyser_rendez_vous(texte):
+def analyser_rendez_vous(texte, *, date_reference=None):
     """Analyse une phrase et retourne un rendez-vous structuré."""
 
     rendez_vous = creer_modele_rendez_vous()
     texte_restant = texte.strip()
 
     texte_restant = extraire_heure(texte_restant, rendez_vous)
-    texte_restant = extraire_date(texte_restant, rendez_vous)
+    texte_restant = extraire_date(texte_restant, rendez_vous, date_reference)
     texte_restant = extraire_lieu(texte_restant, rendez_vous)
     extraire_titre(texte_restant, rendez_vous)
 
