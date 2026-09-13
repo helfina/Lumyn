@@ -377,10 +377,55 @@ Google vers Lumyn, puis reprendre Android/APK/OAuth Android, définir la 0.0.5 e
 enfin les fonctionnalités ultérieures.
 
 Le futur chantier Google vers Lumyn devra détecter les suppressions par
-`google_calendar_id + google_event_id`, considérer uniquement 404/410 comme une
-suppression certaine et ne jamais supprimer localement sur timeout, panne réseau
+`google_calendar_id + google_event_id`, considérer 404/410 comme une
+absence ou inaccessibilité, sans suppression automatique (règle révisée le 13/09) et ne jamais supprimer localement sur timeout, panne réseau
 ou erreur OAuth. Il couvrira aussi le redémarrage, les modifications distantes,
 les conflits et une synchronisation/réconciliation explicite.
 
 Android reste bloqué avant génération par l'environnement JDK : aucun APK,
 manifeste, permission ou OAuth Android natif n'a encore été validé sur appareil.
+
+## Google → Lumyn — 13/09/2026
+
+Chantier courant : `feature/google-vers-lumyn`, depuis
+`e442ebffe4468816ed03141fe43b1baa89266784` (PR #4 Windows fusionnée).
+Version conservée : **0.0.4**. Le crash Windows reste corrigé et validé.
+Validation automatisée actuelle : **480 tests réussis**, dont **83 tests ciblés**
+(synchronisation, interface et reprises Google), sans compte Google réel.
+
+L'action explicite « Synchroniser Google » réconcilie uniquement les rendez-vous
+locaux déjà liés. Aucun polling ni nouvel appel au démarrage. Une référence
+`google_reference` est conservée dans le rendez-vous après écriture Google ou
+rapprochement identique. Titre, date, heure, durée et lieu compatibles peuvent
+être actualisés ; une divergence locale ou une ancienne liaison sans référence
+et différente de Google reste en conflit. Aucun écrasement distant n'est effectué.
+L'écriture locale compare à nouveau le rendez-vous complet sous le verrou existant
+et utilise le remplacement atomique du stockage.
+
+**Règle définitive : 404/410 ciblé signifie absent ou inaccessible, jamais une
+suppression certaine.** Lumyn conserve intégralement le rendez-vous et ses
+identifiants puis propose « Conserver dans Lumyn » et « Supprimer de Lumyn ».
+La conservation est le comportement par défaut. Seul le second choix supprime
+localement, après contrôle de la version examinée ; il ne contacte pas Google.
+Après redémarrage avant décision, relancer la synchronisation pour réafficher le
+choix. Après suppression confirmée, aucune recréation automatique.
+Timeout, OAuth, 401/403/429/5xx, calendrier inaccessible et réponses invalides
+conservent les données. Les erreurs d'un rendez-vous n'empêchent pas les suivants.
+
+Limites : aucun rapprochement de déplacement par titre/date/lieu ; les déplacements
+ambigus restent conservés. Les réponses `cancelled`, récurrences, journées entières
+et heures non représentables sont conservées avec une erreur contrôlée. Les anciens
+rendez-vous divergents exigent une réconciliation manuelle. La synchronisation
+utilise actuellement les appels Google synchrones existants ; l'interface peut
+attendre pendant une requête. La sélection d'un calendrier local ne déclenche pas
+la synchronisation ; le bouton explicite examine toutes les liaisons enregistrées.
+
+Validation native restante (calendrier de test, événements fictifs uniquement) :
+1. Créer un rendez-vous lié depuis Lumyn, modifier son titre/heure dans Google,
+   cliquer « Synchroniser Google » : mise à jour locale unique.
+2. Supprimer ou déplacer cet événement dans Google, relancer : aucune suppression
+   locale automatique. Selon la réponse Google, décision proposée ou erreur conservatrice.
+3. Si une décision est proposée, choisir Conserver, redémarrer et réessayer ; puis
+   choisir Supprimer de Lumyn : disparition locale seule, persistante après redémarrage.
+4. Vérifier le rendu WinForms et les erreurs hors ligne. Aucun essai réel exécuté
+   par Work. Android/APK/OAuth Android et préparation 0.0.5 restent ultérieurs.

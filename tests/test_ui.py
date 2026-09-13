@@ -33,6 +33,58 @@ def test_creation_google_apres_confirmation(interface, monkeypatch):
     creation.assert_called_once()
 
 
+def test_synchronisation_explicite_stockage(interface, monkeypatch):
+    from tests.test_synchronisation_google import enregistrer, service_pour
+    from lumyn.modules.rendez_vous import agenda_google
+    rdv = enregistrer()
+    service, distant = service_pour(rdv)
+    distant["summary"] = "Titre distant"
+    monkeypatch.setattr(agenda_google, "obtenir_service_google_calendar", lambda: service)
+    assert not service.mock_calls
+    interface.synchroniser_depuis_google()
+    assert stockage.charger_rendez_vous()[0]["titre"] == "Titre distant"
+    assert "actualisé" in interface.statut_synchronisation.text
+    assert interface.synchroniser_button.enabled
+    service.events.return_value.insert.assert_not_called()
+
+
+def test_synchronisation_refuse_formulaire_prepare(interface, monkeypatch):
+    sync = Mock()
+    monkeypatch.setattr(ui, "synchroniser_google", sync)
+    interface.rdv_input.value = "CAF demain 10h à 12 rue Test, Lorient"
+    interface.analyser_rendez_vous(None)
+    sync.assert_not_called()
+    interface.synchroniser_depuis_google()
+    sync.assert_not_called()
+
+
+def test_synchronisation_erreur_sans_secret(interface, monkeypatch):
+    monkeypatch.setattr(ui, "synchroniser_google", Mock(side_effect=OSError("secret-test")))
+    interface.synchroniser_depuis_google()
+    assert "secret-test" not in interface.statut_synchronisation.text
+    assert interface.synchroniser_button.enabled
+
+
+@pytest.mark.parametrize("supprimer", [False, True])
+def test_decision_suppression_locale_ui(interface, monkeypatch, supprimer):
+    from tests.test_synchronisation_google import enregistrer, service_pour, erreur_http
+    from lumyn.modules.rendez_vous import agenda_google
+    rdv = enregistrer()
+    service, _ = service_pour(rdv)
+    service.events.return_value.get.return_value.execute.side_effect = erreur_http(404)
+    monkeypatch.setattr(agenda_google, "obtenir_service_google_calendar", lambda: service)
+    interface.synchroniser_depuis_google()
+    assert stockage.charger_rendez_vous() == [rdv]
+    zone = interface.decisions_synchronisation.children[0]
+    bouton = zone.children[2 if supprimer else 1]
+    bouton.on_press()
+    assert stockage.charger_rendez_vous() == ([] if supprimer else [rdv])
+    bouton.on_press()
+    assert stockage.charger_rendez_vous() == ([] if supprimer else [rdv])
+    service.events.return_value.insert.assert_not_called()
+    service.events.return_value.delete.assert_not_called()
+
+
 def test_saisie_changee_invalide_confirmation(interface, monkeypatch):
     creation=Mock(return_value={'id':'google-1'})
     monkeypatch.setattr(ui,'creer_evenement_google',creation)
