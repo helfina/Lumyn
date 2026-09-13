@@ -1939,6 +1939,9 @@ class InterfaceRendezVous:
             )
 
         # Mise à jour locale immédiate.
+        self.statut_synchronisation.text = ""
+        self.decisions_synchronisation.clear()
+
         self.actualiser_liste_rendez_vous()
 
         # Mise à jour immédiate du calendrier.

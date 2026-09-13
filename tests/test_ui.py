@@ -197,3 +197,14 @@ def test_suppression_google_reussie_et_echec(interface, monkeypatch):
     suppression.side_effect=None
     interface._supprimer_rendez_vous_lie(rdv)
     assert stockage.charger_rendez_vous()==[]
+
+def test_suppression_ui_efface_ancien_statut_synchronisation(interface):
+    rdv = stockage.enregistrer_rendez_vous({"titre": "TEST"})
+    interface.statut_synchronisation.text = "ancien statut"
+    interface.decisions_synchronisation.add(toga.Label("ancienne décision"))
+
+    bouton = Mock()
+    interface.supprimer_rendez_vous_ui(bouton, rdv)
+
+    assert interface.statut_synchronisation.text == ""
+    assert len(interface.decisions_synchronisation.children) == 0
