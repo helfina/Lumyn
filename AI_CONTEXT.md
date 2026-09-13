@@ -5,8 +5,9 @@
 Chantier courant : `feature/google-vers-lumyn`, depuis
 `e442ebffe4468816ed03141fe43b1baa89266784` (PR #4 Windows fusionnée).
 Version conservée : **0.0.4**. Le crash Windows reste corrigé et validé.
-Validation automatisée actuelle : **480 tests réussis**, dont **83 tests ciblés**
-(synchronisation, interface et reprises Google), sans compte Google réel.
+Validation automatisée actuelle : **481 tests réussis**, dont **83 tests ciblés**
+(synchronisation, interface et reprises Google). Les tests restent sans compte
+Google réel ; la validation native ci-dessous a été effectuée séparément.
 
 L'action explicite « Synchroniser Google » réconcilie uniquement les rendez-vous
 locaux déjà liés. Aucun polling ni nouvel appel au démarrage. Une référence
@@ -35,15 +36,24 @@ utilise actuellement les appels Google synchrones existants ; l'interface peut
 attendre pendant une requête. La sélection d'un calendrier local ne déclenche pas
 la synchronisation ; le bouton explicite examine toutes les liaisons enregistrées.
 
-Validation native restante (calendrier de test, événements fictifs uniquement) :
-1. Créer un rendez-vous lié depuis Lumyn, modifier son titre/heure dans Google,
-   cliquer « Synchroniser Google » : mise à jour locale unique.
-2. Supprimer ou déplacer cet événement dans Google, relancer : aucune suppression
-   locale automatique. Selon la réponse Google, décision proposée ou erreur conservatrice.
-3. Si une décision est proposée, choisir Conserver, redémarrer et réessayer ; puis
-   choisir Supprimer de Lumyn : disparition locale seule, persistante après redémarrage.
-4. Vérifier le rendu WinForms et les erreurs hors ligne. Aucun essai réel exécuté
-   par Work. Android/APK/OAuth Android et préparation 0.0.5 restent ultérieurs.
+### Validation réelle Windows et Google Calendar — 13/09/2026
+
+- `briefcase dev` : démarrage Windows réussi.
+- Rendez-vous fictif créé depuis Lumyn : présent dans Lumyn et Google Calendar.
+- Modifications Google seules (heure 18h → 18h30, puis titre) : reprises dans
+  Lumyn après « Synchroniser Google ».
+- Disparition de l'événement côté Google : rendez-vous local conservé avec le
+  statut « non synchronisé : conservé, réessayer » ; conservation confirmée après
+  fermeture, redémarrage et nouvelle synchronisation.
+- Suppression manuelle du rendez-vous depuis Lumyn : suppression locale réussie
+  et aucune réapparition après redémarrage.
+- Le défaut d'interface qui laissait ce statut après suppression a été corrigé au
+  commit `691d89e` et couvert par une régression UI.
+
+Le cas HTTP 404/410 qui affiche « Conserver dans Lumyn » / « Supprimer de Lumyn »
+n'a pas été produit naturellement par Google pendant cet essai. Il reste couvert
+par les tests automatisés ; le comportement réel observé est resté non destructif.
+Android/APK/OAuth Android et préparation 0.0.5 restent ultérieurs.
 
 
 ## État courant — correctif Windows validé — 12/09/2026
@@ -63,13 +73,13 @@ annulation du délai à la sortie. Sa portée est Windows, Python 3.13+ et
 investigation de ce crash sauf régression démontrée. Le `proactor.py` de `.briefcase`
 reste original et non modifié manuellement.
 
-Suite de travail : finaliser proprement Windows/documentation, effectuer uniquement
-les validations natives restantes, ouvrir un chantier distinct Google vers Lumyn,
-reprendre Android/APK/OAuth Android, définir la 0.0.5, puis les fonctionnalités
-ultérieures. Le chantier Google devra identifier les suppressions par
-`google_calendar_id + google_event_id` ; 404/410 exigent une décision explicite, sans suppression automatique.
-Timeout, réseau et OAuth ne suppriment jamais localement. Couvrir aussi
-modifications distantes, conflits, redémarrage et réconciliation explicite.
+Suite de travail : la PR #5 Google → Lumyn est en brouillon et validée en réel le
+13/09/2026 pour les modifications compatibles et la conservation après disparition.
+Ne reprendre ce chantier que pour une régression ou une validation manuelle du
+rendu 404/410 : ces réponses exigent une décision explicite, sans suppression
+automatique ; timeout, réseau et OAuth ne suppriment jamais localement. Reprendre
+ensuite Android/APK/OAuth Android, définir la 0.0.5, puis les fonctionnalités
+ultérieures.
 
 Android : aucun APK validé ; la génération a été bloquée par l'environnement JDK.
 Manifeste, permissions et OAuth Android natif restent à valider sur appareil.
