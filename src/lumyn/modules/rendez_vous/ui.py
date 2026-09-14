@@ -13,6 +13,9 @@ les lie à partir de ce moment.
 
 import toga
 from lumyn.modules.rendez_vous.reprise_google import terminer_creation
+from lumyn.modules.rendez_vous.synchronisation_google import (
+    memoriser_reference, synchroniser_google, decider_suppression,
+)
 
 from toga.style.pack import COLUMN, ROW, Pack
 
@@ -145,6 +148,12 @@ class InterfaceRendezVous:
         self._charger_calendriers_google()
         self._construire_creation()
         self._construire_liste_locale()
+        self.synchroniser_button = toga.Button(
+            "Synchroniser Google", on_press=self.synchroniser_depuis_google)
+        self.statut_synchronisation = toga.Label("")
+        self.decisions_synchronisation = toga.Box(style=Pack(direction=COLUMN))
+        self.main_box.add(self.synchroniser_button, self.statut_synchronisation,
+                          self.decisions_synchronisation)
         self._construire_agenda()
 
         self.actualiser_liste_rendez_vous()
@@ -667,6 +676,58 @@ class InterfaceRendezVous:
             creer_calendrier_mensuel()
         )
 
+    def synchroniser_depuis_google(self, widget=None):
+        """Lecture distante explicite ; aucun appel depuis Analyser ou startup."""
+        if not self.synchroniser_button.enabled:
+            return
+        if self.rendez_vous_en_modification or self.resultat_courant:
+            self.statut_synchronisation.text = "Termine ou annule la saisie avant de synchroniser."
+            return
+        self.synchroniser_button.enabled = False
+        self.decisions_synchronisation.clear()
+        try:
+            resultats = synchroniser_google()
+            self.actualiser_liste_rendez_vous()
+            libelles = {"inchange": "inchangé", "actualise": "actualisé",
+                        "decision_requise": "événement absent ou inaccessible : décision requise",
+                        "conflit": "conflit : conservé, vérifier Google et Lumyn",
+                        "erreur": "non synchronisé : conservé, réessayer"}
+            self.statut_synchronisation.text = "\n".join(
+                f"{r['id']} : {libelles[r['etat']]}" for r in resultats
+            ) or "Aucun rendez-vous lié à synchroniser."
+            for resultat in resultats:
+                if resultat["etat"] == "decision_requise":
+                    self._proposer_decision_synchronisation(resultat)
+        except Exception:
+            self.statut_synchronisation.text = "Synchronisation interrompue. Vérifie le stockage puis réessaie."
+        finally:
+            self.synchroniser_button.enabled = True
+
+    def _proposer_decision_synchronisation(self, resultat):
+        zone = toga.Box(style=Pack(direction=COLUMN))
+        zone.add(toga.Label(
+            f"{resultat['instantane'].get('titre', 'Rendez-vous')} : cet événement "
+            "n'est plus accessible dans Google Calendar. Il a peut-être été supprimé "
+            "ou déplacé. Supprimer également le rendez-vous dans Lumyn ?"))
+
+        def decider(supprimer):
+            if zone not in self.decisions_synchronisation.children:
+                return
+            etat = decider_suppression(resultat, supprimer=supprimer)
+            self.statut_synchronisation.text = {
+                "conserve": "Rendez-vous conservé. Vous pouvez réessayer la synchronisation.",
+                "supprime": "Rendez-vous supprimé de Lumyn uniquement.",
+                "conflit": "Le rendez-vous a changé. Relancez la synchronisation.",
+                "erreur": "Échec local : rendez-vous conservé, réessayez.",
+            }[etat]
+            if etat != "erreur":
+                self.decisions_synchronisation.remove(zone)
+            self.actualiser_liste_rendez_vous()
+
+        zone.add(toga.Button("Conserver dans Lumyn", on_press=lambda widget: decider(False)),
+                 toga.Button("Supprimer de Lumyn", on_press=lambda widget: decider(True)))
+        self.decisions_synchronisation.add(zone)
+
     # =========================================================
     # OUTILS DE LIAISON LOCAL <-> GOOGLE
     # =========================================================
@@ -710,6 +771,7 @@ class InterfaceRendezVous:
             DUREE_PAR_DEFAUT_MINUTES,
         )
 
+        memoriser_reference(rendez_vous)
         return rendez_vous
 
     def _rendez_vous_local_par_id(
@@ -1877,6 +1939,9 @@ class InterfaceRendezVous:
             )
 
         # Mise à jour locale immédiate.
+        self.statut_synchronisation.text = ""
+        self.decisions_synchronisation.clear()
+
         self.actualiser_liste_rendez_vous()
 
         # Mise à jour immédiate du calendrier.
